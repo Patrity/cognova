@@ -1,0 +1,18 @@
+services:
+  second-brain:
+    build: .
+    container_name: second-brain
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Vault directory
+      - ${VAULT_PATH:-~/vault}:/vault:rw
+      # Claude Code config (for skills, settings)
+      - ${HOME}/.claude:/home/node/.claude:rw
+      - ${HOME}/.anthropic:/home/node/.anthropic:ro
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - VAULT_PATH=/vault
+      - GOTIFY_URL=${GOTIFY_URL}
+      - GOTIFY_TOKEN=${GOTIFY_TOKEN}
