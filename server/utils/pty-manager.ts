@@ -71,7 +71,7 @@ export function getPtySession(sessionId: string): PtySession | undefined {
   return session
 }
 
-export function getOrCreatePtySession(sessionId: string, cols = 80, rows = 24): { pty: IPty; isNew: boolean } {
+export function getOrCreatePtySession(sessionId: string, cols = 80, rows = 24): { pty: IPty, isNew: boolean } {
   const existing = sessions.get(sessionId)
   if (existing) {
     existing.lastActivity = Date.now()

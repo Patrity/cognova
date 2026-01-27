@@ -201,7 +201,10 @@ onUnmounted(() => {
             />
           </div>
         </div>
-        <div ref="terminalRef" class="flex-1 p-1 bg-[#1a1a1a]" />
+        <div
+          ref="terminalRef"
+          class="flex-1 p-1 bg-[#1a1a1a]"
+        />
       </div>
     </Transition>
   </div>

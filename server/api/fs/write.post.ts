@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
         created
       }
     }
-  } catch (error: unknown) {
+  } catch {
     throw createError({
       statusCode: 500,
       message: 'Failed to write file'

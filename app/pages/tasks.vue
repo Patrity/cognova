@@ -5,11 +5,17 @@ definePageMeta({
 </script>
 
 <template>
-  <UDashboardPanel id="tasks" grow>
+  <UDashboardPanel
+    id="tasks"
+    grow
+  >
     <template #header>
       <UDashboardNavbar title="Tasks">
         <template #actions>
-          <UButton icon="i-lucide-plus" label="Add Task" />
+          <UButton
+            icon="i-lucide-plus"
+            label="Add Task"
+          />
           <UColorModeButton />
         </template>
       </UDashboardNavbar>
@@ -43,9 +49,14 @@ definePageMeta({
 
         <UCard>
           <div class="text-center py-8 text-muted">
-            <UIcon name="i-lucide-check-square" class="size-12 mx-auto mb-2 opacity-50" />
+            <UIcon
+              name="i-lucide-check-square"
+              class="size-12 mx-auto mb-2 opacity-50"
+            />
             <p>No tasks yet.</p>
-            <p class="text-sm">Create your first task with the "Add Task" button.</p>
+            <p class="text-sm">
+              Create your first task with the "Add Task" button.
+            </p>
           </div>
         </UCard>
       </div>

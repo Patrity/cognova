@@ -3,7 +3,6 @@ import {
   getOutputBuffer,
   resizePty,
   writeToPty,
-  destroyPtySession,
   getPtySession
 } from '../utils/pty-manager'
 
@@ -23,7 +22,7 @@ export default defineWebSocketHandler({
     console.log(`Terminal WebSocket opened: ${peer.id}`)
 
     try {
-      const { pty, isNew } = getOrCreatePtySession(sessionId, cols, rows)
+      const { isNew } = getOrCreatePtySession(sessionId, cols, rows)
 
       // If reconnecting, replay buffer
       if (!isNew) {

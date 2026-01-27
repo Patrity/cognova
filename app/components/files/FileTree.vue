@@ -200,14 +200,28 @@ onMounted(() => {
       class="flex-1 h-full overflow-auto p-2"
       @contextmenu="contextMenuTarget = null"
     >
-      <div v-if="loading" class="flex items-center justify-center py-8">
-        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-dimmed" />
+      <div
+        v-if="loading"
+        class="flex items-center justify-center py-8"
+      >
+        <UIcon
+          name="i-lucide-loader-2"
+          class="size-6 animate-spin text-dimmed"
+        />
       </div>
 
-      <div v-else-if="filteredItems.length === 0" class="h-full min-h-32 flex flex-col items-center justify-center text-dimmed text-sm">
-        <UIcon name="i-lucide-folder-open" class="size-8 mx-auto mb-2 opacity-50" />
+      <div
+        v-else-if="filteredItems.length === 0"
+        class="h-full min-h-32 flex flex-col items-center justify-center text-dimmed text-sm"
+      >
+        <UIcon
+          name="i-lucide-folder-open"
+          class="size-8 mx-auto mb-2 opacity-50"
+        />
         <p>No files found</p>
-        <p class="text-xs mt-1">Right-click to create a file</p>
+        <p class="text-xs mt-1">
+          Right-click to create a file
+        </p>
       </div>
 
       <UTree
@@ -260,7 +274,10 @@ onMounted(() => {
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-file-plus" class="size-5" />
+              <UIcon
+                name="i-lucide-file-plus"
+                class="size-5"
+              />
               <span class="font-semibold">New File</span>
             </div>
           </template>
@@ -296,7 +313,10 @@ onMounted(() => {
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-folder-plus" class="size-5" />
+              <UIcon
+                name="i-lucide-folder-plus"
+                class="size-5"
+              />
               <span class="font-semibold">New Folder</span>
             </div>
           </template>
@@ -332,7 +352,10 @@ onMounted(() => {
         <UCard>
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-lucide-pencil" class="size-5" />
+              <UIcon
+                name="i-lucide-pencil"
+                class="size-5"
+              />
               <span class="font-semibold">Rename</span>
             </div>
           </template>
@@ -368,7 +391,10 @@ onMounted(() => {
         <UCard>
           <template #header>
             <div class="flex items-center gap-2 text-error">
-              <UIcon name="i-lucide-trash-2" class="size-5" />
+              <UIcon
+                name="i-lucide-trash-2"
+                class="size-5"
+              />
               <span class="font-semibold">Delete</span>
             </div>
           </template>
@@ -377,7 +403,10 @@ onMounted(() => {
             Are you sure you want to delete
             <strong>{{ contextMenuTarget?.label }}</strong>?
           </p>
-          <p v-if="contextMenuTarget?.type === 'directory'" class="text-sm text-dimmed mt-1">
+          <p
+            v-if="contextMenuTarget?.type === 'directory'"
+            class="text-sm text-dimmed mt-1"
+          >
             This will delete all files and folders inside.
           </p>
 

@@ -82,7 +82,7 @@ export function useFileTree() {
 
   async function readFile(path: string) {
     try {
-      const response = await $fetch<{ data: { content: string; path: string; modifiedAt: string } }>('/api/fs/read', {
+      const response = await $fetch<{ data: { content: string, path: string, modifiedAt: string } }>('/api/fs/read', {
         method: 'POST',
         body: { path }
       })
@@ -95,7 +95,7 @@ export function useFileTree() {
 
   async function writeFile(path: string, content: string) {
     try {
-      const response = await $fetch<{ data: { path: string; created: boolean } }>('/api/fs/write', {
+      const response = await $fetch<{ data: { path: string, created: boolean } }>('/api/fs/write', {
         method: 'POST',
         body: { path, content }
       })
@@ -164,7 +164,7 @@ export function useFileTree() {
 
   async function moveItem(sourcePath: string, destinationPath: string) {
     try {
-      const response = await $fetch<{ data: { oldPath: string; newPath: string; moved: boolean } }>('/api/fs/move', {
+      const response = await $fetch<{ data: { oldPath: string, newPath: string, moved: boolean } }>('/api/fs/move', {
         method: 'POST',
         body: { sourcePath, destinationPath }
       })

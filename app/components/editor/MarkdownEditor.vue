@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
-  save: []
+  'save': []
 }>()
 
 const toolbarItems: EditorToolbarItem[][] = [
@@ -94,10 +94,16 @@ onUnmounted(() => {
   <div class="h-full flex flex-col">
     <div class="border-b border-default px-4 py-2 flex items-center justify-between">
       <div class="flex items-center gap-2 text-sm text-dimmed min-w-0">
-        <UIcon name="i-lucide-file-text" class="size-4 shrink-0" />
+        <UIcon
+          name="i-lucide-file-text"
+          class="size-4 shrink-0"
+        />
         <span class="truncate">{{ filePath || 'No file selected' }}</span>
       </div>
-      <div v-if="saveStatusIcon" class="flex items-center gap-1 text-sm text-dimmed">
+      <div
+        v-if="saveStatusIcon"
+        class="flex items-center gap-1 text-sm text-dimmed"
+      >
         <UIcon
           :name="saveStatusIcon"
           :class="[

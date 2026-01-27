@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const route = useRoute()
 const open = ref(false)
 
 const links = [[{
@@ -46,8 +45,14 @@ const groups = computed(() => [{
     >
       <template #header="{ collapsed }">
         <div class="flex items-center gap-2 px-2 py-1.5">
-          <UIcon name="i-lucide-brain" class="size-6 text-primary shrink-0" />
-          <span v-if="!collapsed" class="font-semibold text-lg">Brain</span>
+          <UIcon
+            name="i-lucide-brain"
+            class="size-6 text-primary shrink-0"
+          />
+          <span
+            v-if="!collapsed"
+            class="font-semibold text-lg"
+          >Brain</span>
         </div>
       </template>
 
@@ -68,7 +73,10 @@ const groups = computed(() => [{
             alt="User"
             size="sm"
           />
-          <span v-if="!collapsed" class="text-sm truncate">User</span>
+          <span
+            v-if="!collapsed"
+            class="text-sm truncate"
+          >User</span>
         </div>
       </template>
     </UDashboardSidebar>
