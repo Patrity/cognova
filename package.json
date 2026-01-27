@@ -8,32 +8,44 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:up": "docker compose --profile local up -d db",
+    "db:down": "docker compose --profile local down",
+    "docker:up": "./scripts/docker-up.sh -d",
+    "docker:down": "docker compose --profile local down"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.82",
     "@iconify-json/simple-icons": "^1.2.63",
     "@nuxt/ui": "^4.3.0",
-    "tailwindcss": "^4.0.0",
     "@vueuse/integrations": "^14.1.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-web-links": "^0.12.0",
     "@xterm/xterm": "^6.0.0",
+    "drizzle-orm": "^0.45.1",
     "node-pty": "^1.1.0",
     "nuxt": "^4.2.2",
-    "sortablejs": "^1.15.6"
+    "postgres": "^3.4.8",
+    "sortablejs": "^1.15.6",
+    "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.12.1",
     "@types/node": "^25.0.8",
     "@types/sortablejs": "^1.15.9",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.1"
   },
   "packageManager": "pnpm@10.26.1",
   "pnpm": {
-    "onlyBuiltDependencies": ["node-pty"]
+    "onlyBuiltDependencies": [
+      "node-pty"
+    ]
   }
 }
-

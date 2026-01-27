@@ -28,7 +28,7 @@ This is an opinionated tool built for my workflow, but open-sourced in case othe
 | UI | [Nuxt UI v4](https://ui.nuxt.com) |
 | Editor | TipTap (via UEditor) |
 | Terminal | xterm.js + node-pty |
-| Database | [Neon](https://neon.tech) (PostgreSQL) |
+| Database | PostgreSQL (local Docker or [Neon](https://neon.tech)) |
 | AI | [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) |
 
 ## Quick Start
@@ -58,14 +58,31 @@ pnpm dev
 
 Visit `http://localhost:3000`
 
+#### With Local PostgreSQL
+
+```bash
+# Start postgres container
+pnpm db:up
+
+# Run dev server
+pnpm dev
+
+# Stop postgres when done
+pnpm db:down
+```
+
 ### Docker
 
 ```bash
 # Copy and configure environment
 cp .env.example .env
 
-# Build and run
-docker-compose up -d
+# Build and run (auto-detects local vs Neon)
+pnpm docker:up
+
+# Or manually:
+# Local postgres: docker compose --profile local up -d
+# Neon: docker compose up -d
 ```
 
 The container:
@@ -101,7 +118,7 @@ services:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `VAULT_PATH` | Yes | Path to your markdown vault |
-| `DATABASE_URL` | No | Neon PostgreSQL URL (for tasks) |
+| `DATABASE_URL` | No | PostgreSQL URL - local (`localhost:5432`) or Neon |
 | `GOTIFY_URL` | No | Gotify server for notifications |
 | `GOTIFY_TOKEN` | No | Gotify app token |
 
@@ -150,8 +167,6 @@ second-brain/
 | Document | Description |
 |----------|-------------|
 | [architecture.md](./docs/architecture.md) | System design and components |
-| [data-models.md](./docs/data-models.md) | Database schema |
-| [api.md](./docs/api.md) | REST and WebSocket API |
 | [ui-wireframes.md](./docs/ui-wireframes.md) | Interface layouts |
 
 ## Status

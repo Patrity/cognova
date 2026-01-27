@@ -12,7 +12,34 @@ services:
       - ${HOME}/.claude:/home/node/.claude:rw
       - ${HOME}/.anthropic:/home/node/.anthropic:ro
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/second_brain}
       - VAULT_PATH=/vault
       - GOTIFY_URL=${GOTIFY_URL}
       - GOTIFY_TOKEN=${GOTIFY_TOKEN}
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  db:
+    image: postgres:16-alpine
+    container_name: second-brain-db
+    restart: unless-stopped
+    profiles:
+      - local
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: second_brain
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

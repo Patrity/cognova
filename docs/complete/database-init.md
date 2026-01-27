@@ -46,10 +46,16 @@ pnpm add -D drizzle-kit
 ├── db/
 │   ├── index.ts           # Database client
 │   ├── schema.ts          # Drizzle schema definitions
-│   └── migrate.ts         # Migration runner
+│   ├── migrate.ts         # Migration runner
+│   └── types.ts           # Inferred TypeScript types
 ├── drizzle/
 │   └── migrations/        # Generated SQL migrations
-└── drizzle.config.ts      # Drizzle Kit config
+├── utils/
+│   ├── db-state.ts        # Database availability tracking
+│   └── db-guard.ts        # Route protection helper
+├── plugins/
+│   └── 01.database.ts     # Startup initialization
+└── drizzle.config.ts      # Drizzle Kit config (project root)
 ```
 
 ### Schema Definition
@@ -81,7 +87,6 @@ export const reminders = pgTable('reminders', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
-// Future: AI conversation history
 export const conversations = pgTable('conversations', {
   id: uuid('id').primaryKey().defaultRandom(),
   sessionId: text('session_id').notNull().unique(),
@@ -90,8 +95,6 @@ export const conversations = pgTable('conversations', {
   endedAt: timestamp('ended_at', { withTimezone: true }),
   messageCount: integer('message_count').default(0)
 })
-
-// Future: Auth tables (managed by BetterAuth)
 ```
 
 ### Database Client
@@ -178,9 +181,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    # Only expose for local development, not in production
     profiles:
-      - dev
+      - local
     ports:
       - "5432:5432"
 
@@ -193,7 +195,7 @@ volumes:
 ### Nitro Plugin
 
 ```typescript
-// server/plugins/database.ts
+// server/plugins/01.database.ts
 import { runMigrations } from '../db/migrate'
 
 export default defineNitroPlugin(async () => {
@@ -220,7 +222,11 @@ When `DATABASE_URL` is not set:
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:up": "docker compose --profile local up -d db",
+    "db:down": "docker compose --profile local down",
+    "docker:up": "./scripts/docker-up.sh -d",
+    "docker:down": "docker compose --profile local down"
   }
 }
 ```
@@ -240,21 +246,62 @@ DATABASE_URL=postgres://postgres:pass@db.xxx.supabase.co:5432/postgres
 
 ## Implementation Steps
 
-1. [ ] Install Drizzle dependencies
-2. [ ] Create schema definition
-3. [ ] Create database client
-4. [ ] Set up Drizzle config
-5. [ ] Generate initial migration
-6. [ ] Create migration runner
-7. [ ] Add Nitro plugin for startup migration
-8. [ ] Update docker-compose with postgres service
-9. [ ] Test with local postgres
-10. [ ] Test with Neon (external)
-11. [ ] Add graceful degradation when no DB
-12. [ ] Update .env.example
+1. [x] Install Drizzle dependencies
+2. [x] Create schema definition
+3. [x] Create database client
+4. [x] Set up Drizzle config
+5. [x] Generate initial migration
+6. [x] Create migration runner
+7. [x] Add Nitro plugin for startup migration
+8. [x] Update docker-compose with postgres service
+9. [x] Test with local postgres
+10. [x] Test with Neon (external)
+11. [x] Add graceful degradation when no DB
+12. [x] Update .env.example
 
 ## Dependencies
 
 - Requires: None (foundation)
 - Blocks: auth, task-skill, ai-history, search
 - Related: notifications (needs db for reminders)
+
+---
+
+## Completion Notes
+
+**Completed:** 2026-01-27
+
+### What Was Implemented
+
+- Drizzle ORM with `postgres` driver (works for both local and Neon)
+- PostgreSQL advisory locks for race-safe migrations (`pg_try_advisory_lock`)
+- SSL auto-detection based on DATABASE_URL (Neon = require, local = false)
+- Docker Compose with `--profile local` for optional postgres service
+- Smart `pnpm docker:up` script that auto-detects local vs remote
+- Health endpoint with database status (`/api/health`)
+- Graceful degradation when DATABASE_URL not set
+
+### Changes from Original Plan
+
+| Planned | Implemented | Reason |
+|---------|-------------|--------|
+| Simple migration runner | Advisory lock migration | Prevents race conditions in multi-instance deployments |
+| Basic db client | SSL auto-detection + connection pooling | Neon requires SSL, local doesn't |
+| `profiles: [dev]` | `profiles: [local]` | Clearer naming |
+| Manual docker commands | `pnpm docker:up` wrapper script | Auto-detects DATABASE_URL and starts postgres only when needed |
+| N/A | `server/utils/db-state.ts` | Added for tracking DB availability across the app |
+| N/A | `server/utils/db-guard.ts` | Added for route protection |
+| N/A | Health endpoint `deployment` field | Shows "local" vs "remote" for debugging |
+
+### Files Created
+
+- `drizzle.config.ts`
+- `server/db/schema.ts`
+- `server/db/index.ts`
+- `server/db/migrate.ts`
+- `server/db/types.ts`
+- `server/utils/db-state.ts`
+- `server/utils/db-guard.ts`
+- `server/plugins/01.database.ts`
+- `server/drizzle/migrations/0000_brown_george_stacy.sql`
+- `scripts/docker-up.sh`
