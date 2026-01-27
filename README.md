@@ -42,7 +42,7 @@ This is an opinionated tool built for my workflow, but open-sourced in case othe
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/second-brain.git
+git clone https://github.com/patrity/second-brain.git
 cd second-brain
 
 # Install dependencies
@@ -114,6 +114,20 @@ This app is designed to sit behind a reverse proxy with authentication. It does 
 - **Coolify** - Connect repo, set env vars, deploy
 - **Docker host** - `docker-compose up -d`
 - **Bare metal** - `pnpm build && node .output/server/index.mjs`
+
+## Security Warning
+
+**This application provides full shell access through an embedded terminal.** Anyone with access to the web interface can execute arbitrary commands on your server.
+
+Before deploying:
+
+- **Never expose this directly to the internet** without authentication
+- Use a reverse proxy with authentication (Nginx + basic auth, Cloudflare Access, Authelia, etc.)
+- Consider running on a private network or VPN only
+- The container mounts your vault directory with read/write access
+- Claude Code, when authenticated, has access to your Anthropic API key and can make API calls
+
+This is a power-user tool designed for personal use on trusted networks. If you don't understand the security implications of running a web-accessible terminal, this project may not be for you.
 
 ## Project Structure
 
