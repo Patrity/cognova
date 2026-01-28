@@ -28,10 +28,10 @@ watchEffect(() => {
   if (isAuthenticated.value) navigateTo('/')
 })
 
-async function handleSubmit(data: { email: string, password: string }) {
+async function handleSubmit(event: { data: { email: string, password: string } }) {
   loading.value = true
 
-  const result = await login(data.email, data.password)
+  const result = await login(event.data.email, event.data.password)
 
   if (result.error) {
     toast.add({
