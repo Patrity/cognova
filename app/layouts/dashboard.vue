@@ -59,6 +59,27 @@ const links = [[{
       </template>
 
       <template #default="{ collapsed }">
+        <ClientOnly>
+          <UDashboardSearchButton :collapsed="collapsed" />
+          <template #fallback>
+            <UButton
+              :label="collapsed ? undefined : 'Search...'"
+              icon="i-lucide-search"
+              color="neutral"
+              variant="ghost"
+              class="w-full justify-start"
+              :ui="{ trailingIcon: 'ms-auto' }"
+            >
+              <template
+                v-if="!collapsed"
+                #trailing
+              >
+                <UKbd>⌘K</UKbd>
+              </template>
+            </UButton>
+          </template>
+        </ClientOnly>
+
         <UNavigationMenu
           :collapsed="collapsed"
           :items="links[0]"
@@ -108,10 +129,20 @@ const links = [[{
       </template>
     </UDashboardSidebar>
 
+    <ClientOnly>
+      <SearchDashboardSearch />
+      <template #fallback>
+        <span />
+      </template>
+    </ClientOnly>
+
     <slot />
 
     <ClientOnly>
       <TerminalPopover />
+      <template #fallback>
+        <span />
+      </template>
     </ClientOnly>
   </UDashboardGroup>
 </template>

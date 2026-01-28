@@ -6,8 +6,9 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const route = useRoute()
 const toast = useToast()
-const { filteredTasks, loading, filters, taskCounts, fetchTasks, createTask, updateTask, deleteTask, toggleComplete } = useTasks()
+const { filteredTasks, tasks, loading, filters, taskCounts, fetchTasks, createTask, updateTask, deleteTask, toggleComplete } = useTasks()
 const { projects, fetchProjects } = useProjects()
 
 // Slideover state
@@ -152,6 +153,27 @@ async function handleToggle(id: string) {
     })
   }
 }
+
+// Handle selected query param from search
+watch([() => route.query.selected, tasks], ([selectedId, taskList]) => {
+  if (selectedId && taskList.length > 0) {
+    const task = taskList.find(t => t.id === selectedId)
+    if (task) {
+      selectedTask.value = task
+      showDetailModal.value = true
+      // Clear the query param to avoid reopening on navigation
+      navigateTo('/tasks', { replace: true })
+    }
+  }
+}, { immediate: true })
+
+// Handle action query param (for creating new task)
+watch(() => route.query.action, (action) => {
+  if (action === 'new') {
+    openNewTaskForm()
+    navigateTo('/tasks', { replace: true })
+  }
+}, { immediate: true })
 
 // Load data on mount
 onMounted(async () => {

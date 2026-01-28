@@ -58,7 +58,11 @@ onMounted(async () => {
       :ui="{ body: 'sm:py-0' }"
     >
       <template #header>
-        <UDashboardNavbar title="Editor">
+        <UDashboardNavbar>
+          <template #title>
+            <UDashboardSidebarCollapse />
+            Editor
+          </template>
           <template #right>
             <UColorModeButton />
             <UDrawer>
