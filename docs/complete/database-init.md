@@ -9,6 +9,7 @@ Set up PostgreSQL database with Drizzle ORM, supporting both local development a
 ## Overview
 
 Implement a flexible database layer that:
+
 - Uses Drizzle ORM for type-safe queries and migrations
 - Runs local PostgreSQL in Docker by default
 - Accepts `DATABASE_URL` to use an external database (Neon, Supabase, etc.)
@@ -214,6 +215,7 @@ export default defineNitroPlugin(async () => {
 ### Graceful Degradation
 
 When `DATABASE_URL` is not set:
+
 - Task management features are disabled
 - App still works for file editing and terminal
 - Show appropriate UI messages
@@ -238,11 +240,6 @@ When `DATABASE_URL` is not set:
 ## Database Workflow
 
 ### Development vs Production
-
-| Environment | Schema Changes | Migration Behavior |
-|-------------|----------------|-------------------|
-| **Development** | `pnpm db:push` | Migrations skipped on startup |
-| **Production** | `pnpm db:generate` | Migrations run automatically |
 
 ### Development Workflow
 
@@ -274,11 +271,6 @@ pnpm db:generate
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATABASE_URL` | - | PostgreSQL connection string |
-| `DB_SKIP_MIGRATIONS` | `true` (dev) | Set to `false` to force migrations in development |
-
 ### Troubleshooting
 
 **Error: Migration already applied**
@@ -286,20 +278,18 @@ pnpm db:generate
 This happens when you use `db:push` then `db:generate` on the same database. Options:
 
 1. **Delete the migration file** - If still in development
-   ```bash
+  ```bash
    rm server/drizzle/migrations/XXXX_migration_name.sql
-   ```
-
+  ```
 2. **Mark as applied** - If you need to keep the migration
-   ```sql
+  ```sql
    INSERT INTO __drizzle_migrations (hash, created_at)
    VALUES ('XXXX_migration_name', EXTRACT(EPOCH FROM NOW()) * 1000);
-   ```
-
+  ```
 3. **Force migrations in dev** - For testing
-   ```bash
+  ```bash
    DB_SKIP_MIGRATIONS=false pnpm dev
-   ```
+  ```
 
 ## Environment Variables
 
@@ -353,16 +343,6 @@ DATABASE_URL=postgres://postgres:pass@db.xxx.supabase.co:5432/postgres
 
 ### Changes from Original Plan
 
-| Planned | Implemented | Reason |
-|---------|-------------|--------|
-| Simple migration runner | Advisory lock migration | Prevents race conditions in multi-instance deployments |
-| Basic db client | SSL auto-detection + connection pooling | Neon requires SSL, local doesn't |
-| `profiles: [dev]` | `profiles: [local]` | Clearer naming |
-| Manual docker commands | `pnpm docker:up` wrapper script | Auto-detects DATABASE_URL and starts postgres only when needed |
-| N/A | `server/utils/db-state.ts` | Added for tracking DB availability across the app |
-| N/A | `server/utils/db-guard.ts` | Added for route protection |
-| N/A | Health endpoint `deployment` field | Shows "local" vs "remote" for debugging |
-
 ### Files Created
 
 - `drizzle.config.ts`
@@ -375,3 +355,4 @@ DATABASE_URL=postgres://postgres:pass@db.xxx.supabase.co:5432/postgres
 - `server/plugins/01.database.ts`
 - `server/drizzle/migrations/0000_brown_george_stacy.sql`
 - `scripts/docker-up.sh`
+

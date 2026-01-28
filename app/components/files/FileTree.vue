@@ -186,14 +186,16 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex flex-col">
-    <div class="p-2 border-b border-default">
+    <div class="-mt-1 pb-2">
       <UInput
         v-model="searchQuery"
         placeholder="Search files..."
         icon="i-lucide-search"
         size="sm"
+        class="w-full"
       />
     </div>
+    <USeparator class="mt-2" />
 
     <UContextMenu
       :items="contextMenuItems"

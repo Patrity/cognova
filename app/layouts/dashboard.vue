@@ -26,12 +26,6 @@ const links = [[{
     open.value = false
   }
 }]] satisfies NavigationMenuItem[][]
-
-const groups = computed(() => [{
-  id: 'links',
-  label: 'Go to',
-  items: links.flat()
-}])
 </script>
 
 <template>
@@ -90,8 +84,6 @@ const groups = computed(() => [{
         </UDropdownMenu>
       </template>
     </UDashboardSidebar>
-
-    <UDashboardSearch :groups="groups" />
 
     <slot />
 

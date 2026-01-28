@@ -44,11 +44,8 @@ onMounted(async () => {
       :max-size="24"
       class="hidden lg:flex"
     >
-      <template #header>
-        <UDashboardNavbar title="Files" />
-      </template>
 
-      <template #default>
+      <template #body>
         <FilesFileTree
           class="h-full"
           @select="handleFileSelect"
@@ -64,11 +61,20 @@ onMounted(async () => {
         <UDashboardNavbar title="Editor">
           <template #right>
             <UColorModeButton />
+            <UDrawer>
+              <UButton icon="i-lucide-folder-tree" class="block lg:hidden" />
+              <template #content>
+                <FilesFileTree
+                  class="h-full"
+                  @select="handleFileSelect"
+                  />
+              </template>
+            </UDrawer>
           </template>
         </UDashboardNavbar>
       </template>
 
-      <template #default>
+      <template #body>
         <div
           v-if="loading"
           class="flex-1 flex items-center justify-center h-full"
