@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.user.email, body.email))
     .limit(1)
 
-  if (existingUser.length > 0 && existingUser[0].id !== session.user.id) {
+  if (existingUser.length > 0 && existingUser[0]!.id !== session.user.id) {
     throw createError({
       statusCode: 409,
       message: 'Email is already in use'

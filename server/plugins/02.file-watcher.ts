@@ -26,7 +26,7 @@ export default defineNitroPlugin(async (nitroApp) => {
   // Debounce map for rapid changes
   const pending = new Map<string, NodeJS.Timeout>()
 
-  function debounced(path: string, action: () => Promise<void>) {
+  function debounced(path: string, action: () => Promise<unknown>) {
     const existing = pending.get(path)
     if (existing) clearTimeout(existing)
 

@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
       }).returning()
 
       document = await db.query.documents.findFirst({
-        where: eq(schema.documents.id, newDoc.id),
+        where: eq(schema.documents.id, newDoc!.id),
         with: { project: true }
       })
     }
@@ -86,7 +86,7 @@ export default defineEventHandler(async (event) => {
     }).returning()
 
     document = await db.query.documents.findFirst({
-      where: eq(schema.documents.id, newDoc.id),
+      where: eq(schema.documents.id, newDoc!.id),
       with: { project: true }
     })
   } else if (document.contentHash !== contentHash) {

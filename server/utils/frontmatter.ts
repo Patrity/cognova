@@ -32,7 +32,7 @@ export function extractTitle(metadata: Record<string, unknown>, body: string, fi
     return metadata.title
 
   const h1Match = body.match(/^#\s+(.+)$/m)
-  if (h1Match)
+  if (h1Match?.[1])
     return h1Match[1].trim()
 
   return filename.replace(/\.[^.]+$/, '')
