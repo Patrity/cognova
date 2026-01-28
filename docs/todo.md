@@ -17,6 +17,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Task Skill | Planned | [task-skill.md](./todo/task-skill.md) |
 | Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
+| Document Metadata | Planned | [document-metadata.md](./todo/document-metadata.md) |
 
 ## Priority 3: Advanced
 
