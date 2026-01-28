@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Notifications & Reminders
 
 Push notifications via Gotify for task reminders and scheduled alerts.

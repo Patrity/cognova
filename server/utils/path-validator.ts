@@ -11,8 +11,10 @@ function getDefaultVaultPath(): string {
   ].filter(Boolean) as string[]
 
   for (const path of candidates) {
-    if (existsSync(path)) {
-      return path
+    // Always resolve to absolute path
+    const absolutePath = resolve(path)
+    if (existsSync(absolutePath)) {
+      return absolutePath
     }
   }
 

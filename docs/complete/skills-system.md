@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Skills System
 
 Project-specific Claude Code skills that integrate with Second Brain's ecosystem.

@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Editor UX Improvements
 
 Future enhancements for the markdown editor.

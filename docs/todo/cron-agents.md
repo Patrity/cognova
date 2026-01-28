@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Cron Agents
 
 Scheduled Claude Code agents that run automated tasks on a schedule.

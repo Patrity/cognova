@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Database Initialization
 
 Set up PostgreSQL database with Drizzle ORM, supporting both local development and external database connections.

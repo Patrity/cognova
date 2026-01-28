@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # UI Wireframes
 
 Desktop-first web interface using Nuxt UI v3 components.

@@ -4,18 +4,21 @@ definePageMeta({
 })
 
 const {
-  content,
+  metadata,
+  body,
   filePath,
   loading,
   saveStatus,
   isDirty,
-  loadFile,
-  updateContent,
+  metadataDirty,
+  loadDocument,
+  updateBody,
+  updateMetadata,
   saveNow
-} = useEditor()
+} = useDocument()
 
 async function handleFileSelect(path: string) {
-  await loadFile(path)
+  await loadDocument(path)
 }
 </script>
 
@@ -73,20 +76,21 @@ async function handleFileSelect(path: string) {
               name="i-lucide-file-text"
               class="size-32 mx-auto mb-4 opacity-50"
             />
-            <p>
-              Select a file to edit
-            </p>
+            <p>Select a file to edit</p>
           </div>
         </div>
-        <EditorMarkdownEditor
-          v-else
+        <EditorDocumentEditor
+          v-else-if="metadata"
           :key="filePath"
-          :model-value="content"
+          :body="body"
+          :metadata="metadata"
           :file-path="filePath"
           :save-status="saveStatus"
           :is-dirty="isDirty"
+          :metadata-dirty="metadataDirty"
           class="h-full"
-          @update:model-value="updateContent"
+          @update:body="updateBody"
+          @update:metadata="updateMetadata"
           @save="saveNow"
         />
       </template>

@@ -114,6 +114,58 @@ export interface FileContent {
   modifiedAt: Date
 }
 
+// === Documents ===
+
+export type ShareType = 'public' | 'private'
+export type FileType = 'markdown' | 'binary'
+
+export interface Document {
+  id: string
+  title: string
+  path: string
+  content?: string
+  contentHash?: string
+  tags: string[]
+  projectId?: string
+  project?: Project
+  shared: boolean
+  shareType?: ShareType
+  fileType: FileType
+  mimeType?: string
+  syncedAt?: Date
+  createdAt: Date
+  createdBy?: string
+  creator?: User
+  modifiedAt?: Date
+  modifiedBy?: string
+  deletedAt?: Date
+  deletedBy?: string
+}
+
+export interface DocumentMetadata {
+  title: string
+  tags: string[]
+  projectId?: string
+  shared: boolean
+  shareType?: ShareType
+  [key: string]: unknown
+}
+
+export interface DocumentWithContent {
+  document: Document
+  metadata: DocumentMetadata
+  body: string
+}
+
+export interface UpdateDocumentInput {
+  title?: string
+  tags?: string[]
+  projectId?: string | null
+  shared?: boolean
+  shareType?: ShareType | null
+  body?: string
+}
+
 // === Conversations ===
 
 export interface Conversation {
@@ -140,3 +192,7 @@ export interface ApiResponse<T> {
   data?: T
   error?: string
 }
+
+// === Editor ===
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'

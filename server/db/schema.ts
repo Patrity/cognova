@@ -155,3 +155,32 @@ export const remindersRelations = relations(reminders, ({ one }) => ({
     references: [tasks.id]
   })
 }))
+
+// Documents table - stores metadata for vault files
+export const documents = pgTable('documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: text('title').notNull(),
+  path: text('path').notNull().unique(),
+  content: text('content'),
+  contentHash: text('content_hash'),
+  tags: text('tags').array().default([]),
+  projectId: uuid('project_id').references(() => projects.id, { onDelete: 'set null' }),
+  shared: boolean('shared').default(false).notNull(),
+  shareType: text('share_type', { enum: ['public', 'private'] }),
+  fileType: text('file_type').notNull(),
+  mimeType: text('mime_type'),
+  syncedAt: timestamp('synced_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  modifiedAt: timestamp('modified_at', { withTimezone: true }),
+  modifiedBy: text('modified_by').references(() => user.id, { onDelete: 'set null' }),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  deletedBy: text('deleted_by').references(() => user.id, { onDelete: 'set null' })
+})
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  project: one(projects, { fields: [documents.projectId], references: [projects.id] }),
+  creator: one(user, { fields: [documents.createdBy], references: [user.id] }),
+  modifier: one(user, { fields: [documents.modifiedBy], references: [user.id] }),
+  deleter: one(user, { fields: [documents.deletedBy], references: [user.id] })
+}))

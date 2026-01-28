@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Implementation Roadmap
 
 Priority-ordered list of planned features. Each major item links to a detailed plan.
@@ -17,7 +21,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Task Skill | Done | (included in Skills System) |
 | Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
-| Document Metadata | Planned | [document-metadata.md](./todo/document-metadata.md) |
+| Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
 
 ## Priority 3: Advanced
 

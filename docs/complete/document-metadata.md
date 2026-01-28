@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Document Metadata Layer
 
 Store relational metadata about vault files in the database for search and organization.

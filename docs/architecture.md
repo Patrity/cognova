@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Architecture
 
 ## System Overview

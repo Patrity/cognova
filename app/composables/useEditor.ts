@@ -1,6 +1,5 @@
 import { useDebounceFn } from '@vueuse/core'
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+import type { SaveStatus } from '~~/shared/types'
 
 export function useEditor() {
   const content = ref('')

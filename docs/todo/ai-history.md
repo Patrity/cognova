@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # AI Conversation History
 
 Persist Claude Code conversation history to the database for browsing, searching, and continuity.

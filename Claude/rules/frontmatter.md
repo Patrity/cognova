@@ -1,41 +1,54 @@
 # Frontmatter Standards
 
-## Required Fields
+All markdown documents in the vault use YAML frontmatter for metadata. When documents are created or discovered without frontmatter, defaults are automatically added by the document sync system.
 
-Every note should have:
-
-```yaml
----
-title: Human-readable title
-created: 2024-01-15
-tags: [topic, category]
----
-```
-
-## Optional Fields
+## Default Frontmatter
 
 ```yaml
 ---
-updated: 2024-01-20      # Last modification
-status: draft|active|archived
-project: project-name    # Link to project
-due: 2024-02-01          # For actionable notes
-source: URL or reference # For external content
+tags: []
+shared: false
 ---
 ```
+
+## All Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `tags` | string[] | `[]` | Array of tag strings for categorization |
+| `shared` | boolean | `false` | Whether document is publicly accessible |
+| `shareType` | string | - | When `shared: true`: `'private'` or `'public'` |
+| `title` | string | - | Optional; auto-extracted from first H1 or filename |
+| `project` | string | - | Project ID for document association |
+
+## Visibility Modes
+
+Documents support three visibility levels controlled by `shared` and `shareType`:
+
+1. **Hidden** (default) - `shared: false`
+   - Requires authentication to view
+   - Never publicly accessible
+
+2. **Private** - `shared: true, shareType: 'private'`
+   - Accessible via direct link only
+   - Not indexed by search engines
+
+3. **Public** - `shared: true, shareType: 'public'`
+   - Fully publicly accessible
+   - Indexed by search engines
 
 ## Tag Conventions
 
-- Use lowercase: `#productivity` not `#Productivity`
-- Use hyphens for multi-word: `#project-management`
-- Limit to 3-5 tags per note
-- Prefer specific over generic: `#nuxt` over `#programming`
+- Use lowercase: `productivity` not `Productivity`
+- Use hyphens for multi-word: `project-management`
+- Limit to 3-5 tags per document
+- Prefer specific over generic: `nuxt` over `programming`
 
-## Status Values
+## Title Extraction
 
-| Status | Meaning |
-|--------|---------|
-| `draft` | Work in progress |
-| `active` | Current and maintained |
-| `review` | Needs updating |
-| `archived` | No longer relevant |
+The document title is determined in this order:
+1. `title` field in frontmatter (if present)
+2. First H1 heading in document body
+3. Filename without extension
+
+The `title` field in frontmatter is optional and only needed to override automatic extraction.

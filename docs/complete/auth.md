@@ -1,3 +1,10 @@
+---
+title: Authentication
+tags: []
+project: null
+shared: true
+shareType: private
+---
 # Authentication
 
 Basic authentication layer using BetterAuth with Drizzle integration. Single-user initially, designed for future multi-user expansion.
@@ -5,6 +12,7 @@ Basic authentication layer using BetterAuth with Drizzle integration. Single-use
 ## Overview
 
 Implement authentication to protect the application:
+
 - Single admin user for initial release
 - BetterAuth for session management
 - Drizzle adapter for database storage
@@ -370,13 +378,6 @@ function getUserVaultPath(user: User): string {
 
 ### Changes from Original Plan
 
-| Planned | Implemented | Reason |
-|---------|-------------|--------|
-| UUID primary keys | Text primary keys | BetterAuth uses text IDs internally |
-| Plural table names (users) | Singular (user) | BetterAuth convention |
-| Static authClient | Lazy authClient creation | SSR compatibility - client needs full URL at creation time |
-| Basic seed script | Standalone seed script | Needed to work outside Nuxt context (no `~~` alias) |
-
 ### Files Created
 
 - `server/db/schema.ts` - Added user, session, account, verification tables
@@ -408,3 +409,4 @@ pnpm auth:create-admin
 # Or with custom credentials
 ADMIN_EMAIL=myemail@example.com ADMIN_PASSWORD=mysecurepassword pnpm auth:create-admin
 ```
+

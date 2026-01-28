@@ -1,3 +1,7 @@
+---
+tags: []
+shared: false
+---
 # Full-Text Search
 
 Search across vault files with full-text indexing and optional semantic search.
