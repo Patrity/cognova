@@ -15,7 +15,7 @@ export async function seedIfEmpty(): Promise<boolean> {
   const userCount = result?.value ?? 0
 
   if (userCount > 0) {
-    console.log(`[seed] Found ${userCount} existing user(s), skipping seed`)
+    // console.log(`[seed] Found ${userCount} existing user(s), skipping seed`)
     return false
   }
 

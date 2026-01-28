@@ -5,7 +5,8 @@ const publicPaths = [
   '/api/auth', // BetterAuth endpoints
   '/api/health', // Health check
   '/_nuxt', // Nuxt assets
-  '/login' // Login page
+  '/login', // Login page
+  '/view' // Public document viewer
 ]
 
 export default defineEventHandler(async (event) => {
@@ -16,6 +17,16 @@ export default defineEventHandler(async (event) => {
 
   // Skip auth for static assets
   if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) return
+
+  // Public document API - allow through but still try to get session for owner check
+  if (path.match(/^\/api\/documents\/[^/]+\/public$/)) {
+    const session = await auth.api.getSession({ headers: event.headers })
+    if (session) {
+      event.context.user = session.user
+      event.context.session = session.session
+    }
+    return
+  }
 
   // Check session
   const session = await auth.api.getSession({

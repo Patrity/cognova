@@ -3,7 +3,10 @@ definePageMeta({
   layout: 'dashboard'
 })
 
+const route = useRoute()
+
 const {
+  document,
   metadata,
   body,
   filePath,
@@ -20,6 +23,13 @@ const {
 async function handleFileSelect(path: string) {
   await loadDocument(path)
 }
+
+// Load document from query parameter on mount
+onMounted(async () => {
+  const pathParam = route.query.path as string | undefined
+  if (pathParam)
+    await loadDocument(pathParam)
+})
 </script>
 
 <template>
@@ -80,8 +90,9 @@ async function handleFileSelect(path: string) {
           </div>
         </div>
         <EditorDocumentEditor
-          v-else-if="metadata"
+          v-else-if="metadata && document"
           :key="filePath"
+          :document="document"
           :body="body"
           :metadata="metadata"
           :file-path="filePath"

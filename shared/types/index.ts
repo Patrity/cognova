@@ -166,6 +166,23 @@ export interface UpdateDocumentInput {
   body?: string
 }
 
+// TOC types for MDC parseMarkdown output
+export interface TocLink {
+  id: string
+  text: string
+  depth: number
+  children?: TocLink[]
+}
+
+// Public document viewer API response
+export interface PublicDocumentResponse {
+  document: Pick<Document, 'id' | 'title' | 'path' | 'fileType' | 'shared' | 'shareType' | 'tags' | 'createdAt' | 'modifiedAt'> & {
+    creatorName: string | null
+  }
+  content: string | null
+  isOwner: boolean
+}
+
 // === Conversations ===
 
 export interface Conversation {

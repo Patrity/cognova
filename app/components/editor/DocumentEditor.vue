@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
-import type { DocumentMetadata, Project } from '~~/shared/types'
+import type { Document, DocumentMetadata, Project } from '~~/shared/types'
 
 const props = defineProps<{
+  document: Document
   body: string
   metadata: DocumentMetadata
   filePath: string
@@ -87,6 +88,46 @@ function handleKeydown(e: KeyboardEvent) {
 
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
+
+// Share link functionality
+const toast = useToast()
+const shareUrl = computed(() => {
+  if (!props.document?.id) return ''
+  return `${window.location.origin}/view/${props.document.id}`
+})
+
+const linkCopied = ref(false)
+const showShareModal = ref(false)
+
+function handleShareClick() {
+  if (props.metadata.shared) {
+    copyShareLink()
+  } else {
+    showShareModal.value = true
+  }
+}
+
+async function copyShareLink() {
+  try {
+    await navigator.clipboard.writeText(shareUrl.value)
+    linkCopied.value = true
+    toast.add({ title: 'Link copied!', icon: 'i-lucide-check', color: 'success' })
+    setTimeout(() => {
+      linkCopied.value = false
+    }, 2000)
+  } catch {
+    toast.add({ title: 'Failed to copy link', icon: 'i-lucide-x', color: 'error' })
+  }
+}
+
+function setVisibility(shared: boolean, shareType: 'public' | 'private' | null) {
+  emit('update:metadata', { shared, shareType: shareType ?? undefined })
+  showShareModal.value = false
+  if (shared) {
+    // Copy link after enabling sharing
+    setTimeout(() => copyShareLink(), 100)
+  }
+}
 </script>
 
 <template>
@@ -101,10 +142,17 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
       </div>
       <div class="flex items-center gap-2">
         <UButton
+          :icon="linkCopied ? 'i-lucide-check' : 'i-lucide-share'"
+          size="xs"
+          variant="ghost"
+          class="rounded-full"
+          @click="handleShareClick"
+        />
+        <UButton
           :icon="showMetadata ? 'i-lucide-panel-top-close' : 'i-lucide-panel-top-open'"
           size="xs"
           variant="ghost"
-          :ui="{ rounded: 'rounded-full' }"
+          class="rounded-full"
           @click="showMetadata = !showMetadata"
         />
         <div
@@ -145,6 +193,83 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
         class="border-b border-default"
       />
     </UEditor>
+
+    <!-- Share visibility modal -->
+    <UModal
+      v-model:open="showShareModal"
+      title="Share Document"
+      description="Choose how you want to share this document"
+    >
+      <template #body>
+        <div class="space-y-4">
+          <!-- Hidden option -->
+          <div
+            class="p-4 border border-default rounded-lg cursor-pointer hover:bg-elevated transition-colors"
+            :class="{ 'border-primary bg-elevated': !metadata.shared }"
+            @click="setVisibility(false, null)"
+          >
+            <div class="flex items-center gap-3">
+              <UIcon
+                name="i-lucide-eye-off"
+                class="size-5 text-dimmed"
+              />
+              <div>
+                <div class="font-medium">
+                  Hidden
+                </div>
+                <div class="text-sm text-dimmed">
+                  Only you can view this document. Not accessible via link.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Private (link only) option -->
+          <div
+            class="p-4 border border-default rounded-lg cursor-pointer hover:bg-elevated transition-colors"
+            :class="{ 'border-primary bg-elevated': metadata.shared && metadata.shareType === 'private' }"
+            @click="setVisibility(true, 'private')"
+          >
+            <div class="flex items-center gap-3">
+              <UIcon
+                name="i-lucide-link"
+                class="size-5 text-dimmed"
+              />
+              <div>
+                <div class="font-medium">
+                  Private (Link Only)
+                </div>
+                <div class="text-sm text-dimmed">
+                  Anyone with the link can view. Not indexed by search engines.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Public option -->
+          <div
+            class="p-4 border border-default rounded-lg cursor-pointer hover:bg-elevated transition-colors"
+            :class="{ 'border-primary bg-elevated': metadata.shared && metadata.shareType === 'public' }"
+            @click="setVisibility(true, 'public')"
+          >
+            <div class="flex items-center gap-3">
+              <UIcon
+                name="i-lucide-globe"
+                class="size-5 text-dimmed"
+              />
+              <div>
+                <div class="font-medium">
+                  Public
+                </div>
+                <div class="text-sm text-dimmed">
+                  Visible to everyone. Indexed by search engines.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
