@@ -23,7 +23,7 @@ const status = ref<TaskStatus>('todo')
 const priority = ref(2)
 const projectId = ref<string | null>(null)
 const dueDate = ref('')
-const tagsInput = ref('')
+const tags = ref<string[]>([])
 
 // Status options
 const statusOptions = [
@@ -70,7 +70,7 @@ watch(() => props.task, (task) => {
     dueDate.value = task.dueDate
       ? new Date(task.dueDate).toISOString().split('T')[0] || ''
       : ''
-    tagsInput.value = task.tags?.join(', ') || ''
+    tags.value = task.tags || []
   } else {
     resetForm()
   }
@@ -88,7 +88,7 @@ function resetForm() {
   priority.value = 2
   projectId.value = null
   dueDate.value = ''
-  tagsInput.value = ''
+  tags.value = []
 }
 
 function close() {
@@ -98,11 +98,6 @@ function close() {
 function handleSubmit() {
   if (!formTitle.value.trim()) return
 
-  const tags = tagsInput.value
-    .split(',')
-    .map(t => t.trim())
-    .filter(Boolean)
-
   const data: CreateTaskInput | UpdateTaskInput = {
     title: formTitle.value.trim(),
     description: description.value.trim() || undefined,
@@ -110,7 +105,7 @@ function handleSubmit() {
     priority: priority.value,
     projectId: projectId.value,
     dueDate: dueDate.value || undefined,
-    tags
+    tags: tags.value
   }
 
   emit('submit', data)
@@ -201,14 +196,11 @@ function handleSubmit() {
 
           <!-- Tags -->
           <UFormField label="Tags">
-            <UInput
-              v-model="tagsInput"
-              placeholder="work, urgent, review"
+            <UInputTags
+              v-model="tags"
+              placeholder="Add tags..."
               class="w-full"
             />
-            <template #hint>
-              <span class="text-xs text-dimmed">Separate with commas</span>
-            </template>
           </UFormField>
         </div>
       </div>
