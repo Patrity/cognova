@@ -13,22 +13,24 @@ const DEFAULT_FRONTMATTER = {
   shared: false
 }
 
-export async function syncDocument(absolutePath: string): Promise<void> {
-  if (!isDbAvailable()) return
+export type SyncResult = 'added' | 'updated' | 'restored' | 'unchanged' | 'skipped'
+
+export async function syncDocument(absolutePath: string): Promise<SyncResult> {
+  if (!isDbAvailable()) return 'skipped'
 
   const db = getDb()
   const relativePath = toRelativePath(absolutePath)
   const filename = basename(absolutePath)
 
   // Skip hidden files
-  if (filename.startsWith('.')) return
+  if (filename.startsWith('.')) return 'skipped'
 
   let fileContent: string
   try {
     fileContent = await readFile(absolutePath, 'utf-8')
   } catch {
     console.error(`[sync] Failed to read file: ${relativePath}`)
-    return
+    return 'skipped'
   }
 
   const isBinary = isBinaryFile(filename)
@@ -48,8 +50,16 @@ export async function syncDocument(absolutePath: string): Promise<void> {
         mimeType: getMimeType(filename),
         syncedAt: new Date()
       })
+      return 'added'
+    } else if (existing.deletedAt) {
+      // Restore previously deleted binary file
+      await db.update(schema.documents).set({
+        deletedAt: null,
+        syncedAt: new Date()
+      }).where(eq(schema.documents.id, existing.id))
+      return 'restored'
     }
-    return
+    return 'unchanged'
   }
 
   const { metadata: initialMetadata, body: bodyContent } = parseFrontmatter(fileContent)
@@ -76,28 +86,36 @@ export async function syncDocument(absolutePath: string): Promise<void> {
   const contentHash = computeContentHash(fileContent)
 
   if (existing) {
-    if (existing.contentHash !== contentHash) {
+    const contentChanged = existing.contentHash !== contentHash
+    const wasDeleted = existing.deletedAt !== null
+
+    // Update if content changed OR document was previously deleted (restore it)
+    if (contentChanged || wasDeleted) {
       await db.update(schema.documents).set({
         title,
         content: bodyContent,
         contentHash,
         tags: Array.isArray(metadata.tags) ? metadata.tags as string[] : existing.tags,
+        deletedAt: null, // Clear deletion flag - file exists on disk
         syncedAt: new Date(),
         modifiedAt: new Date()
       }).where(eq(schema.documents.id, existing.id))
+      return wasDeleted ? 'restored' : 'updated'
     }
-  } else {
-    await db.insert(schema.documents).values({
-      path: relativePath,
-      title,
-      content: bodyContent,
-      contentHash,
-      tags: Array.isArray(metadata.tags) ? metadata.tags as string[] : [],
-      shared: metadata.shared === true,
-      fileType: 'markdown',
-      syncedAt: new Date()
-    })
+    return 'unchanged'
   }
+
+  await db.insert(schema.documents).values({
+    path: relativePath,
+    title,
+    content: bodyContent,
+    contentHash,
+    tags: Array.isArray(metadata.tags) ? metadata.tags as string[] : [],
+    shared: metadata.shared === true,
+    fileType: 'markdown',
+    syncedAt: new Date()
+  })
+  return 'added'
 }
 
 export async function markDocumentDeleted(absolutePath: string): Promise<void> {
@@ -126,7 +144,10 @@ export async function handleDocumentMove(oldPath: string, newPath: string): Prom
 }
 
 export async function fullSync(): Promise<{ added: number, updated: number, removed: number }> {
-  if (!isDbAvailable()) return { added: 0, updated: 0, removed: 0 }
+  if (!isDbAvailable()) {
+    console.log('[sync] Database not available for full sync')
+    return { added: 0, updated: 0, removed: 0 }
+  }
 
   const db = getDb()
   const vaultRoot = getVaultRoot()
@@ -137,7 +158,8 @@ export async function fullSync(): Promise<{ added: number, updated: number, remo
     let entries
     try {
       entries = await readdir(dir, { withFileTypes: true })
-    } catch {
+    } catch (err) {
+      console.error(`[sync] Failed to read directory ${dir}:`, err)
       return
     }
 
@@ -151,12 +173,20 @@ export async function fullSync(): Promise<{ added: number, updated: number, remo
       } else if (entry.isFile()) {
         const relativePath = toRelativePath(fullPath)
         foundPaths.add(relativePath)
-        await syncDocument(fullPath)
+        try {
+          const result = await syncDocument(fullPath)
+          if (result === 'added') stats.added++
+          else if (result === 'updated' || result === 'restored') stats.updated++
+        } catch (err) {
+          console.error(`[sync] Failed to sync ${relativePath}:`, err)
+        }
       }
     }
   }
 
+  console.log(`[sync] Starting full sync of ${vaultRoot}`)
   await scanDir(vaultRoot)
+  console.log(`[sync] Scanned ${foundPaths.size} files`)
 
   // Mark documents not found on disk as deleted
   const dbDocs = await db

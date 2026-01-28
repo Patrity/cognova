@@ -17,7 +17,8 @@ export default defineNitroPlugin(async (nitroApp) => {
   // Full sync on startup
   try {
     const stats = await fullSync()
-    console.log(`[file-watcher] Initial sync: ${stats.removed} orphaned records marked deleted`)
+    if (stats.added + stats.removed + stats.updated > 0)
+      console.log(`[file-watcher] Initial sync complete: ${stats.added} added, ${stats.removed} removed, ${stats.updated} updated`)
   } catch (error) {
     console.error('[file-watcher] Initial sync failed:', error)
   }
