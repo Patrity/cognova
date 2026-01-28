@@ -27,7 +27,8 @@ RUN cd node_modules/.pnpm/node-pty@*/node_modules/node-pty && \
 # Copy source code
 COPY . .
 
-# Build app
+# Build app with increased memory for Nitro bundling
+ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN pnpm build
 
 EXPOSE 3000

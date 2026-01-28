@@ -1,5 +1,6 @@
 import { runMigrations } from '~~/server/db/migrate'
 import { warmupDb } from '~~/server/db'
+import { seedIfEmpty } from '~~/server/db/seed'
 import { setDbState } from '~~/server/utils/db-state'
 
 export default defineNitroPlugin(async () => {
@@ -21,6 +22,9 @@ export default defineNitroPlugin(async () => {
     }
 
     await warmupDb()
+
+    // Seed default user if database is empty
+    await seedIfEmpty()
   } catch (error) {
     console.error('[db] Database initialization failed:', error)
 

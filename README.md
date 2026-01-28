@@ -54,12 +54,13 @@ cp .env.example .env
 
 # Start dev server
 pnpm dev
-
-# Create an admin user
-pnpm auth:create-admin
 ```
 
-Visit `http://localhost:3000` and login with the admin credentials.
+Visit `http://localhost:3000`. On first startup with an empty database, a default admin user is created automatically:
+- Email: `admin@example.com`
+- Password: `changeme123`
+
+Customize via `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` file.
 
 #### With Local PostgreSQL
 
@@ -124,19 +125,23 @@ services:
 | `DATABASE_URL` | No | PostgreSQL URL - local (`localhost:5432`) or Neon |
 | `BETTER_AUTH_SECRET` | Yes | Secret key for session encryption (generate with `openssl rand -base64 32`) |
 | `BETTER_AUTH_URL` | Yes | Base URL of your app (e.g., `http://localhost:3000`) |
+| `ADMIN_EMAIL` | No | Default admin email (default: `admin@example.com`) |
+| `ADMIN_PASSWORD` | No | Default admin password (default: `changeme123`) |
+| `ADMIN_NAME` | No | Default admin display name (default: `Admin`) |
 | `GOTIFY_URL` | No | Gotify server for notifications |
 | `GOTIFY_TOKEN` | No | Gotify app token |
 
 ### Authentication
 
-This app uses [BetterAuth](https://better-auth.com) for session-based authentication. After setting up the database:
+This app uses [BetterAuth](https://better-auth.com) for session-based authentication.
 
+**First-run setup:** When the database is empty, a default admin user is created automatically on startup:
+- Default: `admin@example.com` / `changeme123`
+- Customize via `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` in `.env`
+
+**Manual user creation:** If needed, you can still create users manually:
 ```bash
-# Create an admin user
-pnpm auth:create-admin
-
-# Or with custom credentials
-ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=yourpassword ADMIN_NAME="Your Name" pnpm auth:create-admin
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=yourpassword pnpm auth:create-admin
 ```
 
 ### Reverse Proxy
