@@ -4,6 +4,7 @@ import { auth } from '~~/server/utils/auth'
 const publicPaths = [
   '/api/auth', // BetterAuth endpoints
   '/api/health', // Health check
+  '/api/home', // Public home page content
   '/_nuxt', // Nuxt assets
   '/login', // Login page
   '/view' // Public document viewer
@@ -11,6 +12,9 @@ const publicPaths = [
 
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
+
+  // Skip auth for root path (public home page)
+  if (path === '/') return
 
   // Skip auth for public paths
   if (publicPaths.some(p => path.startsWith(p))) return

@@ -2,7 +2,8 @@
 import type { Task, CreateTaskInput, UpdateTaskInput, TaskStatus } from '~~/shared/types'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'dashboard',
+  middleware: 'auth'
 })
 
 const toast = useToast()
