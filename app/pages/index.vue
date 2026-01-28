@@ -141,7 +141,6 @@ const ctaLinks = [
       description="A self-hosted knowledge management platform for capturing thoughts, organizing tasks, and building your digital brain. Powered by Claude Code integration."
       :links="heroLinks"
     >
-
       <template #top>
         <div class="flex justify-center mt-16 -mb-24">
           <div class="p-4 rounded-full bg-primary/10">
@@ -198,7 +197,7 @@ const ctaLinks = [
         class="w-full"
         arrows
         loop
-        :autoplay="{ delay: 3000 }"
+        :autoplay="{ delay: 2000 }"
       >
         <template #default="{ item }">
           <div class="flex flex-col items-center gap-3 p-6">

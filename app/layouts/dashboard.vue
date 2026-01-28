@@ -7,7 +7,7 @@ const open = ref(false)
 const links = [[{
   label: 'Dashboard',
   icon: 'i-lucide-layout-dashboard',
-  to: '/',
+  to: '/dashboard',
   onSelect: () => {
     open.value = false
   }
@@ -22,6 +22,13 @@ const links = [[{
   label: 'Tasks',
   icon: 'i-lucide-check-square',
   to: '/tasks',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Settings',
+  icon: 'i-lucide-settings',
+  to: '/settings',
   onSelect: () => {
     open.value = false
   }
@@ -62,26 +69,42 @@ const links = [[{
       </template>
 
       <template #footer="{ collapsed }">
-        <UDropdownMenu
-          :items="[[
-            { label: 'Sign out', icon: 'i-lucide-log-out', onSelect: logout }
-          ]]"
-        >
-          <UButton
-            variant="ghost"
-            class="w-full justify-start"
-            :ui="{ leadingIcon: 'size-5' }"
+        <ClientOnly>
+          <UDropdownMenu
+            :items="[[
+              { label: 'Sign out', icon: 'i-lucide-log-out', onSelect: logout }
+            ]]"
           >
-            <UAvatar
-              :alt="user?.name || 'User'"
-              size="2xs"
-            />
-            <span
-              v-if="!collapsed"
-              class="text-sm truncate"
-            >{{ user?.name || user?.email || 'User' }}</span>
-          </UButton>
-        </UDropdownMenu>
+            <UButton
+              variant="ghost"
+              class="w-full justify-start"
+              :ui="{ leadingIcon: 'size-5' }"
+            >
+              <UAvatar
+                :alt="user?.name || 'User'"
+                size="2xs"
+              />
+              <span
+                v-if="!collapsed"
+                class="text-sm truncate"
+              >{{ user?.name || user?.email || 'User' }}</span>
+            </UButton>
+          </UDropdownMenu>
+
+          <template #fallback>
+            <UButton
+              variant="ghost"
+              class="w-full justify-start"
+              :ui="{ leadingIcon: 'size-5' }"
+            >
+              <USkeleton class="size-5 rounded-full" />
+              <USkeleton
+                v-if="!collapsed"
+                class="h-4 w-20"
+              />
+            </UButton>
+          </template>
+        </ClientOnly>
       </template>
     </UDashboardSidebar>
 

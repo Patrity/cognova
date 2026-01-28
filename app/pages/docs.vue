@@ -44,7 +44,6 @@ onMounted(async () => {
       :max-size="24"
       class="hidden lg:flex"
     >
-
       <template #body>
         <FilesFileTree
           class="h-full"
@@ -56,18 +55,22 @@ onMounted(async () => {
     <UDashboardPanel
       id="docs-editor"
       grow
+      :ui="{ body: 'sm:py-0' }"
     >
       <template #header>
         <UDashboardNavbar title="Editor">
           <template #right>
             <UColorModeButton />
             <UDrawer>
-              <UButton icon="i-lucide-folder-tree" class="block lg:hidden" />
+              <UButton
+                icon="i-lucide-folder-tree"
+                class="block lg:hidden"
+              />
               <template #content>
                 <FilesFileTree
                   class="h-full"
                   @select="handleFileSelect"
-                  />
+                />
               </template>
             </UDrawer>
           </template>

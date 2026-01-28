@@ -32,6 +32,32 @@ export function useAuth() {
     return result
   }
 
+  async function updateProfile(data: { name?: string, image?: string }) {
+    const result = await authClient.updateUser(data)
+    return result
+  }
+
+  async function changeEmail(newEmail: string) {
+    // Use custom endpoint to bypass BetterAuth verification flow
+    try {
+      await $fetch('/api/user/email', {
+        method: 'PATCH',
+        body: { email: newEmail }
+      })
+      // Refresh session to get updated user data
+      await authClient.getSession({ fetchOptions: { cache: 'no-store' } })
+      return { data: { success: true }, error: null }
+    } catch (err: unknown) {
+      const error = err as { data?: { message?: string } }
+      return { data: null, error: { message: error.data?.message || 'Failed to change email' } }
+    }
+  }
+
+  async function changePassword(data: { currentPassword: string, newPassword: string }) {
+    const result = await authClient.changePassword(data)
+    return result
+  }
+
   return {
     session,
     user: computed(() => session.value?.data?.user),
@@ -39,6 +65,9 @@ export function useAuth() {
     isPending: computed(() => session.value?.isPending ?? true),
     login,
     logout,
-    register
+    register,
+    updateProfile,
+    changeEmail,
+    changePassword
   }
 }
