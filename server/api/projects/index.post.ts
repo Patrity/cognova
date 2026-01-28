@@ -1,0 +1,32 @@
+import { getDb, schema } from '~~/server/db'
+import { requireDb } from '~~/server/utils/db-guard'
+import type { CreateProjectInput } from '~~/shared/types'
+
+export default defineEventHandler(async (event) => {
+  requireDb(event)
+
+  const body = await readBody<CreateProjectInput>(event)
+
+  if (!body.name?.trim())
+    throw createError({ statusCode: 400, message: 'Project name is required' })
+
+  if (!body.color?.trim())
+    throw createError({ statusCode: 400, message: 'Project color is required' })
+
+  // Validate hex color format
+  if (!/^#[0-9A-Fa-f]{6}$/.test(body.color))
+    throw createError({ statusCode: 400, message: 'Color must be a valid hex color (e.g., #3b82f6)' })
+
+  const db = getDb()
+
+  const [project] = await db
+    .insert(schema.projects)
+    .values({
+      name: body.name.trim(),
+      color: body.color,
+      description: body.description?.trim() || null
+    })
+    .returning()
+
+  return { data: project }
+})

@@ -33,12 +33,6 @@ The primary workspace with three resizable panels.
 
 ### Toolbar Buttons
 
-| Button | Action |
-|--------|--------|
-| 📁 | Toggle File Tree panel |
-| 📝 | Toggle Editor panel |
-| 🖥️ | Toggle Terminal panel |
-
 ### Panel Behavior
 
 - Each panel uses `UDashboardPanel` with `resize` prop
@@ -62,7 +56,7 @@ const hideTerminal = ref(false)
 │   ────────   │
 │              │
 │  Dashboard   │  ← /
-│  Conversations│ ← /conversations
+│Conversations │ ← /conversations
 │  Tasks       │  ← /tasks
 │  Docs        │  ← /docs (3-panel workspace)
 │              │
@@ -176,13 +170,6 @@ Uses `UContextMenu`:
 - Auto-save on change (debounced)
 
 ### Editor Features
-
-| Feature | Component |
-|---------|-----------|
-| Formatting toolbar | `UEditorToolbar` |
-| Slash commands (`/`) | `UEditorSuggestionMenu` |
-| Emoji picker (`:`) | `UEditorEmojiMenu` |
-| Block drag handles | `UEditorDragHandle` |
 
 ## Terminal Panel
 
@@ -336,30 +323,5 @@ Browse past Claude Code sessions.
 
 ## Nuxt UI Component Summary
 
-| Component | Usage |
-|-----------|-------|
-| `UDashboardGroup` | Root layout, manages sidebar state |
-| `UDashboardSidebar` | Left sidebar with navigation |
-| `UDashboardPanel` | Resizable content panels |
-| `UNavigationMenu` | Sidebar navigation items |
-| `UTree` | File browser (with `nested: false` for drag-drop) |
-| `UContextMenu` | Right-click menus |
-| `UEditor` | Markdown editor (TipTap) |
-| `UEditorToolbar` | Editor formatting toolbar |
-| `UEditorSuggestionMenu` | Slash commands |
-| `UCard` | Task cards, note cards |
-| `UButton` | Actions |
-| `UInput` | Quick capture, search |
-| `UDropdownMenu` | Task actions, user menu |
-| `UModal` | Add task, confirmations |
-
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl + B` | Toggle File Tree |
-| `Cmd/Ctrl + E` | Toggle Editor |
-| `Cmd/Ctrl + `` ` | Toggle Terminal |
-| `Cmd/Ctrl + S` | Save current file |
-| `Cmd/Ctrl + P` | Quick file open |
-| `Cmd/Ctrl + K` | Command palette |

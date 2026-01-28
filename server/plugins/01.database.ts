@@ -10,7 +10,16 @@ export default defineNitroPlugin(async () => {
   }
 
   try {
-    await runMigrations()
+    // In development, skip migrations - use db:push instead
+    // In production, run migrations on startup
+    const skipMigrations = process.env.NODE_ENV !== 'production' && process.env.DB_SKIP_MIGRATIONS !== 'false'
+
+    if (skipMigrations) {
+      console.log('[db] Skipping migrations in development (use db:push for schema changes)')
+    } else {
+      await runMigrations()
+    }
+
     await warmupDb()
   } catch (error) {
     console.error('[db] Database initialization failed:', error)

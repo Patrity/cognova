@@ -1,7 +1,10 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
-import type { tasks, reminders, conversations } from './schema'
+import type { projects, tasks, reminders, conversations } from './schema'
 
 // Inferred types from schema
+export type DbProject = InferSelectModel<typeof projects>
+export type DbProjectInsert = InferInsertModel<typeof projects>
+
 export type DbTask = InferSelectModel<typeof tasks>
 export type DbTaskInsert = InferInsertModel<typeof tasks>
 

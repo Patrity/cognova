@@ -231,6 +231,72 @@ When `DATABASE_URL` is not set:
 }
 ```
 
+## Database Workflow
+
+### Development vs Production
+
+| Environment | Schema Changes | Migration Behavior |
+|-------------|----------------|-------------------|
+| **Development** | `pnpm db:push` | Migrations skipped on startup |
+| **Production** | `pnpm db:generate` | Migrations run automatically |
+
+### Development Workflow
+
+In development, use `db:push` for fast iteration:
+
+```bash
+# Start local postgres
+pnpm db:up
+
+# Make schema changes in server/db/schema.ts
+# Then push directly to database
+pnpm db:push
+```
+
+Migrations are **skipped by default** in development to avoid conflicts with `db:push`.
+
+### Production Workflow
+
+Before deploying schema changes:
+
+```bash
+# 1. Generate migration from schema changes
+pnpm db:generate
+
+# 2. Review generated SQL in server/drizzle/migrations/
+
+# 3. Deploy - migrations run automatically on startup
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | - | PostgreSQL connection string |
+| `DB_SKIP_MIGRATIONS` | `true` (dev) | Set to `false` to force migrations in development |
+
+### Troubleshooting
+
+**Error: Migration already applied**
+
+This happens when you use `db:push` then `db:generate` on the same database. Options:
+
+1. **Delete the migration file** - If still in development
+   ```bash
+   rm server/drizzle/migrations/XXXX_migration_name.sql
+   ```
+
+2. **Mark as applied** - If you need to keep the migration
+   ```sql
+   INSERT INTO __drizzle_migrations (hash, created_at)
+   VALUES ('XXXX_migration_name', EXTRACT(EPOCH FROM NOW()) * 1000);
+   ```
+
+3. **Force migrations in dev** - For testing
+   ```bash
+   DB_SKIP_MIGRATIONS=false pnpm dev
+   ```
+
 ## Environment Variables
 
 ```bash
