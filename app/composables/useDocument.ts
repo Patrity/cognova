@@ -16,6 +16,11 @@ export function useDocument() {
     await saveDocument({ body: body.value })
   }, 2000)
 
+  const debouncedSaveMetadata = useDebounceFn(async () => {
+    if (!document.value || !metadataDirty.value) return
+    await saveDocument()
+  }, 500)
+
   async function loadDocument(path: string) {
     loading.value = true
     filePath.value = path
@@ -55,6 +60,7 @@ export function useDocument() {
 
     metadata.value = { ...metadata.value, ...updates }
     metadataDirty.value = true
+    debouncedSaveMetadata()
   }
 
   async function saveDocument(updates: UpdateDocumentInput = {}) {
