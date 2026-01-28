@@ -5,6 +5,7 @@ const publicPaths = [
   '/api/auth', // BetterAuth endpoints
   '/api/health', // Health check
   '/api/home', // Public home page content
+  '/api/_mdc', // MDC syntax highlighting
   '/_nuxt', // Nuxt assets
   '/login', // Login page
   '/view' // Public document viewer

@@ -12,6 +12,44 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  mdc: {
+    highlight: {
+      theme: {
+        default: 'github-light',
+        dark: 'github-dark'
+      },
+      langs: [
+        'typescript',
+        'javascript',
+        'ts',
+        'js',
+        'bash',
+        'shell',
+        'vue',
+        'html',
+        'css',
+        'scss',
+        'json',
+        'yaml',
+        'toml',
+        'xml',
+        'markdown',
+        'md',
+        'sql',
+        'graphql',
+        'python',
+        'go',
+        'rust',
+        'c',
+        'cpp',
+        'cs',
+        'java',
+        'dockerfile',
+        'diff'
+      ]
+    }
+  },
+
   runtimeConfig: {
     databaseUrl: process.env.DATABASE_URL || ''
   },
