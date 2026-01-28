@@ -8,12 +8,12 @@ services:
     volumes:
       # Vault directory
       - ${VAULT_PATH:-~/vault}:/vault:rw
-      # Claude Code config (for skills, settings)
-      - ${HOME}/.claude:/home/node/.claude:rw
+      # Anthropic credentials (for Claude Code CLI auth)
       - ${HOME}/.anthropic:/home/node/.anthropic:ro
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/second_brain}
       - VAULT_PATH=/vault
+      - SECOND_BRAIN_API_URL=http://localhost:3000
       - GOTIFY_URL=${GOTIFY_URL}
       - GOTIFY_TOKEN=${GOTIFY_TOKEN}
     depends_on:

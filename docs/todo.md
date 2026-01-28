@@ -8,13 +8,13 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 |---------|--------|------|
 | Database Init | Done | [database-init.md](./complete/database-init.md) |
 | Auth Layer | Done | [auth.md](./complete/auth.md) |
-| Skills System | Planned | [skills-system.md](./todo/skills-system.md) |
+| Skills System | Done | [skills-system.md](./complete/skills-system.md) |
 
 ## Priority 2: Core Features
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Task Skill | Planned | [task-skill.md](./todo/task-skill.md) |
+| Task Skill | Done | (included in Skills System) |
 | Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
 | Document Metadata | Planned | [document-metadata.md](./todo/document-metadata.md) |
