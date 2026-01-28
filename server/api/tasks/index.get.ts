@@ -43,7 +43,8 @@ export default defineEventHandler(async (event) => {
   const tasks = await db.query.tasks.findMany({
     where: conditions.length > 0 ? and(...conditions) : undefined,
     with: {
-      project: true
+      project: true,
+      creator: true
     },
     orderBy: (tasks, { desc }) => [desc(tasks.createdAt)]
   })

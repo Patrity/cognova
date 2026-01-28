@@ -1,0 +1,40 @@
+import { auth } from '~~/server/utils/auth'
+
+// Paths that don't require authentication
+const publicPaths = [
+  '/api/auth', // BetterAuth endpoints
+  '/api/health', // Health check
+  '/_nuxt', // Nuxt assets
+  '/login' // Login page
+]
+
+export default defineEventHandler(async (event) => {
+  const path = getRequestURL(event).pathname
+
+  // Skip auth for public paths
+  if (publicPaths.some(p => path.startsWith(p))) return
+
+  // Skip auth for static assets
+  if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) return
+
+  // Check session
+  const session = await auth.api.getSession({
+    headers: event.headers
+  })
+
+  if (!session) {
+    // API requests get 401
+    if (path.startsWith('/api/')) {
+      throw createError({
+        statusCode: 401,
+        message: 'Unauthorized'
+      })
+    }
+    // Page requests redirect to login
+    return sendRedirect(event, '/login')
+  }
+
+  // Attach user to event context for use in routes
+  event.context.user = session.user
+  event.context.session = session.session
+})

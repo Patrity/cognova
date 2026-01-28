@@ -16,6 +16,8 @@ export default defineEventHandler(async (event) => {
 
   const db = getDb()
 
+  const userId = event.context.user?.id
+
   const result = await db
     .insert(schema.tasks)
     .values({
@@ -25,7 +27,8 @@ export default defineEventHandler(async (event) => {
       priority: body.priority ?? 2,
       projectId: body.projectId || null,
       dueDate: body.dueDate ? new Date(body.dueDate) : null,
-      tags: body.tags || []
+      tags: body.tags || [],
+      createdBy: userId
     })
     .returning()
 

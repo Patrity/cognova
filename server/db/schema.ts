@@ -1,6 +1,80 @@
 import { pgTable, text, uuid, timestamp, integer, boolean } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
+// =============================================================================
+// Auth Tables (BetterAuth)
+// =============================================================================
+
+export const user = pgTable('user', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  image: text('image'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const session = pgTable('session', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const account = pgTable('account', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  accountId: text('account_id').notNull(),
+  providerId: text('provider_id').notNull(),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+  scope: text('scope'),
+  idToken: text('id_token'),
+  password: text('password'), // Hashed password for credential auth
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+export const verification = pgTable('verification', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+})
+
+// Auth relations
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account)
+}))
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id]
+  })
+}))
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id]
+  })
+}))
+
+// =============================================================================
+// Application Tables
+// =============================================================================
+
 // Projects table
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -9,7 +83,11 @@ export const projects = pgTable('projects', {
   description: text('description'), // Optional markdown
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   modifiedAt: timestamp('modified_at', { withTimezone: true }),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }) // Soft delete
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // Soft delete
+  // Audit fields
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  modifiedBy: text('modified_by').references(() => user.id, { onDelete: 'set null' }),
+  deletedBy: text('deleted_by').references(() => user.id, { onDelete: 'set null' })
 })
 
 // Tasks table
@@ -27,7 +105,11 @@ export const tasks = pgTable('tasks', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   modifiedAt: timestamp('modified_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }) // Soft delete
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // Soft delete
+  // Audit fields
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  modifiedBy: text('modified_by').references(() => user.id, { onDelete: 'set null' }),
+  deletedBy: text('deleted_by').references(() => user.id, { onDelete: 'set null' })
 })
 
 export const reminders = pgTable('reminders', {
@@ -49,8 +131,11 @@ export const conversations = pgTable('conversations', {
 })
 
 // Relations for query builder
-export const projectsRelations = relations(projects, ({ many }) => ({
-  tasks: many(tasks)
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  tasks: many(tasks),
+  creator: one(user, { fields: [projects.createdBy], references: [user.id] }),
+  modifier: one(user, { fields: [projects.modifiedBy], references: [user.id] }),
+  deleter: one(user, { fields: [projects.deletedBy], references: [user.id] })
 }))
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
@@ -58,7 +143,10 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     fields: [tasks.projectId],
     references: [projects.id]
   }),
-  reminders: many(reminders)
+  reminders: many(reminders),
+  creator: one(user, { fields: [tasks.createdBy], references: [user.id] }),
+  modifier: one(user, { fields: [tasks.modifiedBy], references: [user.id] }),
+  deleter: one(user, { fields: [tasks.deletedBy], references: [user.id] })
 }))
 
 export const remindersRelations = relations(reminders, ({ one }) => ({

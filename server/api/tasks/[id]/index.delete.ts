@@ -22,12 +22,16 @@ export default defineEventHandler(async (event) => {
   if (!existing)
     throw createError({ statusCode: 404, message: 'Task not found' })
 
+  const userId = event.context.user?.id
+
   // Soft delete
   await db
     .update(schema.tasks)
     .set({
       deletedAt: new Date(),
-      modifiedAt: new Date()
+      deletedBy: userId,
+      modifiedAt: new Date(),
+      modifiedBy: userId
     })
     .where(eq(schema.tasks.id, id))
 

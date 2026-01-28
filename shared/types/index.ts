@@ -1,3 +1,12 @@
+// === Users ===
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  image?: string
+}
+
 // === Projects ===
 
 export interface Project {
@@ -8,6 +17,10 @@ export interface Project {
   createdAt: Date
   modifiedAt?: Date
   deletedAt?: Date
+  createdBy?: string
+  modifiedBy?: string
+  deletedBy?: string
+  creator?: User
 }
 
 export interface CreateProjectInput {
@@ -40,6 +53,10 @@ export interface Task {
   modifiedAt?: Date
   completedAt?: Date
   deletedAt?: Date
+  createdBy?: string
+  modifiedBy?: string
+  deletedBy?: string
+  creator?: User // Populated on fetch
 }
 
 export interface CreateTaskInput {

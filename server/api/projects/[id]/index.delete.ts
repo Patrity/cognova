@@ -22,12 +22,16 @@ export default defineEventHandler(async (event) => {
   if (!existing)
     throw createError({ statusCode: 404, message: 'Project not found' })
 
+  const userId = event.context.user?.id
+
   // Soft delete
   const [project] = await db
     .update(schema.projects)
     .set({
       deletedAt: new Date(),
-      modifiedAt: new Date()
+      deletedBy: userId,
+      modifiedAt: new Date(),
+      modifiedBy: userId
     })
     .where(eq(schema.projects.id, id))
     .returning()

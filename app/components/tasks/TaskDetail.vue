@@ -117,9 +117,12 @@ function formatDate(date: Date | string | undefined) {
         </div>
       </div>
 
-      <!-- Timestamps -->
+      <!-- Timestamps & Audit -->
       <div class="pt-2 border-t border-default text-xs text-dimmed space-y-1">
-        <p>Created: {{ formatDate(task.createdAt) }}</p>
+        <p>
+          Created: {{ formatDate(task.createdAt) }}
+          <span v-if="task.creator"> by {{ task.creator.name }}</span>
+        </p>
         <p v-if="task.completedAt">
           Completed: {{ formatDate(task.completedAt) }}
         </p>

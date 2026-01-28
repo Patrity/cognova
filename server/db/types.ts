@@ -1,5 +1,18 @@
 import type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
-import type { projects, tasks, reminders, conversations } from './schema'
+import type { user, session, account, verification, projects, tasks, reminders, conversations } from './schema'
+
+// Auth types
+export type DbUser = InferSelectModel<typeof user>
+export type DbUserInsert = InferInsertModel<typeof user>
+
+export type DbSession = InferSelectModel<typeof session>
+export type DbSessionInsert = InferInsertModel<typeof session>
+
+export type DbAccount = InferSelectModel<typeof account>
+export type DbAccountInsert = InferInsertModel<typeof account>
+
+export type DbVerification = InferSelectModel<typeof verification>
+export type DbVerificationInsert = InferInsertModel<typeof verification>
 
 // Inferred types from schema
 export type DbProject = InferSelectModel<typeof projects>

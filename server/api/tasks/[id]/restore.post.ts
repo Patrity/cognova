@@ -25,12 +25,16 @@ export default defineEventHandler(async (event) => {
   if (!existing.deletedAt)
     throw createError({ statusCode: 400, message: 'Task is not deleted' })
 
+  const userId = event.context.user?.id
+
   // Restore
   await db
     .update(schema.tasks)
     .set({
       deletedAt: null,
-      modifiedAt: new Date()
+      deletedBy: null,
+      modifiedAt: new Date(),
+      modifiedBy: userId
     })
     .where(eq(schema.tasks.id, id))
 

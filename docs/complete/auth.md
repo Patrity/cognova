@@ -333,21 +333,78 @@ function getUserVaultPath(user: User): string {
 
 ## Implementation Steps
 
-1. [ ] Install BetterAuth
-2. [ ] Add auth tables to schema
-3. [ ] Generate migration
-4. [ ] Create BetterAuth config
-5. [ ] Add API handler
-6. [ ] Create auth middleware
-7. [ ] Create useAuth composable
-8. [ ] Create login page
-9. [ ] Create auth layout
-10. [ ] Add admin seed script
-11. [ ] Test login flow
-12. [ ] Update .env.example
+1. [x] Install BetterAuth
+2. [x] Add auth tables to schema
+3. [x] Generate migration
+4. [x] Create BetterAuth config
+5. [x] Add API handler
+6. [x] Create auth middleware
+7. [x] Create useAuth composable
+8. [x] Create login page
+9. [x] Create auth layout
+10. [x] Add admin seed script
+11. [x] Test login flow
+12. [x] Update .env.example
 
 ## Dependencies
 
 - Requires: database-init
 - Blocks: None (enables protected features)
 - Related: Future multi-user vault isolation
+
+---
+
+## Completion Notes
+
+**Completed:** 2026-01-28
+
+### What Was Implemented
+
+- BetterAuth with Drizzle adapter for PostgreSQL
+- Email/password authentication with scrypt password hashing
+- Session-based auth with 7-day expiry
+- Server middleware protecting all routes except `/api/auth`, `/api/health`, `/_nuxt`, `/login`
+- Login page with auth layout
+- User dropdown in sidebar with logout
+- Admin seed script (`pnpm auth:create-admin`)
+
+### Changes from Original Plan
+
+| Planned | Implemented | Reason |
+|---------|-------------|--------|
+| UUID primary keys | Text primary keys | BetterAuth uses text IDs internally |
+| Plural table names (users) | Singular (user) | BetterAuth convention |
+| Static authClient | Lazy authClient creation | SSR compatibility - client needs full URL at creation time |
+| Basic seed script | Standalone seed script | Needed to work outside Nuxt context (no `~~` alias) |
+
+### Files Created
+
+- `server/db/schema.ts` - Added user, session, account, verification tables
+- `server/utils/auth.ts` - BetterAuth configuration
+- `server/api/auth/[...all].ts` - Auth API handler
+- `server/middleware/auth.ts` - Route protection middleware
+- `app/composables/useAuth.ts` - Client-side auth composable
+- `app/layouts/auth.vue` - Centered layout for login page
+- `app/pages/login.vue` - Login form
+- `scripts/create-admin.ts` - Admin user seed script
+- `server/drizzle/migrations/0002_clean_colossus.sql` - Auth tables migration
+
+### Environment Variables Added
+
+```bash
+BETTER_AUTH_SECRET=  # Required - generate with: openssl rand -base64 32
+BETTER_AUTH_URL=     # Required - base URL for callbacks
+ADMIN_EMAIL=         # Optional - for create-admin script
+ADMIN_PASSWORD=      # Optional - for create-admin script
+ADMIN_NAME=          # Optional - for create-admin script
+```
+
+### Usage
+
+```bash
+# Create initial admin user
+pnpm auth:create-admin
+
+# Or with custom credentials
+ADMIN_EMAIL=myemail@example.com ADMIN_PASSWORD=mysecurepassword pnpm auth:create-admin
+```

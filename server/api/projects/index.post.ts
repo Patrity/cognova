@@ -18,13 +18,15 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Color must be a valid hex color (e.g., #3b82f6)' })
 
   const db = getDb()
+  const userId = event.context.user?.id
 
   const [project] = await db
     .insert(schema.projects)
     .values({
       name: body.name.trim(),
       color: body.color,
-      description: body.description?.trim() || null
+      description: body.description?.trim() || null,
+      createdBy: userId
     })
     .returning()
 

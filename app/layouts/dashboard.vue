@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+const { user, logout } = useAuth()
 const open = ref(false)
 
 const links = [[{
@@ -67,17 +68,26 @@ const groups = computed(() => [{
       </template>
 
       <template #footer="{ collapsed }">
-        <div class="flex items-center gap-2 px-2 py-1.5">
-          <UAvatar
-            src="https://github.com/nuxt.png"
-            alt="User"
-            size="sm"
-          />
-          <span
-            v-if="!collapsed"
-            class="text-sm truncate"
-          >User</span>
-        </div>
+        <UDropdownMenu
+          :items="[[
+            { label: 'Sign out', icon: 'i-lucide-log-out', onSelect: logout }
+          ]]"
+        >
+          <UButton
+            variant="ghost"
+            class="w-full justify-start"
+            :ui="{ leadingIcon: 'size-5' }"
+          >
+            <UAvatar
+              :alt="user?.name || 'User'"
+              size="2xs"
+            />
+            <span
+              v-if="!collapsed"
+              class="text-sm truncate"
+            >{{ user?.name || user?.email || 'User' }}</span>
+          </UButton>
+        </UDropdownMenu>
       </template>
     </UDashboardSidebar>
 

@@ -29,8 +29,11 @@ export default defineEventHandler(async (event) => {
   if (!existing)
     throw createError({ statusCode: 404, message: 'Task not found' })
 
+  const userId = event.context.user?.id
+
   const updates: Record<string, unknown> = {
-    modifiedAt: new Date()
+    modifiedAt: new Date(),
+    modifiedBy: userId
   }
 
   if (body.title !== undefined) updates.title = body.title.trim()

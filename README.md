@@ -54,9 +54,12 @@ cp .env.example .env
 
 # Start dev server
 pnpm dev
+
+# Create an admin user
+pnpm auth:create-admin
 ```
 
-Visit `http://localhost:3000`
+Visit `http://localhost:3000` and login with the admin credentials.
 
 #### With Local PostgreSQL
 
@@ -119,12 +122,26 @@ services:
 |----------|----------|-------------|
 | `VAULT_PATH` | Yes | Path to your markdown vault |
 | `DATABASE_URL` | No | PostgreSQL URL - local (`localhost:5432`) or Neon |
+| `BETTER_AUTH_SECRET` | Yes | Secret key for session encryption (generate with `openssl rand -base64 32`) |
+| `BETTER_AUTH_URL` | Yes | Base URL of your app (e.g., `http://localhost:3000`) |
 | `GOTIFY_URL` | No | Gotify server for notifications |
 | `GOTIFY_TOKEN` | No | Gotify app token |
 
+### Authentication
+
+This app uses [BetterAuth](https://better-auth.com) for session-based authentication. After setting up the database:
+
+```bash
+# Create an admin user
+pnpm auth:create-admin
+
+# Or with custom credentials
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=yourpassword ADMIN_NAME="Your Name" pnpm auth:create-admin
+```
+
 ### Reverse Proxy
 
-This app is designed to sit behind a reverse proxy with authentication. It does **not** include built-in auth - handle that at your proxy layer (Nginx, Traefik, Cloudflare Access, Pangolin, etc).
+For production, this app should sit behind a reverse proxy (Nginx, Traefik, Cloudflare Access, etc.) for TLS termination and additional security layers.
 
 ### Platform Options
 

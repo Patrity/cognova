@@ -7,7 +7,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Feature | Status | Plan |
 |---------|--------|------|
 | Database Init | Done | [database-init.md](./complete/database-init.md) |
-| Auth Layer | Planned | [auth.md](./todo/auth.md) |
+| Auth Layer | Done | [auth.md](./complete/auth.md) |
 | Skills System | Planned | [skills-system.md](./todo/skills-system.md) |
 
 ## Priority 2: Core Features

@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const [task] = await db.query.tasks.findMany({
     where: (tasks, { eq }) => eq(tasks.id, id),
-    with: { project: true },
+    with: { project: true, creator: true },
     limit: 1
   })
 
