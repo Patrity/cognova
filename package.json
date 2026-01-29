@@ -20,6 +20,7 @@
     "auth:create-admin": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.23",
     "@iconify-json/lucide": "^1.2.82",
     "@iconify-json/simple-icons": "^1.2.63",
     "@nuxt/ui": "^4.3.0",
@@ -30,6 +31,7 @@
     "@xterm/xterm": "^6.0.0",
     "better-auth": "^1.4.17",
     "chokidar": "^5.0.0",
+    "cron": "^4.4.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "gray-matter": "^4.0.3",

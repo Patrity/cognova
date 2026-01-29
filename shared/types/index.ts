@@ -213,3 +213,60 @@ export interface ApiResponse<T> {
 // === Editor ===
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+// === Cron Agents ===
+
+export type AgentStatus = 'success' | 'error' | 'budget_exceeded'
+export type RunStatus = 'running' | 'success' | 'error' | 'budget_exceeded'
+
+export interface CronAgent {
+  id: string
+  name: string
+  description?: string
+  schedule: string
+  prompt: string
+  enabled: boolean
+  maxTurns?: number
+  maxBudgetUsd?: number
+  lastRunAt?: Date
+  lastStatus?: AgentStatus
+  createdAt: Date
+  updatedAt: Date
+  createdBy?: string
+  creator?: User
+}
+
+export interface CronAgentRun {
+  id: string
+  agentId: string
+  status: RunStatus
+  output?: string
+  error?: string
+  costUsd?: number
+  inputTokens?: number
+  outputTokens?: number
+  numTurns?: number
+  startedAt: Date
+  completedAt?: Date
+  durationMs?: number
+}
+
+export interface CreateAgentInput {
+  name: string
+  description?: string
+  schedule: string
+  prompt: string
+  enabled?: boolean
+  maxTurns?: number
+  maxBudgetUsd?: number
+}
+
+export interface UpdateAgentInput {
+  name?: string
+  description?: string
+  schedule?: string
+  prompt?: string
+  enabled?: boolean
+  maxTurns?: number
+  maxBudgetUsd?: number | null
+}

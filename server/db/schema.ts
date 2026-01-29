@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, integer, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, uuid, timestamp, integer, boolean, real } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 // =============================================================================
@@ -183,4 +183,48 @@ export const documentsRelations = relations(documents, ({ one }) => ({
   creator: one(user, { fields: [documents.createdBy], references: [user.id] }),
   modifier: one(user, { fields: [documents.modifiedBy], references: [user.id] }),
   deleter: one(user, { fields: [documents.deletedBy], references: [user.id] })
+}))
+
+// =============================================================================
+// Cron Agents - Scheduled Claude agents
+// =============================================================================
+
+export const cronAgents = pgTable('cron_agents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description'),
+  schedule: text('schedule').notNull(), // Cron expression: "0 4 * * *"
+  prompt: text('prompt').notNull(),
+  enabled: boolean('enabled').default(true).notNull(),
+  maxTurns: integer('max_turns').default(50),
+  maxBudgetUsd: real('max_budget_usd'),
+  lastRunAt: timestamp('last_run_at', { withTimezone: true }),
+  lastStatus: text('last_status', { enum: ['success', 'error', 'budget_exceeded'] }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' })
+})
+
+export const cronAgentRuns = pgTable('cron_agent_runs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  agentId: uuid('agent_id').notNull().references(() => cronAgents.id, { onDelete: 'cascade' }),
+  status: text('status', { enum: ['running', 'success', 'error', 'budget_exceeded'] }).notNull(),
+  output: text('output'),
+  error: text('error'),
+  costUsd: real('cost_usd'),
+  inputTokens: integer('input_tokens'),
+  outputTokens: integer('output_tokens'),
+  numTurns: integer('num_turns'),
+  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  durationMs: integer('duration_ms')
+})
+
+export const cronAgentsRelations = relations(cronAgents, ({ many, one }) => ({
+  runs: many(cronAgentRuns),
+  creator: one(user, { fields: [cronAgents.createdBy], references: [user.id] })
+}))
+
+export const cronAgentRunsRelations = relations(cronAgentRuns, ({ one }) => ({
+  agent: one(cronAgents, { fields: [cronAgentRuns.agentId], references: [cronAgents.id] })
 }))
