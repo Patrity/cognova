@@ -1,4 +1,6 @@
+import type { H3Event } from 'h3'
 import { auth } from '~~/server/utils/auth'
+import { getDb } from '~~/server/db'
 
 // Paths that don't require authentication
 const publicPaths = [
@@ -11,6 +13,24 @@ const publicPaths = [
   '/view' // Public document viewer
 ]
 
+// Check for API token authentication (for CLI tools)
+async function checkApiToken(event: H3Event): Promise<boolean> {
+  const apiToken = process.env.SECOND_BRAIN_API_TOKEN
+  if (!apiToken) return false
+
+  const headerToken = getHeader(event, 'X-API-Token')
+  if (!headerToken || headerToken !== apiToken) return false
+
+  // Token matches - get the first user as the authenticated user for CLI
+  const db = getDb()
+  const user = await db.query.user.findFirst()
+  if (user) {
+    event.context.user = user
+    event.context.session = { id: 'api-token', userId: user.id }
+  }
+  return true
+}
+
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
 
@@ -22,6 +42,9 @@ export default defineEventHandler(async (event) => {
 
   // Skip auth for static assets
   if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) return
+
+  // Check API token for CLI tools
+  if (await checkApiToken(event)) return
 
   // Public document API - allow through but still try to get session for owner check
   if (path.match(/^\/api\/documents\/[^/]+\/public$/)) {

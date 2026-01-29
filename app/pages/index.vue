@@ -3,9 +3,9 @@ definePageMeta({
   layout: 'view'
 })
 
-const { isAuthenticated, isPending } = useAuth()
+const { isAuthenticated } = useAuth()
 
-// Redirect authenticated users to dashboard
+// Redirect authenticated users to dashboard (disabled for public home page)
 // watch([isAuthenticated, isPending], ([authenticated, pending]) => {
 //   if (!pending && authenticated)
 //     navigateTo('/dashboard')
@@ -20,30 +20,29 @@ const customContent = computed(() => data.value?.data?.content ?? '')
 // Hero links
 const heroLinks = computed(() => {
   const links = [
-  {
-    label: 'Get Started',
-    to: '/login',
-    icon: 'i-lucide-log-in'
-  },
-  {
-    label: 'View on GitHub',
-    to: 'https://github.com/patrity/second-brain',
-    target: '_blank',
-    color: 'neutral' as const,
-    variant: 'subtle' as const,
-    icon: 'i-simple-icons-github'
+    {
+      label: 'Get Started',
+      to: '/login',
+      icon: 'i-lucide-log-in'
+    },
+    {
+      label: 'View on GitHub',
+      to: 'https://github.com/patrity/second-brain',
+      target: '_blank',
+      color: 'neutral' as const,
+      variant: 'subtle' as const,
+      icon: 'i-simple-icons-github'
+    }
+  ]
+  if (isAuthenticated.value) {
+    links[0] = {
+      label: 'Dashboard',
+      to: '/dashboard',
+      icon: 'i-lucide-home'
+    }
   }
-]
-if (isAuthenticated.value) {
-  links[0] = {
-    label: 'Dashboard',
-    to: '/dashboard',
-    icon: 'i-lucide-home',
-  }
-}
-return links
+  return links
 })
-
 
 // Core features
 const coreFeatures = [
@@ -118,28 +117,28 @@ const techStack = [
 // CTA links
 const ctaLinks = computed(() => {
   const links = [
-  {
-    label: 'Get Started',
-    to: '/login',
-    color: 'neutral' as const
-  },
-  {
-    label: 'Read the Docs',
-    to: 'https://github.com/patrity/second-brain#readme',
-    target: '_blank',
-    color: 'neutral' as const,
-    variant: 'subtle' as const,
-    trailingIcon: 'i-lucide-arrow-right'
+    {
+      label: 'Get Started',
+      to: '/login',
+      color: 'neutral' as const
+    },
+    {
+      label: 'Read the Docs',
+      to: 'https://github.com/patrity/second-brain#readme',
+      target: '_blank',
+      color: 'neutral' as const,
+      variant: 'subtle' as const,
+      trailingIcon: 'i-lucide-arrow-right'
+    }
+  ]
+  if (isAuthenticated.value) {
+    links[0] = {
+      label: 'Dashboard',
+      to: '/dashboard',
+      color: 'neutral'
+    }
   }
-]
-if (isAuthenticated.value) {
-  links[0] = {
-    label: 'Dashboard',
-    to: '/dashboard',
-    color: 'neutral'
-  }
-}
-return links
+  return links
 })
 </script>
 
@@ -188,7 +187,7 @@ return links
     <UPageSection
       title="And much more..."
       description="Built with modern technologies and extensible architecture."
-      :ui="{ root:'bg-muted'}"
+      :ui="{ root: 'bg-muted' }"
       class="w-full"
     >
       <UPageGrid>

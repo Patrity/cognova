@@ -10,9 +10,35 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
 
 API_BASE = os.environ.get('SECOND_BRAIN_API_URL', 'http://localhost:3000')
+
+
+def _get_api_token() -> str:
+    """Get API token from environment or .api-token file."""
+    # Check environment variable first
+    token = os.environ.get('SECOND_BRAIN_API_TOKEN', '')
+    if token:
+        return token
+
+    # Try to read from .api-token file in project root
+    # Navigate from _lib -> skills -> Claude -> project root
+    lib_dir = Path(__file__).parent
+    project_root = lib_dir.parent.parent.parent
+    token_file = project_root / '.api-token'
+
+    if token_file.exists():
+        try:
+            return token_file.read_text().strip()
+        except Exception:
+            pass
+
+    return ''
+
+
+API_TOKEN = _get_api_token()
 
 
 def api_request(
@@ -37,6 +63,10 @@ def api_request(
 
     cmd = ["curl", "-sL", "-X", method]
     cmd.extend(["-H", "Content-Type: application/json"])
+
+    # Add API token for authentication if available
+    if API_TOKEN:
+        cmd.extend(["-H", f"X-API-Token: {API_TOKEN}"])
 
     if params:
         query_parts = []
