@@ -36,6 +36,9 @@ EXPOSE 3000
 # Set NODE_PATH so native modules can be found
 ENV NODE_PATH=/app/node_modules
 
+# Set HOME to /home/node so Claude Code finds ~/.claude correctly
+ENV HOME=/home/node
+
 # Create Claude settings directory (will be populated by entrypoint if volume is empty)
 RUN mkdir -p /home/node/.claude && chown -R node:node /home/node/.claude
 
