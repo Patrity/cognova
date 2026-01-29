@@ -51,6 +51,13 @@ export function isBinaryFile(filename: string): boolean {
   return binaryExtensions.has(ext)
 }
 
+export function getFileType(filename: string): 'markdown' | 'text' | 'binary' {
+  if (isBinaryFile(filename)) return 'binary'
+  const ext = filename.split('.').pop()?.toLowerCase() || ''
+  if (ext === 'md' || ext === 'mdx') return 'markdown'
+  return 'text'
+}
+
 const mimeTypes: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',

@@ -26,7 +26,10 @@
     <UMain>
       <slot />
     </UMain>
-
+    <USeparator
+      icon="i-lucide-brain"
+      :ui="{ icon: 'text-primary' }"
+    />
     <UFooter>
       <template #left>
         <p class="text-muted text-sm">

@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
         modifiedAt: document.modifiedAt,
         creatorName: document.creator?.name || null
       },
-      content: document.fileType === 'markdown' ? document.content : null,
+      content: document.fileType !== 'binary' ? document.content : null,
       isOwner
     }
   }

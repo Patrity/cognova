@@ -5,7 +5,7 @@ import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { requireDb } from '~~/server/utils/db-guard'
 import { validatePath } from '~~/server/utils/path-validator'
-import { parseFrontmatter, extractTitle, computeContentHash, isBinaryFile, getMimeType } from '~~/server/utils/frontmatter'
+import { parseFrontmatter, extractTitle, computeContentHash, getFileType, getMimeType } from '~~/server/utils/frontmatter'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -37,9 +37,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Failed to read file' })
   }
 
-  const isBinary = isBinaryFile(filename)
+  const fileType = getFileType(filename)
 
-  if (isBinary) {
+  // Handle binary files
+  if (fileType === 'binary') {
     if (!document) {
       const [newDoc] = await db.insert(schema.documents).values({
         path: requestedPath,
@@ -65,7 +66,50 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Parse markdown frontmatter
+  // Handle text files (non-markdown) - no frontmatter parsing
+  if (fileType === 'text') {
+    const contentHash = computeContentHash(fileContent)
+
+    if (!document) {
+      const [newDoc] = await db.insert(schema.documents).values({
+        path: requestedPath,
+        title: filename,
+        content: fileContent,
+        contentHash,
+        fileType: 'text',
+        syncedAt: new Date(),
+        createdBy: event.context.user?.id
+      }).returning()
+
+      document = await db.query.documents.findFirst({
+        where: eq(schema.documents.id, newDoc!.id),
+        with: { project: true }
+      })
+    } else if (document.contentHash !== contentHash) {
+      await db.update(schema.documents).set({
+        content: fileContent,
+        contentHash,
+        syncedAt: new Date(),
+        modifiedAt: new Date(),
+        modifiedBy: event.context.user?.id
+      }).where(eq(schema.documents.id, document.id))
+
+      document = await db.query.documents.findFirst({
+        where: eq(schema.documents.id, document.id),
+        with: { project: true }
+      })
+    }
+
+    return {
+      data: {
+        document,
+        metadata: { title: document!.title, tags: document!.tags || [], shared: document!.shared },
+        body: fileContent
+      }
+    }
+  }
+
+  // Handle markdown files - parse frontmatter
   const { metadata, body: markdownBody } = parseFrontmatter(fileContent)
   const contentHash = computeContentHash(fileContent)
   const title = extractTitle(metadata, markdownBody, filename)

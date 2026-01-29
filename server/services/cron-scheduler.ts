@@ -8,7 +8,7 @@ import { executeAgent } from './agent-executor'
 // This prevents issues where the plugin and API handlers get different module instances
 const JOBS_KEY = '__secondBrain_cronJobs__' as const
 declare global {
-  // eslint-disable-next-line no-var
+
   var __secondBrain_cronJobs__: Map<string, CronJob> | undefined
 }
 

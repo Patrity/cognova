@@ -1,6 +1,9 @@
 ---
 tags: []
-shared: false
+shared: true
+title: AI Conversation History
+project: null
+shareType: private
 ---
 # AI Conversation History
 

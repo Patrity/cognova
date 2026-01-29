@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { parseMarkdown } from '@nuxtjs/mdc/runtime'
 import type { TocLink, PublicDocumentResponse } from '~~/shared/types'
+import { detectLanguage } from '~~/shared/utils/language-detection'
 
 definePageMeta({
   layout: 'view'
@@ -32,9 +33,12 @@ watch(() => data.value?.data?.content, async (content) => {
 // Error state helpers
 const notFound = computed(() => error.value?.statusCode === 404)
 const forbidden = computed(() => error.value?.statusCode === 403)
-const notMarkdown = computed(() =>
-  data.value?.data?.document?.fileType !== 'markdown'
-)
+
+// File type helpers
+const isMarkdown = computed(() => data.value?.data?.document?.fileType === 'markdown')
+const isTextFile = computed(() => data.value?.data?.document?.fileType === 'text')
+const isBinaryFile = computed(() => data.value?.data?.document?.fileType === 'binary')
+const codeLanguage = computed(() => detectLanguage(data.value?.data?.document?.path || ''))
 
 // SEO with robots control based on shareType
 useSeoMeta({
@@ -48,6 +52,47 @@ useSeoMeta({
 
 // Check if user is authenticated (show edit button for any authenticated user)
 const { isAuthenticated } = useAuth()
+
+// View source toggle for markdown files
+const viewSource = ref(false)
+
+// Copy content to clipboard
+const toast = useToast()
+async function copyContent() {
+  const content = data.value?.data?.content
+  if (!content) return
+
+  try {
+    await navigator.clipboard.writeText(content)
+    toast.add({
+      title: 'Copied to clipboard',
+      icon: 'i-lucide-check',
+      color: 'success'
+    })
+  } catch {
+    toast.add({
+      title: 'Failed to copy',
+      icon: 'i-lucide-x',
+      color: 'error'
+    })
+  }
+}
+
+// Download content as file
+function downloadContent() {
+  const content = data.value?.data?.content
+  const path = data.value?.data?.document?.path
+  if (!content || !path) return
+
+  const filename = path.split('/').pop() || 'document.txt'
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
 
 // Format dates for display
 function formatDate(date: string | Date | null | undefined): string {
@@ -108,9 +153,9 @@ function formatDate(date: string | Date | null | undefined): string {
       </UButton>
     </div>
 
-    <!-- Error: Not Markdown -->
+    <!-- Error: Binary File -->
     <div
-      v-else-if="notMarkdown && data?.data"
+      v-else-if="isBinaryFile && data?.data"
       class="py-24 text-center"
     >
       <UIcon
@@ -121,8 +166,7 @@ function formatDate(date: string | Date | null | undefined): string {
         Cannot Preview This File
       </h1>
       <p class="text-dimmed mb-6">
-        Only markdown content is supported for now.<br>
-        Other file types coming soon! 🚀
+        Binary files cannot be previewed.
       </p>
       <UButton
         to="/"
@@ -143,22 +187,100 @@ function formatDate(date: string | Date | null | undefined): string {
       />
     </div>
 
-    <!-- Success: Document View -->
-    <template v-else-if="data?.data?.content">
-      <!-- Document header with title and edit button -->
+    <!-- Success: Text File View (CodeMirror) -->
+    <template v-else-if="isTextFile && data?.data?.content">
+      <!-- Document header with title and action buttons -->
       <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-bold">
           {{ data.data.document.title }}
         </h1>
-        <UButton
-          v-if="isAuthenticated"
-          icon="i-lucide-pencil"
-          variant="soft"
-          size="sm"
-          :to="`/docs?path=${encodeURIComponent(data.data.document.path)}`"
-        >
-          Edit
-        </UButton>
+        <div class="flex items-center gap-2">
+          <UButton
+            icon="i-lucide-copy"
+            variant="ghost"
+            size="sm"
+            @click="copyContent"
+          >
+            Copy
+          </UButton>
+          <UButton
+            icon="i-lucide-download"
+            variant="ghost"
+            size="sm"
+            @click="downloadContent"
+          >
+            Download
+          </UButton>
+          <UButton
+            v-if="isAuthenticated"
+            icon="i-lucide-pencil"
+            variant="soft"
+            size="sm"
+            :to="`/docs?path=${encodeURIComponent(data.data.document.path)}`"
+          >
+            Edit
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Code viewer -->
+      <div class="border border-default rounded-lg overflow-hidden">
+        <ClientOnly>
+          <EditorCodeEditor
+            :model-value="data.data.content"
+            :language="codeLanguage"
+            :read-only="true"
+            class="max-h-[80vh]"
+          />
+          <template #fallback>
+            <EditorCodeEditorFallback class="h-96" />
+          </template>
+        </ClientOnly>
+      </div>
+    </template>
+
+    <!-- Success: Markdown Document View -->
+    <template v-else-if="isMarkdown && data?.data?.content">
+      <!-- Document header with title and action buttons -->
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">
+          {{ data.data.document.title }}
+        </h1>
+        <div class="flex items-center gap-2">
+          <UButton
+            :icon="viewSource ? 'i-lucide-eye' : 'i-lucide-code'"
+            variant="ghost"
+            size="sm"
+            @click="viewSource = !viewSource"
+          >
+            {{ viewSource ? 'Preview' : 'Source' }}
+          </UButton>
+          <UButton
+            icon="i-lucide-copy"
+            variant="ghost"
+            size="sm"
+            @click="copyContent"
+          >
+            Copy
+          </UButton>
+          <UButton
+            icon="i-lucide-download"
+            variant="ghost"
+            size="sm"
+            @click="downloadContent"
+          >
+            Download
+          </UButton>
+          <UButton
+            v-if="isAuthenticated"
+            icon="i-lucide-pencil"
+            variant="soft"
+            size="sm"
+            :to="`/docs?path=${encodeURIComponent(data.data.document.path)}`"
+          >
+            Edit
+          </UButton>
+        </div>
       </div>
 
       <!-- Document metadata -->
@@ -215,7 +337,26 @@ function formatDate(date: string | Date | null | undefined): string {
         </div>
       </div>
 
-      <UPage>
+      <!-- Source view: CodeMirror -->
+      <div
+        v-if="viewSource"
+        class="border border-default rounded-lg overflow-hidden"
+      >
+        <ClientOnly>
+          <EditorCodeEditor
+            :model-value="data.data.content"
+            language="markdown"
+            :read-only="true"
+            class="max-h-[80vh]"
+          />
+          <template #fallback>
+            <EditorCodeEditorFallback class="h-96" />
+          </template>
+        </ClientOnly>
+      </div>
+
+      <!-- Preview: Rendered markdown -->
+      <UPage v-else>
         <template #left>
           <UPageAside>
             <ViewToc :links="tocLinks" />

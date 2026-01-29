@@ -117,7 +117,27 @@ export interface FileContent {
 // === Documents ===
 
 export type ShareType = 'public' | 'private'
-export type FileType = 'markdown' | 'binary'
+export type FileType = 'markdown' | 'text' | 'binary'
+
+export type CodeLanguage
+  = 'markdown'
+    | 'javascript'
+    | 'typescript'
+    | 'json'
+    | 'html'
+    | 'css'
+    | 'vue'
+    | 'python'
+    | 'sql'
+    | 'yaml'
+    | 'bash'
+    | 'go'
+    | 'rust'
+    | 'dockerfile'
+    | 'java'
+    | 'cpp'
+    | 'xml'
+    | 'plaintext'
 
 export interface Document {
   id: string

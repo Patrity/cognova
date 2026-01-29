@@ -30,18 +30,18 @@ Implement authentication to protect the application:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     Browser                              │
+│                     Browser                             │
 ├─────────────────────────────────────────────────────────┤
-│  Login Page ──► BetterAuth ──► Session Cookie            │
-│                     │                                    │
-│                     ▼                                    │
+│  Login Page ──► BetterAuth ──► Session Cookie           │
+│                     │                                   │
+│                     ▼                                   │
 │              ┌─────────────┐                            │
 │              │  Database   │                            │
 │              │  - users    │                            │
 │              │  - sessions │                            │
 │              └─────────────┘                            │
-│                     │                                    │
-│                     ▼                                    │
+│                     │                                   │
+│                     ▼                                   │
 │  Protected Routes (API + Pages)                         │
 └─────────────────────────────────────────────────────────┘
 ```

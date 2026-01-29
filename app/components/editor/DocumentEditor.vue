@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EditorToolbarItem } from '@nuxt/ui'
 import type { Document, DocumentMetadata, Project } from '~~/shared/types'
+import { detectLanguage, isMarkdownFile } from '~~/shared/utils/language-detection'
 
 const props = defineProps<{
   document: Document
@@ -23,6 +24,14 @@ const { data: projectsData } = await useFetch<{ data: Project[] }>('/api/project
 const projects = computed(() => projectsData.value?.data || [])
 
 const showMetadata = ref(true)
+const isEditorMode = ref(true)
+
+// Determine if this is a markdown file (shows toggle) or text file (CodeMirror only)
+const isMarkdown = computed(() =>
+  props.document.fileType === 'markdown' || isMarkdownFile(props.filePath)
+)
+const codeLanguage = computed(() => detectLanguage(props.filePath))
+const showModeToggle = computed(() => isMarkdown.value)
 
 const toolbarItems: EditorToolbarItem[][] = [
   [
@@ -140,7 +149,19 @@ function setVisibility(shared: boolean, shareType: 'public' | 'private' | null) 
         />
         <span class="truncate">{{ filePath }}</span>
       </div>
-      <div class="flex items-center gap-2">
+      <div
+        v-if="showModeToggle"
+        class="w-40"
+      >
+        <USwitch
+          v-model="isEditorMode"
+          unchecked-icon="i-lucide-code"
+          checked-icon="i-lucide-pencil"
+          :label="isEditorMode ? 'Editor Mode' : 'Code Mode'"
+          :ui="{ base: 'data-[state=unchecked]:bg-info', icon: 'group-data-[state=unchecked]:text-info' }"
+        />
+      </div>
+      <div class="flex items-center gap-3">
         <UButton
           :icon="linkCopied ? 'i-lucide-check' : 'i-lucide-share'"
           size="xs"
@@ -179,7 +200,9 @@ function setVisibility(shared: boolean, shareType: 'public' | 'private' | null) 
       @update:metadata="handleMetadataUpdate"
     />
 
+    <!-- WYSIWYG Editor: markdown files in editor mode -->
     <UEditor
+      v-if="isMarkdown && isEditorMode"
       v-slot="{ editor }"
       :model-value="editorContent"
       content-type="markdown"
@@ -193,6 +216,19 @@ function setVisibility(shared: boolean, shareType: 'public' | 'private' | null) 
         class="border-b border-default"
       />
     </UEditor>
+
+    <!-- CodeMirror: code mode for markdown OR non-markdown text files -->
+    <ClientOnly v-else>
+      <EditorCodeEditor
+        :model-value="body"
+        :language="codeLanguage"
+        class="flex-1"
+        @update:model-value="handleBodyUpdate"
+      />
+      <template #fallback>
+        <EditorCodeEditorFallback class="flex-1" />
+      </template>
+    </ClientOnly>
 
     <!-- Share visibility modal -->
     <UModal
