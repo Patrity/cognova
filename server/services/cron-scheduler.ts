@@ -4,7 +4,19 @@ import { getDb } from '../db'
 import * as schema from '../db/schema'
 import { executeAgent } from './agent-executor'
 
-const jobs = new Map<string, CronJob>()
+// Use globalThis to ensure the same Map instance across Nitro module boundaries
+// This prevents issues where the plugin and API handlers get different module instances
+const JOBS_KEY = '__secondBrain_cronJobs__' as const
+declare global {
+  // eslint-disable-next-line no-var
+  var __secondBrain_cronJobs__: Map<string, CronJob> | undefined
+}
+
+function getJobs(): Map<string, CronJob> {
+  if (!globalThis[JOBS_KEY])
+    globalThis[JOBS_KEY] = new Map<string, CronJob>()
+  return globalThis[JOBS_KEY]
+}
 
 export async function initCronScheduler(): Promise<number> {
   const db = getDb()
@@ -23,6 +35,8 @@ export function scheduleAgent(agent: typeof schema.cronAgents.$inferSelect) {
   unscheduleAgent(agent.id)
 
   if (!agent.enabled) return
+
+  const jobs = getJobs()
 
   try {
     const job = new CronJob(
@@ -50,13 +64,15 @@ export function scheduleAgent(agent: typeof schema.cronAgents.$inferSelect) {
 }
 
 export function unscheduleAgent(agentId: string) {
+  const jobs = getJobs()
   const job = jobs.get(agentId)
   if (job) {
     job.stop()
     jobs.delete(agentId)
+    console.log(`[cron] Unscheduled agent: ${agentId}`)
   }
 }
 
 export function getScheduledAgentIds(): string[] {
-  return Array.from(jobs.keys())
+  return Array.from(getJobs().keys())
 }
