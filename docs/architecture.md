@@ -36,10 +36,50 @@ shared: false
          ▼                    ▼                         ▼
 ┌─────────────────┐  ┌─────────────────┐      ┌─────────────────┐
 │   Neon DB       │  │   Vault (fs)    │      │   Claude Code   │
-│   (tasks,       │  │   ~/vault/      │      │   CLI           │
-│    reminders)   │  │                 │      │                 │
+│   (tasks,       │  │   ~/vault/      │      │   CLI + SDK     │
+│    agents)      │  │                 │      │                 │
 └─────────────────┘  └─────────────────┘      └─────────────────┘
 ```
+
+## WebSocket Communication
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    WebSocket Endpoints                           │
+├─────────────────────────────────────────────────────────────────┤
+│  /terminal        │  PTY-based terminal (xterm.js ↔ node-pty)   │
+│  /notifications   │  Real-time event bus (agent status, toasts) │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Scheduled Agents System
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                         Cron Scheduler                                 │
+│  Manages scheduled jobs via 'cron' package                             │
+│  Initialized at server startup via Nitro plugin                        │
+└─────────────────────────────┬─────────────────────────────────────────┘
+                              │
+                              ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                        Agent Executor                                  │
+│                                                                        │
+│  ┌─────────────┐  ┌───────────────┐  ┌────────────────────────────┐   │
+│  │ Agent       │  │ Claude Agent  │  │ Notification Bus           │   │
+│  │ Registry    │◄─│ SDK query()   │─►│ (broadcasts to WebSocket)  │   │
+│  │ (cancel)    │  │ streaming     │  │                            │   │
+│  └─────────────┘  └───────────────┘  └────────────────────────────┘   │
+│                                                                        │
+│  Features:                                                             │
+│  - Cancellation support via AgentRegistry                              │
+│  - Cost/token tracking from SDK                                        │
+│  - Real-time status via WebSocket notifications                        │
+│  - Orphaned run cleanup on startup                                     │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+See [cron-agents.md](./complete/cron-agents.md) for full implementation details.
 
 ## Nuxt UI Components
 
@@ -107,6 +147,8 @@ Reference: [Nuxt UI Dashboard Template - Inbox Page](https://github.com/nuxt-ui-
 | `/conversations` | Claude Code session history | Sidebar + list/detail |
 | `/tasks` | Task management | Sidebar + task list |
 | `/docs` | Document workspace | Sidebar + 3-panel (tree/editor/terminal) |
+| `/agents` | Scheduled agents dashboard | Stats, chart, agent cards |
+| `/agents/[id]` | Agent detail | Stats, run history, controls |
 
 ## Data Flow
 
@@ -178,14 +220,18 @@ services:
     volumes:
       # Vault directory
       - ${VAULT_PATH:-~/vault}:/vault:rw
-      # Claude Code config (for skills, settings)
-      - ${HOME}/.claude:/home/node/.claude:rw
+      # Claude settings persistence (SDK state, cached auth)
+      - claude_settings:/home/node/.claude
+      # Anthropic credentials (for Claude Code CLI auth)
       - ${HOME}/.anthropic:/home/node/.anthropic:ro
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - VAULT_PATH=/vault
       - GOTIFY_URL=${GOTIFY_URL}
       - GOTIFY_TOKEN=${GOTIFY_TOKEN}
+
+volumes:
+  claude_settings:  # Persists Claude SDK state between restarts
 ```
 
 ### Dockerfile
@@ -240,7 +286,10 @@ second-brain-app/
 │   │   ├── index.vue              # Dashboard
 │   │   ├── conversations.vue      # Session history
 │   │   ├── tasks.vue              # Task management
-│   │   └── docs.vue               # Document workspace (3-panel)
+│   │   ├── docs.vue               # Document workspace (3-panel)
+│   │   └── agents/
+│   │       ├── index.vue          # Agents dashboard
+│   │       └── [id].vue           # Agent detail page
 │   ├── components/
 │   │   ├── layout/
 │   │   │   ├── AppSidebar.vue
@@ -255,6 +304,12 @@ second-brain-app/
 │   │   ├── tasks/
 │   │   │   ├── TaskList.vue
 │   │   │   └── TaskForm.vue
+│   │   ├── agents/
+│   │   │   ├── AgentForm.vue
+│   │   │   ├── AgentStatsCards.vue
+│   │   │   ├── AgentActivityChart.client.vue
+│   │   │   ├── AgentActivityChart.server.vue
+│   │   │   └── AgentRunModal.vue
 │   │   └── dashboard/
 │   │       ├── QuickCapture.vue
 │   │       └── RecentNotes.vue
@@ -262,28 +317,51 @@ second-brain-app/
 │   │   ├── useFileTree.ts
 │   │   ├── useEditor.ts
 │   │   ├── useTerminal.ts
-│   │   └── useTasks.ts
+│   │   ├── useTasks.ts
+│   │   ├── useAgents.ts           # Agent CRUD, stats, cancel
+│   │   └── useNotificationBus.ts  # WebSocket notifications
 │   └── layouts/
 │       └── default.vue
 ├── server/
 │   ├── api/
 │   │   ├── fs/
-│   │   │   ├── read.post.ts
-│   │   │   ├── write.post.ts
-│   │   │   ├── list.get.ts
-│   │   │   ├── move.post.ts
-│   │   │   ├── rename.post.ts
-│   │   │   └── delete.post.ts
+│   │   │   └── [...].ts
 │   │   ├── tasks/
 │   │   │   └── [...].ts
+│   │   ├── agents/
+│   │   │   ├── index.get.ts       # List agents
+│   │   │   ├── index.post.ts      # Create agent
+│   │   │   ├── stats.get.ts       # Global stats
+│   │   │   └── [id]/
+│   │   │       ├── index.get.ts   # Get agent
+│   │   │       ├── index.put.ts   # Update agent
+│   │   │       ├── index.delete.ts
+│   │   │       ├── toggle.post.ts
+│   │   │       ├── run.post.ts
+│   │   │       ├── cancel.post.ts
+│   │   │       ├── stats.get.ts   # Agent stats
+│   │   │       └── runs.get.ts    # Run history
 │   │   └── conversations/
 │   │       └── [...].ts
 │   ├── routes/
-│   │   └── terminal.ts            # WebSocket handler
+│   │   ├── terminal.ts            # PTY WebSocket
+│   │   └── notifications.ts       # Notification WebSocket
+│   ├── services/
+│   │   ├── agent-executor.ts      # Claude SDK execution
+│   │   └── cron-scheduler.ts      # Job management
+│   ├── plugins/
+│   │   └── 03.cron-agents.ts      # Startup initialization
 │   └── utils/
 │       ├── pty-manager.ts
-│       └── path-validator.ts
+│       ├── path-validator.ts
+│       ├── notification-bus.ts    # Server event bus
+│       ├── agent-registry.ts      # Running agent tracking
+│       └── agent-cleanup.ts       # Orphan cleanup
+├── shared/
+│   └── types/
+│       └── index.ts               # Shared type definitions
 ├── nuxt.config.ts
 ├── Dockerfile
+├── docker-entrypoint.sh           # Volume initialization
 └── docker-compose.yml
 ```

@@ -19,6 +19,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Feature | Status | Plan |
 |---------|--------|------|
 | Task Skill | Done | (included in Skills System) |
+| Cron Agents | Done | [cron-agents.md](./complete/cron-agents.md) |
 | Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
 | Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
@@ -28,7 +29,6 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Feature | Status | Plan |
 |---------|--------|------|
 | AI History | Planned | [ai-history.md](./todo/ai-history.md) |
-| Cron Agents | Planned | [cron-agents.md](./todo/cron-agents.md) |
 
 ## Priority 4: Polish
 
