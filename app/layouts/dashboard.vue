@@ -2,7 +2,11 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const { user, logout } = useAuth()
-const open = ref(false)
+const { sidebarOpen } = usePreferences()
+const open = ref(sidebarOpen.value)
+
+// Sync sidebar state to preference
+watch(open, v => sidebarOpen.value = v)
 
 // Initialize notification bus on client
 const { connect: connectNotificationBus } = useNotificationBus()
@@ -12,7 +16,7 @@ onMounted(() => {
 
 const links = [[{
   label: 'Dashboard',
-  icon: 'i-lucide-layout-dashboard',
+  icon: 'i-lucide-home',
   to: '/dashboard',
   onSelect: () => {
     open.value = false

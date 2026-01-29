@@ -6,10 +6,10 @@ definePageMeta({
 const { isAuthenticated, isPending } = useAuth()
 
 // Redirect authenticated users to dashboard
-watch([isAuthenticated, isPending], ([authenticated, pending]) => {
-  if (!pending && authenticated)
-    navigateTo('/dashboard')
-}, { immediate: true })
+// watch([isAuthenticated, isPending], ([authenticated, pending]) => {
+//   if (!pending && authenticated)
+//     navigateTo('/dashboard')
+// }, { immediate: true })
 
 // Fetch home page content
 const { data } = await useFetch<{ data: { hasCustomHome: boolean, content: string | null } }>('/api/home')
@@ -18,7 +18,8 @@ const hasCustomContent = computed(() => data.value?.data?.hasCustomHome ?? false
 const customContent = computed(() => data.value?.data?.content ?? '')
 
 // Hero links
-const heroLinks = [
+const heroLinks = computed(() => {
+  const links = [
   {
     label: 'Get Started',
     to: '/login',
@@ -33,6 +34,16 @@ const heroLinks = [
     icon: 'i-simple-icons-github'
   }
 ]
+if (isAuthenticated.value) {
+  links[0] = {
+    label: 'Dashboard',
+    to: '/dashboard',
+    icon: 'i-lucide-home',
+  }
+}
+return links
+})
+
 
 // Core features
 const coreFeatures = [
@@ -105,7 +116,8 @@ const techStack = [
 ]
 
 // CTA links
-const ctaLinks = [
+const ctaLinks = computed(() => {
+  const links = [
   {
     label: 'Get Started',
     to: '/login',
@@ -120,6 +132,15 @@ const ctaLinks = [
     trailingIcon: 'i-lucide-arrow-right'
   }
 ]
+if (isAuthenticated.value) {
+  links[0] = {
+    label: 'Dashboard',
+    to: '/dashboard',
+    color: 'neutral'
+  }
+}
+return links
+})
 </script>
 
 <template>
@@ -167,7 +188,8 @@ const ctaLinks = [
     <UPageSection
       title="And much more..."
       description="Built with modern technologies and extensible architecture."
-      
+      :ui="{ root:'bg-muted'}"
+      class="w-full"
     >
       <UPageGrid>
         <UPageCard
@@ -222,6 +244,7 @@ const ctaLinks = [
       description="Get started in minutes. Self-host with Docker or deploy to your favorite cloud platform."
       :links="ctaLinks"
       variant="subtle"
+      class="mb-16"
     />
   </div>
 </template>

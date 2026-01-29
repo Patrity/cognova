@@ -24,7 +24,13 @@ const { data: projectsData } = await useFetch<{ data: Project[] }>('/api/project
 const projects = computed(() => projectsData.value?.data || [])
 
 const showMetadata = ref(true)
-const isEditorMode = ref(true)
+
+// Persist editor mode preference
+const { editorMode } = usePreferences()
+const isEditorMode = computed({
+  get: () => editorMode.value === 'editor',
+  set: v => editorMode.value = v ? 'editor' : 'code'
+})
 
 // Determine if this is a markdown file (shows toggle) or text file (CodeMirror only)
 const isMarkdown = computed(() =>

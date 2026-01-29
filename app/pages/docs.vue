@@ -21,15 +21,22 @@ const {
   saveNow
 } = useDocument()
 
+const { lastDocumentPath } = usePreferences()
+
 async function handleFileSelect(path: string) {
   await loadDocument(path)
+  lastDocumentPath.value = path
 }
 
-// Load document from query parameter on mount
+// Load document from query parameter or last viewed on mount
 onMounted(async () => {
   const pathParam = route.query.path as string | undefined
-  if (pathParam)
+  if (pathParam) {
     await loadDocument(pathParam)
+    lastDocumentPath.value = pathParam
+  } else if (lastDocumentPath.value) {
+    await loadDocument(lastDocumentPath.value)
+  }
 })
 </script>
 

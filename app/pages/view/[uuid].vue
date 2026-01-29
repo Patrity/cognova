@@ -53,8 +53,10 @@ useSeoMeta({
 // Check if user is authenticated (show edit button for any authenticated user)
 const { isAuthenticated } = useAuth()
 
-// View source toggle for markdown files
-const viewSource = ref(false)
+// View source toggle for markdown files (persisted)
+const { viewSourceMode } = usePreferences()
+const viewSource = ref(viewSourceMode.value)
+watch(viewSource, v => viewSourceMode.value = v)
 
 // Copy content to clipboard
 const toast = useToast()

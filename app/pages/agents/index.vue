@@ -11,8 +11,9 @@ const router = useRouter()
 const { agents, loading, fetchAgents, createAgent, updateAgent, toggleEnabled, runAgent, cancelAgent, fetchGlobalStats } = useAgents()
 const { isAgentRunning } = useNotificationBus()
 
-// Stats state
-const period = ref<StatsPeriod>('7d')
+// Stats state with persisted period preference
+const { agentStatsPeriod } = usePreferences()
+const period = ref<StatsPeriod>(agentStatsPeriod.value)
 const stats = ref<AgentGlobalStats | null>(null)
 const statsLoading = ref(false)
 
@@ -194,8 +195,9 @@ async function loadStats() {
   }
 }
 
-// Watch period changes
-watch(period, () => {
+// Watch period changes and persist preference
+watch(period, (value) => {
+  agentStatsPeriod.value = value
   loadStats()
 })
 

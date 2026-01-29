@@ -43,23 +43,34 @@ const projectOptions = computed(() => [
     .map(p => ({ value: p.id, label: p.name }))
 ])
 
-// Filter values for selects
-const statusFilter = ref(ALL_VALUE)
-const projectFilter = ref(ALL_VALUE)
+// Persist filter preferences
+const { taskStatusFilter, taskProjectFilter } = usePreferences()
+
+// Filter values for selects (initialized from preferences)
+const statusFilter = ref(taskStatusFilter.value === 'all' ? ALL_VALUE : taskStatusFilter.value)
+const projectFilter = ref(taskProjectFilter.value || ALL_VALUE)
 const searchQuery = ref('')
 
 // Sync filter changes
 watch(statusFilter, (value) => {
   filters.status = value === ALL_VALUE ? undefined : value as TaskStatus
+  taskStatusFilter.value = value === ALL_VALUE ? 'all' : value as TaskStatus
 })
 
 watch(projectFilter, (value) => {
   filters.projectId = value === ALL_VALUE ? undefined : value
+  taskProjectFilter.value = value === ALL_VALUE ? null : value
 })
 
 watch(searchQuery, (value) => {
   filters.search = value || undefined
 })
+
+// Apply initial filters from preferences
+if (statusFilter.value !== ALL_VALUE)
+  filters.status = statusFilter.value as TaskStatus
+if (projectFilter.value !== ALL_VALUE)
+  filters.projectId = projectFilter.value
 
 // Open form for new task
 function openNewTaskForm() {
