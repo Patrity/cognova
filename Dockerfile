@@ -36,16 +36,19 @@ EXPOSE 3000
 # Set NODE_PATH so native modules can be found
 ENV NODE_PATH=/app/node_modules
 
-# Copy Claude Code configuration (skills, CLAUDE.md) to node user home
-RUN mkdir -p /home/node/.claude && \
-    cp -r /app/Claude/* /home/node/.claude/ && \
-    chown -R node:node /home/node/.claude
+# Create Claude settings directory (will be populated by entrypoint if volume is empty)
+RUN mkdir -p /home/node/.claude && chown -R node:node /home/node/.claude
 
 # Set environment for skills
 ENV SECOND_BRAIN_API_URL=http://localhost:3000
+
+# Copy and setup entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/api/health || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", ".output/server/index.mjs"]

@@ -8,6 +8,8 @@ services:
     volumes:
       # Vault directory
       - ${VAULT_PATH:-~/vault}:/vault:rw
+      # Claude settings persistence (SDK state, cached auth)
+      - claude_settings:/home/node/.claude
       # Anthropic credentials (for Claude Code CLI auth)
       - ${HOME}/.anthropic:/home/node/.anthropic:ro
     environment:
@@ -43,3 +45,4 @@ services:
 
 volumes:
   postgres_data:
+  claude_settings:
