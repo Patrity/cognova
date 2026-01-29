@@ -1,4 +1,4 @@
-import type { CronAgent, CronAgentRun, CreateAgentInput, UpdateAgentInput } from '~~/shared/types'
+import type { CronAgent, CronAgentRun, CreateAgentInput, UpdateAgentInput, StatsPeriod, AgentGlobalStats, AgentDetailStats } from '~~/shared/types'
 
 export function useAgents() {
   const agents = ref<CronAgent[]>([])
@@ -54,6 +54,7 @@ export function useAgents() {
 
   async function deleteAgent(id: string) {
     try {
+      // @ts-expect-error - Nitro route type inference issue with multiple methods on same path
       await $fetch(`/api/agents/${id}`, { method: 'DELETE' })
       agents.value = agents.value.filter(a => a.id !== id)
     } catch (e) {
@@ -78,14 +79,57 @@ export function useAgents() {
     }
   }
 
-  async function fetchRuns(agentId: string, limit = 20) {
+  async function cancelAgent(id: string) {
+    try {
+      await $fetch(`/api/agents/${id}/cancel`, { method: 'POST' })
+    } catch (e) {
+      console.error('Failed to cancel agent:', e)
+      throw e
+    }
+  }
+
+  async function fetchRuns(agentId: string, period?: StatsPeriod, limit = 100) {
     try {
       const response = await $fetch<{ data: CronAgentRun[] }>(`/api/agents/${agentId}/runs`, {
-        query: { limit }
+        query: { limit, period }
       })
       return response.data
     } catch (e) {
       console.error('Failed to fetch runs:', e)
+      throw e
+    }
+  }
+
+  async function fetchAgent(agentId: string) {
+    try {
+      const response = await $fetch<{ data: CronAgent }>(`/api/agents/${agentId}`)
+      return response.data
+    } catch (e) {
+      console.error('Failed to fetch agent:', e)
+      throw e
+    }
+  }
+
+  async function fetchGlobalStats(period: StatsPeriod = '7d') {
+    try {
+      const response = await $fetch<{ data: AgentGlobalStats }>('/api/agents/stats', {
+        query: { period }
+      })
+      return response.data
+    } catch (e) {
+      console.error('Failed to fetch global stats:', e)
+      throw e
+    }
+  }
+
+  async function fetchAgentStats(agentId: string, period: StatsPeriod = '7d') {
+    try {
+      const response = await $fetch<{ data: AgentDetailStats }>(`/api/agents/${agentId}/stats`, {
+        query: { period }
+      })
+      return response.data
+    } catch (e) {
+      console.error('Failed to fetch agent stats:', e)
       throw e
     }
   }
@@ -95,11 +139,15 @@ export function useAgents() {
     loading,
     error,
     fetchAgents,
+    fetchAgent,
     createAgent,
     updateAgent,
     deleteAgent,
     toggleEnabled,
     runAgent,
-    fetchRuns
+    cancelAgent,
+    fetchRuns,
+    fetchGlobalStats,
+    fetchAgentStats
   }
 }

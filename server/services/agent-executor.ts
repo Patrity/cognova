@@ -2,6 +2,16 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import { eq } from 'drizzle-orm'
 import { getDb } from '../db'
 import * as schema from '../db/schema'
+import { notificationBus } from '../utils/notification-bus'
+import { agentRegistry } from '../utils/agent-registry'
+
+// Custom error for cancellation
+export class AgentCancelledError extends Error {
+  constructor() {
+    super('Agent execution was cancelled')
+    this.name = 'AgentCancelledError'
+  }
+}
 
 export interface AgentConfig {
   id: string
@@ -33,8 +43,21 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
     .values({ agentId: config.id, status: 'running' })
     .returning()
 
+  const runId = run!.id
+
+  // Register in the agent registry for cancellation support
+  agentRegistry.register(runId, config.id, config.name)
+
+  // Notify: agent started
+  notificationBus.broadcast({
+    type: 'agent:started',
+    agentId: config.id,
+    agentName: config.name,
+    runId
+  })
+
   try {
-    const result = await runAgentSDK(config)
+    const result = await runAgentSDK(config, runId)
     const durationMs = Date.now() - startTime
 
     // Determine status based on result subtype
@@ -65,30 +88,84 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
       .where(eq(schema.cronAgents.id, config.id))
 
     console.log(`[agent] ${config.name} completed: ${status} (${durationMs}ms, $${result.total_cost_usd.toFixed(4)})`)
+
+    // Notify: agent completed
+    notificationBus.broadcast({
+      type: 'agent:completed',
+      agentId: config.id,
+      agentName: config.name,
+      runId,
+      status,
+      color: status === 'success' ? 'success' : 'warning'
+    })
+
     // TODO: Send Gotify notification
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
+    const durationMs = Date.now() - startTime
+    const isCancelled = error instanceof AgentCancelledError
 
-    await db.update(schema.cronAgentRuns)
-      .set({
-        status: 'error',
-        error: errorMessage,
-        completedAt: new Date(),
-        durationMs: Date.now() - startTime
+    if (isCancelled) {
+      // Handle cancellation
+      await db.update(schema.cronAgentRuns)
+        .set({
+          status: 'cancelled',
+          error: 'Cancelled by user',
+          completedAt: new Date(),
+          durationMs
+        })
+        .where(eq(schema.cronAgentRuns.id, runId))
+
+      await db.update(schema.cronAgents)
+        .set({ lastRunAt: new Date(), lastStatus: 'cancelled' })
+        .where(eq(schema.cronAgents.id, config.id))
+
+      console.log(`[agent] ${config.name} cancelled after ${durationMs}ms`)
+
+      notificationBus.broadcast({
+        type: 'agent:failed',
+        agentId: config.id,
+        agentName: config.name,
+        runId,
+        message: 'Cancelled by user',
+        color: 'warning'
       })
-      .where(eq(schema.cronAgentRuns.id, run!.id))
+    } else {
+      // Handle other errors
+      const errorMessage = error instanceof Error ? error.message : String(error)
 
-    await db.update(schema.cronAgents)
-      .set({ lastRunAt: new Date(), lastStatus: 'error' })
-      .where(eq(schema.cronAgents.id, config.id))
+      await db.update(schema.cronAgentRuns)
+        .set({
+          status: 'error',
+          error: errorMessage,
+          completedAt: new Date(),
+          durationMs
+        })
+        .where(eq(schema.cronAgentRuns.id, runId))
 
-    console.error(`[agent] ${config.name} failed:`, errorMessage)
+      await db.update(schema.cronAgents)
+        .set({ lastRunAt: new Date(), lastStatus: 'error' })
+        .where(eq(schema.cronAgents.id, config.id))
 
-    // TODO: Send Gotify notification (high priority)
+      console.error(`[agent] ${config.name} failed:`, errorMessage)
+
+      notificationBus.broadcast({
+        type: 'agent:failed',
+        agentId: config.id,
+        agentName: config.name,
+        runId,
+        message: errorMessage,
+        color: 'error'
+      })
+    }
+
+    // TODO: Send Gotify notification (high priority for errors)
+  } finally {
+    // Always unregister the agent when done
+    agentRegistry.unregister(runId)
   }
 }
 
-async function runAgentSDK(config: AgentConfig): Promise<AgentResult> {
+async function runAgentSDK(config: AgentConfig, runId: string): Promise<AgentResult> {
   // SDK checks CLAUDE_CODE_OAUTH_TOKEN first (Max subscription),
   // then falls back to ANTHROPIC_API_KEY (API billing)
   const conversation = query({
@@ -106,6 +183,11 @@ async function runAgentSDK(config: AgentConfig): Promise<AgentResult> {
 
   // Stream through messages and collect output
   for await (const message of conversation) {
+    // Check for cancellation between messages
+    if (agentRegistry.isCancelled(runId)) {
+      throw new AgentCancelledError()
+    }
+
     if (message.type === 'result') {
       // Extract the fields we need from the SDK result
       // Cast through unknown as SDK types don't expose usage properties correctly

@@ -4,6 +4,12 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { user, logout } = useAuth()
 const open = ref(false)
 
+// Initialize notification bus on client
+const { connect: connectNotificationBus } = useNotificationBus()
+onMounted(() => {
+  connectNotificationBus()
+})
+
 const links = [[{
   label: 'Dashboard',
   icon: 'i-lucide-layout-dashboard',
@@ -22,6 +28,13 @@ const links = [[{
   label: 'Tasks',
   icon: 'i-lucide-check-square',
   to: '/tasks',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Agents',
+  icon: 'i-lucide-bot',
+  to: '/agents',
   onSelect: () => {
     open.value = false
   }

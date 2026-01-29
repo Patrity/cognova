@@ -216,8 +216,8 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
 // === Cron Agents ===
 
-export type AgentStatus = 'success' | 'error' | 'budget_exceeded'
-export type RunStatus = 'running' | 'success' | 'error' | 'budget_exceeded'
+export type AgentStatus = 'success' | 'error' | 'budget_exceeded' | 'cancelled'
+export type RunStatus = 'running' | 'success' | 'error' | 'budget_exceeded' | 'cancelled'
 
 export interface CronAgent {
   id: string
@@ -269,4 +269,55 @@ export interface UpdateAgentInput {
   enabled?: boolean
   maxTurns?: number
   maxBudgetUsd?: number | null
+}
+
+// === Notification Bus ===
+
+export type NotificationType
+  = 'agent:started'
+    | 'agent:completed'
+    | 'agent:failed'
+    | 'toast'
+
+export interface NotificationPayload {
+  type: NotificationType
+  agentId?: string
+  agentName?: string
+  runId?: string
+  status?: string
+  message?: string
+  title?: string
+  color?: 'success' | 'error' | 'warning' | 'info'
+  timestamp?: string
+}
+
+// === Agent Stats ===
+
+export type StatsPeriod = '24h' | '7d' | '30d'
+
+export interface DailyRunData {
+  date: string
+  success: number
+  error: number
+  total: number
+  costUsd: number
+}
+
+export interface AgentGlobalStats {
+  totalAgents: number
+  activeAgents: number
+  runsInPeriod: number
+  successRate: number
+  totalCostUsd: number
+  runningAgentIds: string[]
+  dailyRuns: DailyRunData[]
+}
+
+export interface AgentDetailStats {
+  totalRuns: number
+  successRate: number
+  avgDurationMs: number
+  totalCostUsd: number
+  lastRunAt: string | null
+  dailyRuns: DailyRunData[]
 }

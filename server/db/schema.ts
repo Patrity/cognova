@@ -199,7 +199,7 @@ export const cronAgents = pgTable('cron_agents', {
   maxTurns: integer('max_turns').default(50),
   maxBudgetUsd: real('max_budget_usd'),
   lastRunAt: timestamp('last_run_at', { withTimezone: true }),
-  lastStatus: text('last_status', { enum: ['success', 'error', 'budget_exceeded'] }),
+  lastStatus: text('last_status', { enum: ['success', 'error', 'budget_exceeded', 'cancelled'] }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' })
@@ -208,7 +208,7 @@ export const cronAgents = pgTable('cron_agents', {
 export const cronAgentRuns = pgTable('cron_agent_runs', {
   id: uuid('id').primaryKey().defaultRandom(),
   agentId: uuid('agent_id').notNull().references(() => cronAgents.id, { onDelete: 'cascade' }),
-  status: text('status', { enum: ['running', 'success', 'error', 'budget_exceeded'] }).notNull(),
+  status: text('status', { enum: ['running', 'success', 'error', 'budget_exceeded', 'cancelled'] }).notNull(),
   output: text('output'),
   error: text('error'),
   costUsd: real('cost_usd'),
