@@ -39,8 +39,8 @@ ENV NODE_PATH=/app/node_modules
 # Set HOME to /home/node so Claude Code finds ~/.claude correctly
 ENV HOME=/home/node
 
-# Create Claude settings directory (will be populated by entrypoint if volume is empty)
-RUN mkdir -p /home/node/.claude && chown -R node:node /home/node/.claude
+# Create Claude settings directory (will be populated by volume)
+RUN mkdir -p /home/node/.claude && chown -R node:node /home/node
 
 # Set environment for skills
 ENV SECOND_BRAIN_API_URL=http://localhost:3000
