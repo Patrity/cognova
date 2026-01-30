@@ -61,6 +61,7 @@ def log_event(
     api_token = _get_api_token()
 
     if not api_token:
+        print(f"[hook_client] No API token found. Checked: {[str(p) for p in [Path('/home/node/app/.api-token'), Path(__file__).parent.parent.parent.parent / '.api-token', Path.cwd() / '.api-token']]}", file=sys.stderr)
         return False
 
     payload = {
@@ -92,8 +93,15 @@ def log_event(
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        # Debug output to stderr (visible in claude --debug)
+        if os.environ.get('DEBUG') or result.returncode != 0:
+            print(f"[hook_client] API: {api_base}, Token: {'set' if api_token else 'NOT SET'}", file=sys.stderr)
+            print(f"[hook_client] Response: {result.returncode} - {result.stdout[:200] if result.stdout else 'no output'}", file=sys.stderr)
+            if result.stderr:
+                print(f"[hook_client] Error: {result.stderr[:200]}", file=sys.stderr)
         return result.returncode == 0
-    except Exception:
+    except Exception as e:
+        print(f"[hook_client] Exception: {e}", file=sys.stderr)
         return False
 
 
