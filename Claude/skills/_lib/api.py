@@ -23,22 +23,35 @@ def _get_api_token() -> str:
     if token:
         return token
 
-    # Try to read from .api-token file in project root
-    # Navigate from _lib -> skills -> Claude -> project root
-    lib_dir = Path(__file__).parent
-    project_root = lib_dir.parent.parent.parent
-    token_file = project_root / '.api-token'
+    # Try to read from .api-token file - check multiple locations
+    # to handle both local dev and Docker environments
+    possible_paths = [
+        # Docker: app is at /home/node/app, skills at /home/node/.claude/skills
+        Path('/home/node/app/.api-token'),
+        # Local dev: navigate from _lib -> skills -> Claude -> project root
+        Path(__file__).parent.parent.parent.parent / '.api-token',
+        # Current working directory
+        Path.cwd() / '.api-token',
+    ]
 
-    if token_file.exists():
-        try:
-            return token_file.read_text().strip()
-        except Exception:
-            pass
+    for token_file in possible_paths:
+        if token_file.exists():
+            try:
+                return token_file.read_text().strip()
+            except Exception:
+                pass
 
     return ''
 
 
+# Get token at module load time
 API_TOKEN = _get_api_token()
+
+# Debug: warn if no token found
+if not API_TOKEN and os.environ.get('DEBUG'):
+    print(f"[api.py] Warning: No API token found", file=sys.stderr)
+    print(f"[api.py] Env SECOND_BRAIN_API_TOKEN: {bool(os.environ.get('SECOND_BRAIN_API_TOKEN'))}", file=sys.stderr)
+    print(f"[api.py] Checked paths: {[str(p) for p in [Path('/home/node/app/.api-token'), Path(__file__).parent.parent.parent.parent / '.api-token', Path.cwd() / '.api-token']]}", file=sys.stderr)
 
 
 def api_request(
@@ -125,3 +138,25 @@ def put(endpoint: str, data: dict) -> tuple[bool, Any]:
 def delete(endpoint: str) -> tuple[bool, Any]:
     """DELETE request helper."""
     return api_request("DELETE", endpoint)
+
+
+def get_secret(key: str) -> tuple[bool, str]:
+    """
+    Fetch a decrypted secret by key.
+
+    Args:
+        key: The secret key (e.g., "GOOGLE_API_KEY")
+
+    Returns:
+        Tuple of (success: bool, value | error_message)
+
+    Example:
+        success, api_key = get_secret("GOOGLE_API_KEY")
+        if not success:
+            print(f"Error: {api_key}")
+            sys.exit(1)
+    """
+    success, data = get(f"/secrets/{key}")
+    if success and isinstance(data, dict):
+        return True, data.get("value", "")
+    return False, data if isinstance(data, str) else "Secret not found"

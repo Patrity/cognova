@@ -228,3 +228,22 @@ export const cronAgentsRelations = relations(cronAgents, ({ many, one }) => ({
 export const cronAgentRunsRelations = relations(cronAgentRuns, ({ one }) => ({
   agent: one(cronAgents, { fields: [cronAgentRuns.agentId], references: [cronAgents.id] })
 }))
+
+// =============================================================================
+// Secrets - Encrypted key-value store for skills
+// =============================================================================
+
+export const secrets = pgTable('secrets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  key: text('key').notNull().unique(),
+  encryptedValue: text('encrypted_value').notNull(),
+  iv: text('iv').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' })
+})
+
+export const secretsRelations = relations(secrets, ({ one }) => ({
+  creator: one(user, { fields: [secrets.createdBy], references: [user.id] })
+}))

@@ -118,7 +118,71 @@ if __name__ == '__main__':
     main()
 ```
 
-### 5. Skill Frontmatter Options
+### 5. Accessing Secrets & API Keys
+
+**NEVER hardcode API keys, tokens, or sensitive values in skills.**
+
+Second Brain provides an encrypted secrets store. Use the shared API client:
+
+```python
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))  # Add parent for _lib
+from _lib.api import get_secret, get, post
+
+# Fetch a secret by key
+success, api_key = get_secret("GOOGLE_API_KEY")
+if not success:
+    print(f"Error: {api_key}")
+    print("Add this secret at Settings > Secrets in the dashboard")
+    sys.exit(1)
+
+# Now use api_key safely
+```
+
+**Key naming convention:** `SCREAMING_SNAKE_CASE` (e.g., `DISCORD_WEBHOOK_URL`, `OPENAI_API_KEY`)
+
+**Managing secrets:**
+- Dashboard: Settings > Secrets tab
+- Create: Add key + value (value is encrypted at rest)
+- Skills fetch decrypted values via `get_secret()`
+
+**When to use secrets vs environment variables:**
+| Use Case | Approach |
+|----------|----------|
+| API keys for external services | Secrets store (`get_secret()`) |
+| Webhook URLs, tokens | Secrets store |
+| Second Brain API URL | Environment variable (pre-configured) |
+| Database URLs | Environment variables (system config) |
+
+#### Environment Variables
+
+The `_lib/api.py` module automatically handles these environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECOND_BRAIN_API_URL` | `http://localhost:3000` | API base URL |
+| `SECOND_BRAIN_API_TOKEN` | Auto-generated | Auth token (auto-read from `.api-token`) |
+
+**For Docker deployments**, these are pre-configured in `docker-compose.yml`. Skills don't need to set them.
+
+**For local development**, the API token is auto-generated on server startup and written to `.api-token` in the project root. The `_lib/api.py` module reads it automatically.
+
+**Custom environment variables** can be added to `.env` (local) or `docker-compose.yml` (Docker):
+
+```bash
+# .env
+MY_CUSTOM_VAR=value
+```
+
+```python
+# In skill
+import os
+my_var = os.environ.get('MY_CUSTOM_VAR', 'default')
+```
+
+### 6. Skill Frontmatter Options
 
 | Option | Values | Description |
 |--------|--------|-------------|
@@ -130,7 +194,7 @@ if __name__ == '__main__':
 | `context` | fork | Run in subagent |
 | `agent` | Explore, Plan, general-purpose | Agent type for subagent |
 
-### 6. Skill Locations
+### 7. Skill Locations
 
 | Location | Use Case |
 |----------|----------|
@@ -138,7 +202,7 @@ if __name__ == '__main__':
 | `.claude/skills/` | Project-specific skills |
 | `Claude/skills/` | Second Brain bundled skills |
 
-### 7. Testing
+### 8. Testing
 
 ```bash
 # Test Python script directly
