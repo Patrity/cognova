@@ -1,13 +1,16 @@
 #!/bin/sh
 set -e
 
-# Initialize Claude settings directory if empty (first run with fresh volume)
-# Now mounting entire /home/node, so both .claude/ and .claude.json persist
-if [ ! -d /home/node/.claude ]; then
-  echo "Initializing Claude settings from /app/Claude..."
-  mkdir -p /home/node/.claude
-  cp -r /app/Claude/* /home/node/.claude/
-fi
+# Ensure Claude settings directory exists
+mkdir -p /home/node/.claude
+
+# Always sync Claude config files from repo (CLAUDE.md, rules, skills)
+# This ensures updates to these files are applied on container restart
+# User-generated files (.credentials.json, projects/, etc.) are preserved
+echo "Syncing Claude settings from /app/Claude..."
+cp -f /app/Claude/CLAUDE.md /home/node/.claude/
+cp -rf /app/Claude/rules /home/node/.claude/
+cp -rf /app/Claude/skills /home/node/.claude/
 
 # Ensure correct ownership
 chown -R node:node /home/node
