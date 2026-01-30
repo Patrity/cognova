@@ -43,6 +43,13 @@ const links = [[{
     open.value = false
   }
 }, {
+  label: 'Hooks',
+  icon: 'i-lucide-webhook',
+  to: '/hooks',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Settings',
   icon: 'i-lucide-settings',
   to: '/settings',

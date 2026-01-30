@@ -247,3 +247,39 @@ export const secrets = pgTable('secrets', {
 export const secretsRelations = relations(secrets, ({ one }) => ({
   creator: one(user, { fields: [secrets.createdBy], references: [user.id] })
 }))
+
+// =============================================================================
+// Hook Events - Analytics for Claude Code hooks
+// =============================================================================
+
+export const hookEvents = pgTable('hook_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Event identification
+  eventType: text('event_type', {
+    enum: ['SessionStart', 'SessionEnd', 'PreToolUse', 'PostToolUse', 'PostToolUseFailure', 'UserPromptSubmit']
+  }).notNull(),
+
+  // Session tracking
+  sessionId: text('session_id'),
+  projectDir: text('project_dir'),
+
+  // Tool information (for tool-related events)
+  toolName: text('tool_name'),
+  toolMatcher: text('tool_matcher'),
+
+  // Flexible JSON data for event-specific info
+  eventData: text('event_data'),
+
+  // Outcome tracking
+  exitCode: integer('exit_code'),
+  blocked: boolean('blocked').default(false).notNull(),
+  blockReason: text('block_reason'),
+
+  // Timing
+  durationMs: integer('duration_ms'),
+
+  // Metadata
+  hookScript: text('hook_script'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})

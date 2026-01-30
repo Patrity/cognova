@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/session-start.py"}
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/session-end.py"}
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/log-event.py PreToolUse"}
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/log-event.py PreToolUse"}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/log-event.py PostToolUse"}
+        ]
+      }
+    ]
+  }
+}

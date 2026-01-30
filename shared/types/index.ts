@@ -341,3 +341,80 @@ export interface AgentDetailStats {
   lastRunAt: string | null
   dailyRuns: DailyRunData[]
 }
+
+// === Hook Events ===
+
+export type HookEventType
+  = | 'SessionStart'
+    | 'SessionEnd'
+    | 'PreToolUse'
+    | 'PostToolUse'
+    | 'PostToolUseFailure'
+    | 'UserPromptSubmit'
+
+export interface HookEvent {
+  id: string
+  eventType: HookEventType
+  sessionId?: string
+  projectDir?: string
+  toolName?: string
+  toolMatcher?: string
+  eventData?: Record<string, unknown>
+  exitCode?: number
+  blocked: boolean
+  blockReason?: string
+  durationMs?: number
+  hookScript?: string
+  createdAt: Date
+}
+
+export interface CreateHookEventInput {
+  eventType: HookEventType
+  sessionId?: string
+  projectDir?: string
+  toolName?: string
+  toolMatcher?: string
+  eventData?: Record<string, unknown>
+  exitCode?: number
+  blocked?: boolean
+  blockReason?: string
+  durationMs?: number
+  hookScript?: string
+}
+
+export interface HookEventFilters {
+  eventType?: HookEventType | HookEventType[]
+  sessionId?: string
+  toolName?: string
+  blocked?: boolean
+  since?: string
+  limit?: number
+}
+
+// === Hook Analytics Stats ===
+
+export interface HookDailyData {
+  date: string
+  total: number
+  blocked: number
+  allowed: number
+  avgDurationMs: number
+}
+
+export interface HookToolBreakdown {
+  toolName: string
+  total: number
+  blocked: number
+  avgDurationMs: number
+}
+
+export interface HookEventStats {
+  totalEvents: number
+  blockedEvents: number
+  blockRate: number
+  avgDurationMs: number
+  eventsByType: Partial<Record<HookEventType, number>>
+  toolBreakdown: HookToolBreakdown[]
+  dailyActivity: HookDailyData[]
+  recentSessions: string[]
+}
