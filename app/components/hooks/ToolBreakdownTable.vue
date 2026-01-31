@@ -50,10 +50,10 @@ function getBlockRateColor(blocked: number, total: number): string {
       v-else
       :data="data"
       :columns="[
-        { key: 'toolName', label: 'Tool' },
-        { key: 'total', label: 'Total' },
-        { key: 'blocked', label: 'Blocked' },
-        { key: 'avgDurationMs', label: 'Avg Duration' }
+        { accessorKey: 'toolName', header: 'Tool' },
+        { accessorKey: 'total', header: 'Total' },
+        { accessorKey: 'blocked', header: 'Blocked' },
+        { accessorKey: 'avgDurationMs', header: 'Avg Duration' }
       ]"
     >
       <template #toolName-cell="{ row }">

@@ -54,11 +54,11 @@ function formatTime(date: Date | string): string {
       v-else
       :data="events"
       :columns="[
-        { key: 'eventType', label: 'Event' },
-        { key: 'toolName', label: 'Tool' },
-        { key: 'blocked', label: 'Status' },
-        { key: 'durationMs', label: 'Duration' },
-        { key: 'createdAt', label: 'Time' }
+        { accessorKey: 'eventType', header: 'Event' },
+        { accessorKey: 'toolName', header: 'Tool' },
+        { accessorKey: 'blocked', header: 'Status' },
+        { accessorKey: 'durationMs', header: 'Duration' },
+        { accessorKey: 'createdAt', header: 'Time' }
       ]"
     >
       <template #eventType-cell="{ row }">

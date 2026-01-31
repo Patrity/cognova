@@ -36,9 +36,13 @@ export default defineEventHandler(async (event) => {
   if (query.since)
     conditions.push(gte(schema.hookEvents.createdAt, new Date(query.since)))
 
-  const events = await db.select()
+  let dbQuery = db.select()
     .from(schema.hookEvents)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
+
+  if (conditions.length > 0)
+    dbQuery = dbQuery.where(and(...conditions)) as typeof dbQuery
+
+  const events = await dbQuery
     .orderBy(desc(schema.hookEvents.createdAt))
     .limit(limit)
 
