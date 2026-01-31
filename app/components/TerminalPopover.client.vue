@@ -4,7 +4,13 @@ import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 
-const isOpen = ref(false)
+const { terminalOpen } = usePreferences()
+const isOpen = ref(terminalOpen.value)
+
+// Sync preference when isOpen changes
+watch(isOpen, (open) => {
+  terminalOpen.value = open
+})
 const terminalRef = ref<HTMLDivElement | null>(null)
 const terminal = ref<Terminal | null>(null)
 const fitAddon = ref<FitAddon | null>(null)
@@ -108,30 +114,47 @@ function handleResize() {
 }
 
 function handleReconnect() {
-  if (terminal.value && status.value !== 'connecting')
+  if (status.value === 'connecting') return
+
+  // If terminal not initialized yet, initialize it first
+  if (!initialized.value) {
+    nextTick(() => {
+      initTerminal()
+    })
+    return
+  }
+
+  if (terminal.value)
     connect(terminal.value)
 }
 
 let resizeObserver: ResizeObserver | null = null
 
-watch(isOpen, (open) => {
-  if (open) {
-    nextTick(() => {
-      if (!initialized.value) {
-        initTerminal()
+function setupTerminal() {
+  if (!initialized.value) {
+    initTerminal()
 
-        if (terminalRef.value) {
-          resizeObserver = new ResizeObserver(() => {
-            handleResize()
-          })
-          resizeObserver.observe(terminalRef.value)
-        }
-      } else {
+    if (terminalRef.value) {
+      resizeObserver = new ResizeObserver(() => {
         handleResize()
-        terminal.value?.focus()
-      }
-    })
+      })
+      resizeObserver.observe(terminalRef.value)
+    }
+  } else {
+    handleResize()
+    terminal.value?.focus()
   }
+}
+
+watch(isOpen, (open) => {
+  if (open)
+    nextTick(setupTerminal)
+})
+
+// Handle initial state if terminal was open from preference
+onMounted(() => {
+  if (isOpen.value)
+    nextTick(setupTerminal)
 })
 
 onUnmounted(() => {

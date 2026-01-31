@@ -11,6 +11,7 @@ interface Preferences {
   // Layout
   sidebarOpen: boolean
   docsTreeWidth: number
+  terminalOpen: boolean
 
   // Task filters
   taskStatusFilter: TaskStatus | 'all'
@@ -29,6 +30,7 @@ const defaults: Preferences = {
   lastDocumentPath: null,
   sidebarOpen: true,
   docsTreeWidth: 16,
+  terminalOpen: false,
   taskStatusFilter: 'all',
   taskProjectFilter: null,
   agentStatsPeriod: '7d'
@@ -89,6 +91,11 @@ export function usePreferences() {
     set: v => set('agentStatsPeriod', v)
   })
 
+  const terminalOpen = computed({
+    get: () => get('terminalOpen'),
+    set: v => set('terminalOpen', v)
+  })
+
   return {
     // Raw access
     get,
@@ -100,6 +107,7 @@ export function usePreferences() {
     lastDocumentPath,
     sidebarOpen,
     docsTreeWidth,
+    terminalOpen,
     taskStatusFilter,
     taskProjectFilter,
     agentStatsPeriod
