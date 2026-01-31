@@ -50,6 +50,13 @@ const links = [[{
     open.value = false
   }
 }, {
+  label: 'Memories',
+  icon: 'i-lucide-brain',
+  to: '/memories',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Settings',
   icon: 'i-lucide-settings',
   to: '/settings',

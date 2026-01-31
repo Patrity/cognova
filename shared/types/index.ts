@@ -386,7 +386,7 @@ export interface HookEventFilters {
   eventType?: HookEventType | HookEventType[]
   sessionId?: string
   toolName?: string
-  blocked?: boolean
+  blocked?: boolean | string // Query params can be string 'true'/'false'
   since?: string
   limit?: number
 }
@@ -417,4 +417,62 @@ export interface HookEventStats {
   toolBreakdown: HookToolBreakdown[]
   dailyActivity: HookDailyData[]
   recentSessions: string[]
+}
+
+// === Memory System ===
+
+export type MemoryChunkType
+  = | 'decision'
+    | 'fact'
+    | 'solution'
+    | 'pattern'
+    | 'preference'
+    | 'summary'
+
+export interface MemoryChunk {
+  id: string
+  sessionId?: string
+  projectPath?: string
+  chunkType: MemoryChunkType
+  content: string
+  sourceExcerpt?: string
+  relevanceScore: number
+  accessCount: number
+  lastAccessedAt?: Date
+  createdAt: Date
+  expiresAt?: Date
+}
+
+export interface CreateMemoryInput {
+  sessionId?: string
+  projectPath?: string
+  chunkType: MemoryChunkType
+  content: string
+  sourceExcerpt?: string
+  relevanceScore?: number
+}
+
+export interface MemorySearchFilters {
+  query?: string
+  projectPath?: string
+  chunkType?: MemoryChunkType | MemoryChunkType[]
+  minRelevance?: number
+  limit?: number
+}
+
+export interface ExtractMemoryInput {
+  transcript: string
+  sessionId?: string
+  projectPath?: string
+}
+
+export interface ExtractedMemory {
+  type: MemoryChunkType
+  content: string
+  relevance: number
+}
+
+export interface MemoryContextResponse {
+  memories: MemoryChunk[]
+  formatted: string
 }

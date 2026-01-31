@@ -111,3 +111,92 @@ def read_stdin_json() -> Optional[Dict[str, Any]]:
         return json.load(sys.stdin)
     except Exception:
         return None
+
+
+def extract_memories(
+    transcript_path: Optional[str] = None,
+    transcript: Optional[str] = None,
+    session_id: Optional[str] = None,
+    project_path: Optional[str] = None
+) -> bool:
+    """
+    Trigger memory extraction from a transcript.
+
+    Returns True if successful, False otherwise.
+    """
+    api_base = _get_api_base()
+    api_token = _get_api_token()
+
+    if not api_token:
+        print("[hook_client] No API token for memory extraction", file=sys.stderr)
+        return False
+
+    payload = {
+        'sessionId': session_id or os.environ.get('CLAUDE_SESSION_ID'),
+        'projectPath': project_path or os.environ.get('CLAUDE_PROJECT_DIR')
+    }
+
+    if transcript_path:
+        payload['transcriptPath'] = transcript_path
+    elif transcript:
+        payload['transcript'] = transcript
+    else:
+        print("[hook_client] No transcript provided for memory extraction", file=sys.stderr)
+        return False
+
+    cmd = [
+        "curl", "-sL", "-X", "POST",
+        "-H", "Content-Type: application/json",
+        "-H", f"X-API-Token: {api_token}",
+        "-d", json.dumps(payload),
+        "--connect-timeout", "5",
+        "--max-time", "30",
+        f"{api_base}/api/memory/extract"
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        if os.environ.get('DEBUG') or result.returncode != 0:
+            print(f"[hook_client] Memory extraction: {result.returncode}", file=sys.stderr)
+            if result.stdout:
+                print(f"[hook_client] Response: {result.stdout[:200]}", file=sys.stderr)
+        return result.returncode == 0
+    except Exception as e:
+        print(f"[hook_client] Memory extraction failed: {e}", file=sys.stderr)
+        return False
+
+
+def get_memory_context(project_path: Optional[str] = None, limit: int = 5) -> Optional[str]:
+    """
+    Get formatted memory context for session start.
+
+    Returns formatted context string or None if failed.
+    """
+    api_base = _get_api_base()
+    api_token = _get_api_token()
+
+    if not api_token:
+        return None
+
+    project = project_path or os.environ.get('CLAUDE_PROJECT_DIR', '')
+    url = f"{api_base}/api/memory/context?project={project}&limit={limit}"
+
+    cmd = [
+        "curl", "-sL",
+        "-H", f"X-API-Token: {api_token}",
+        "--connect-timeout", "2",
+        "--max-time", "5",
+        url
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        if result.returncode == 0 and result.stdout:
+            data = json.loads(result.stdout)
+            if 'data' in data and 'formatted' in data['data']:
+                return data['data']['formatted']
+    except Exception as e:
+        if os.environ.get('DEBUG'):
+            print(f"[hook_client] Memory context failed: {e}", file=sys.stderr)
+
+    return None

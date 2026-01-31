@@ -283,3 +283,34 @@ export const hookEvents = pgTable('hook_events', {
   hookScript: text('hook_script'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
+
+// =============================================================================
+// Memory System - Persistent memory for Claude Code conversations
+// =============================================================================
+
+export const memoryChunks = pgTable('memory_chunks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
+  // Source tracking
+  sessionId: text('session_id'), // Claude session that created this memory
+  projectPath: text('project_path'), // For project-scoped queries
+
+  // Content
+  chunkType: text('chunk_type', {
+    enum: ['decision', 'fact', 'solution', 'pattern', 'preference', 'summary']
+  }).notNull(),
+  content: text('content').notNull(), // The extracted memory (concise)
+  sourceExcerpt: text('source_excerpt'), // Original context (truncated for reference)
+
+  // Relevance & lifecycle (Mem0-inspired)
+  relevanceScore: real('relevance_score').default(1.0).notNull(), // 0-1, decays over time
+  accessCount: integer('access_count').default(0).notNull(), // How often retrieved
+  lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true }),
+
+  // Search (embedding added in Phase 4 with pgvector)
+  // embedding: vector('embedding', { dimensions: 1536 }),
+
+  // Timestamps
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }) // For dynamic forgetting
+})

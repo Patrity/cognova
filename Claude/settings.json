@@ -7,6 +7,20 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/pre-compact.py"}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 ~/.claude/hooks/stop-extract.py", "timeout": 60000}
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
