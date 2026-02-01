@@ -52,13 +52,18 @@ export default defineEventHandler(async (event) => {
 
   // Update access count and timestamp for retrieved memories
   if (memories.length > 0) {
-    const ids = memories.map(m => m.id)
-    await db.execute(sql`
-      UPDATE memory_chunks
-      SET access_count = access_count + 1,
-          last_accessed_at = NOW()
-      WHERE id = ANY(${ids})
-    `)
+    try {
+      const ids = memories.map(m => m.id)
+      await db.execute(sql`
+        UPDATE memory_chunks
+        SET access_count = access_count + 1,
+            last_accessed_at = NOW()
+        WHERE id = ANY(ARRAY[${sql.join(ids.map(id => sql`${id}`), sql`, `)}]::uuid[])
+      `)
+    } catch (e) {
+      // Don't fail the request if access count update fails
+      console.error('[memory/search] Failed to update access count:', e)
+    }
   }
 
   return { data: memories as MemoryChunk[] }
