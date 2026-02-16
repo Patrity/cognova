@@ -1,8 +1,29 @@
 {
   "name": "second-brain",
-  "private": true,
   "type": "module",
+  "version": "0.1.0",
+  "description": "Personal knowledge management system with Claude Code integration",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Patrity/second-brain.git"
+  },
+  "bin": {
+    "second-brain": "./dist/cli/index.mjs"
+  },
+  "files": [
+    "dist/cli",
+    "app",
+    "shared",
+    "server",
+    "Claude",
+    "nuxt.config.ts",
+    "tsconfig.json",
+    "drizzle.config.ts",
+    ".env.example"
+  ],
   "scripts": {
+    "cli:build": "pnpm --filter second-brain-cli build",
+    "cli:dev": "pnpm --filter second-brain-cli dev",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",

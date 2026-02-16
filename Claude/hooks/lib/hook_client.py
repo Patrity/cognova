@@ -24,8 +24,13 @@ def _get_api_token() -> str:
         return token
 
     possible_paths = [
+        # Bare-metal: project dir from environment (set by PM2/settings.json)
+        Path(os.environ.get('SECOND_BRAIN_PROJECT_DIR', '')) / '.api-token',
+        # Docker: app is at /home/node/app
         Path('/home/node/app/.api-token'),
+        # Local dev: navigate from lib -> hooks -> Claude -> project root
         Path(__file__).parent.parent.parent.parent / '.api-token',
+        # Current working directory
         Path.cwd() / '.api-token',
     ]
 

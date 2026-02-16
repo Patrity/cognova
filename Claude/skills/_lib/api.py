@@ -24,8 +24,10 @@ def _get_api_token() -> str:
         return token
 
     # Try to read from .api-token file - check multiple locations
-    # to handle both local dev and Docker environments
+    # to handle bare-metal, Docker, and local dev environments
     possible_paths = [
+        # Bare-metal: project dir from environment (set by PM2/settings.json)
+        Path(os.environ.get('SECOND_BRAIN_PROJECT_DIR', '')) / '.api-token',
         # Docker: app is at /home/node/app, skills at /home/node/.claude/skills
         Path('/home/node/app/.api-token'),
         # Local dev: navigate from _lib -> skills -> Claude -> project root

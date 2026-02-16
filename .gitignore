@@ -4,7 +4,9 @@
 .nuxt
 .nitro
 .cache
-dist
+
+# CLI build output
+dist/
 
 # Node dependencies
 node_modules

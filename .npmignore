@@ -1,0 +1,25 @@
+# Dev-only files (not published to npm)
+.claude/
+.github/
+.vscode/
+cli/
+docs/
+scripts/
+.env
+.env.*
+!.env.example
+.api-token
+.gitignore
+.eslintrc*
+.second-brain
+Dockerfile
+docker-compose.yml
+docker-entrypoint.sh
+*.log
+logs/
+node_modules/
+.output/
+.nuxt/
+.nitro/
+.data/
+.cache/
