@@ -64,7 +64,8 @@ export async function checkPrerequisites(): Promise<PrereqResult> {
       const s = p.spinner()
       s.start('Installing Claude Code CLI')
       try {
-        execSync('npm install -g @anthropic-ai/claude-code', { stdio: 'pipe' })
+        const cmd = process.platform === 'linux' ? 'sudo npm install -g @anthropic-ai/claude-code' : 'npm install -g @anthropic-ai/claude-code'
+        execSync(cmd, { stdio: 'inherit' })
         claudeOut = checkCommand('claude --version')
         s.stop(`Claude Code installed (${claudeOut})`)
       } catch {

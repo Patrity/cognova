@@ -19,7 +19,9 @@ export async function setupAndStart(config: InitConfig) {
     if (install) {
       const s = p.spinner()
       s.start('Installing PM2')
-      execSync('npm install -g pm2', { stdio: 'pipe' })
+      // Use sudo on Linux where global installs need root
+      const cmd = process.platform === 'linux' ? 'sudo npm install -g pm2' : 'npm install -g pm2'
+      execSync(cmd, { stdio: 'inherit' })
       s.stop('PM2 installed')
     } else {
       p.log.warn('Skipping PM2. Start manually with: node .output/server/index.mjs')
