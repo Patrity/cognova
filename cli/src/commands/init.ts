@@ -136,8 +136,13 @@ export async function init() {
   execSync('pnpm install --frozen-lockfile', { cwd: resolvedInstallDir, stdio: 'pipe' })
   s.stop('Dependencies installed')
 
-  s.start('Building application (this may take a minute)')
-  execSync('pnpm build', { cwd: resolvedInstallDir, stdio: 'pipe', timeout: 300000 })
+  s.start('Building application (this may take a few minutes)')
+  execSync('pnpm build', {
+    cwd: resolvedInstallDir,
+    stdio: 'pipe',
+    timeout: 600000,
+    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
+  })
   s.stop('Build complete')
 
   p.log.step(pc.bold('Launch'))

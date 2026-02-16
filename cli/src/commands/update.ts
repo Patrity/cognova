@@ -55,7 +55,12 @@ export async function update() {
   s.stop('Dependencies installed')
 
   s.start('Building application')
-  execSync('pnpm build', { cwd: installDir, stdio: 'pipe' })
+  execSync('pnpm build', {
+    cwd: installDir,
+    stdio: 'pipe',
+    timeout: 600000,
+    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
+  })
   s.stop('Build complete')
 
   // Restart
