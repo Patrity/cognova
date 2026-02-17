@@ -161,21 +161,12 @@ export async function init() {
 
   writeMetadata(resolvedInstallDir, vault.path, '0.1.0')
 
-  // Step 9: Build & Start
-  p.log.step(pc.bold('Build'))
+  // Step 9: Install & Start
+  p.log.step(pc.bold('Setup'))
 
   s.start('Installing dependencies')
   execSync('pnpm install', { cwd: resolvedInstallDir, stdio: 'pipe' })
   s.stop('Dependencies installed')
-
-  s.start('Building application (this may take a few minutes)')
-  execSync('pnpm build', {
-    cwd: resolvedInstallDir,
-    stdio: 'pipe',
-    timeout: 600000,
-    env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
-  })
-  s.stop('Build complete')
 
   p.log.step(pc.bold('Launch'))
   await setupAndStart(config)

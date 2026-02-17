@@ -98,7 +98,8 @@ npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
 npm version minor   # 0.1.0 → 0.2.0 (new features)
 npm version major   # 0.1.0 → 1.0.0 (breaking changes)
 
-# 2. Build the CLI
+# 2. Build the app and CLI (app output ships pre-built in the package)
+pnpm build
 pnpm cli:build
 
 # 3. Verify
@@ -119,15 +120,16 @@ When a user runs `cognova update`, the CLI:
 1. Checks `npm view cognova version` for the latest published version
 2. Downloads the new package via `npm pack`
 3. Backs up the current install (automatic rollback on failure)
-4. Copies new source files, reinstalls deps, rebuilds, runs migrations
+4. Copies pre-built app + source files, reinstalls deps, runs migrations
 5. Restarts the app via PM2
 
 ### Pre-publish Checklist
 
 - [ ] `pnpm lint` passes
+- [ ] `pnpm build` succeeds (app output ships in the package)
 - [ ] `pnpm cli:build` succeeds
 - [ ] `node dist/cli/index.js --help` shows correct output
-- [ ] `npm pack --dry-run` includes expected files
+- [ ] `npm pack --dry-run` includes expected files (including `.output/`)
 - [ ] Version in `package.json` matches the intended release
 
 ## Questions?

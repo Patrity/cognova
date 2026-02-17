@@ -14,6 +14,7 @@ const BACKUP_ITEMS = [
   'server',
   'shared',
   'Claude',
+  '.output',
   'nuxt.config.ts',
   'tsconfig.json',
   'drizzle.config.ts',
@@ -122,15 +123,6 @@ export async function update() {
     s.start('Running database migrations')
     execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe', env: envWithDotenv })
     s.stop('Migrations complete')
-
-    s.start('Building application')
-    execSync('pnpm build', {
-      cwd: installDir,
-      stdio: 'pipe',
-      timeout: 600000,
-      env: { ...envWithDotenv, NODE_OPTIONS: '--max-old-space-size=4096' }
-    })
-    s.stop('Build complete')
   } catch (err) {
     updateFailed = true
     s.stop(pc.red('Update failed'))

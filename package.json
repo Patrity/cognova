@@ -20,6 +20,7 @@
     "tsconfig.json",
     "drizzle.config.ts",
     "pnpm-lock.yaml",
+    ".output",
     ".env.example"
   ],
   "scripts": {

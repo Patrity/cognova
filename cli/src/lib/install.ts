@@ -10,7 +10,6 @@ const PRESERVE_ON_UPDATE = new Set([
   '.api-token',
   '.cognova',
   'node_modules',
-  '.output',
   'ecosystem.config.cjs',
   'logs',
   '.update-backup'
@@ -26,6 +25,7 @@ export function copyAppSource(sourceDir: string, installDir: string) {
     'server',
     'shared',
     'Claude',
+    '.output',
     'nuxt.config.ts',
     'tsconfig.json',
     'drizzle.config.ts',
