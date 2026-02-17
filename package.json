@@ -19,6 +19,7 @@
     "nuxt.config.ts",
     "tsconfig.json",
     "drizzle.config.ts",
+    "pnpm-lock.yaml",
     ".env.example"
   ],
   "scripts": {

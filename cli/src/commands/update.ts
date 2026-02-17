@@ -118,9 +118,9 @@ export async function update() {
     execSync('pnpm install', { cwd: installDir, stdio: 'pipe' })
     s.stop('Dependencies installed')
 
-    // Run database migrations
+    // Run database migrations (drizzle-kit auto-loads .env from cwd)
     s.start('Running database migrations')
-    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe', env: envWithDotenv })
+    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe' })
     s.stop('Migrations complete')
 
     s.start('Building application')
@@ -135,8 +135,10 @@ export async function update() {
     updateFailed = true
     s.stop(pc.red('Update failed'))
 
-    const execErr = err as { message?: string, stderr?: Buffer | string }
+    const execErr = err as { message?: string, stderr?: Buffer | string, stdout?: Buffer | string }
     p.log.error(`Error: ${execErr.message || err}`)
+    if (execErr.stdout)
+      p.log.error(pc.dim(String(execErr.stdout).trim()))
     if (execErr.stderr)
       p.log.error(pc.dim(String(execErr.stderr).trim()))
     p.log.step(pc.bold('Rolling back'))
