@@ -26,9 +26,6 @@ Create a `/skills/` folder at the repo root containing custom skills designed fo
 │   ├── list.ts
 │   ├── update.ts
 │   └── complete.ts
-├── notify/                # Gotify notifications
-│   ├── SKILL.md
-│   └── send.ts
 └── integrations/          # Future external integrations
     ├── google/
     ├── github/
@@ -124,13 +121,6 @@ export async function execute(args: string[]) {
 | task-done | `/task-done <id>` | Mark complete |
 | task-update | `/task-update <id>` | Modify task |
 
-### 3. Notification Skills
-
-| Skill | Command | Description |
-|-------|---------|-------------|
-| notify | `/notify <message>` | Send Gotify notification |
-| remind | `/remind <time> <msg>` | Schedule reminder |
-
 ## Environment Variables
 
 Skills inherit environment from the container:
@@ -138,8 +128,6 @@ Skills inherit environment from the container:
 ```bash
 VAULT_PATH=/vault
 DATABASE_URL=postgresql://...
-GOTIFY_URL=https://...
-GOTIFY_TOKEN=...
 ```
 
 ## Security Considerations
@@ -159,7 +147,7 @@ GOTIFY_TOKEN=...
 ## Dependencies
 
 - Requires: Docker build process
-- Blocks: task-skill, notify skill
+- Blocks: task-skill
 - Related: cron-agents (uses skills)
 
 ## Script-Free Skills
@@ -347,78 +335,6 @@ def update_status(task_id: str, status: str):
     print(f"{action} task [{task_id}]")
 ```
 
-### Remind Skill (Python Reference)
-
-```python
-#!/usr/bin/env python3
-"""Reminder skill with Gotify notifications."""
-
-import os
-import requests
-from dateutil import parser as dateparser
-import psycopg2
-from psycopg2.extras import RealDictCursor
-
-DATABASE_URL = os.environ.get('DATABASE_URL')
-GOTIFY_URL = os.environ.get('GOTIFY_URL')
-GOTIFY_TOKEN = os.environ.get('GOTIFY_TOKEN')
-
-def get_connection():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-
-def send_notification(title: str, message: str, priority: int = 5):
-    """Send push notification via Gotify."""
-    if not GOTIFY_URL or not GOTIFY_TOKEN:
-        print(f"[Would notify] {title}: {message}")
-        return
-
-    requests.post(
-        f"{GOTIFY_URL}/message",
-        headers={"X-Gotify-Key": GOTIFY_TOKEN},
-        json={"title": title, "message": message, "priority": priority}
-    )
-
-def add_reminder(message: str, at: str):
-    """Create a reminder."""
-    remind_at = dateparser.parse(at)
-
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO reminders (message, remind_at)
-            VALUES (%s, %s)
-        """, (message, remind_at))
-        conn.commit()
-
-    print(f"Reminder set for {remind_at.strftime('%b %d at %I:%M %p')}: {message}")
-
-def check_due():
-    """Check and send due reminders."""
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute("""
-            SELECT id, message FROM reminders
-            WHERE NOT notified AND remind_at <= NOW()
-        """)
-        due = cur.fetchall()
-
-        for r in due:
-            send_notification("Reminder", r['message'])
-            cur.execute("UPDATE reminders SET notified = TRUE WHERE id = %s", (r['id'],))
-
-        conn.commit()
-
-    print(f"Sent {len(due)} reminder(s)." if due else "No due reminders.")
-```
-
-### Python Dependencies
-
-If using Python implementations:
-
-```bash
-pip install psycopg2-binary python-dateutil requests
-```
-
 ## Implementation Steps
 
 1. [ ] Create `/skills/` folder structure
@@ -427,6 +343,5 @@ pip install psycopg2-binary python-dateutil requests
 4. [ ] Implement vault-write skill
 5. [ ] Implement vault-list skill
 6. [ ] Implement task skills (port from Python reference)
-7. [ ] Implement notify/remind skills (port from Python reference)
-8. [ ] Add skill documentation
+7. [ ] Add skill documentation
 9. [ ] Test in container

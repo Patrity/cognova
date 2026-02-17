@@ -26,15 +26,6 @@ export function generateEnvFile(config: InitConfig): string {
     `ADMIN_NAME=${config.auth.adminName}`
   ]
 
-  if (config.integrations.gotifyUrl) {
-    lines.push(
-      '',
-      '# Notifications',
-      `GOTIFY_URL=${config.integrations.gotifyUrl}`,
-      `GOTIFY_TOKEN=${config.integrations.gotifyToken || ''}`
-    )
-  }
-
   lines.push('')
   return lines.join('\n')
 }

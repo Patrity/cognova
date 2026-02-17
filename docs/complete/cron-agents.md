@@ -55,7 +55,6 @@ Enable scheduled execution of Claude Code for automated workflows:
 | CLI subprocess spawn | Claude Agent SDK `query()` | SDK provides better streaming, cancellation, and metrics |
 | `timeout` field | `maxTurns` + `maxBudgetUsd` | SDK uses turns/budget instead of time-based timeout |
 | `timeout` status | `budget_exceeded` + `cancelled` | More granular status tracking |
-| Gotify notifications | WebSocket notification bus | Real-time UI updates; Gotify integration TODO |
 | Simple output capture | Full metrics (cost, tokens, turns) | SDK provides comprehensive usage data |
 
 ## Schema (Actual)
@@ -383,11 +382,10 @@ Entrypoint script initializes settings volume on first run.
 - [x] Detail page with history
 - [x] Real-time running indicators
 - [x] Period-filtered statistics
-- [ ] Gotify push notifications (TODO in executor)
 - [ ] Example pre-configured agents
 
 ## Related
 
 - **Depends on**: database-init, auth
 - **Integrates with**: WebSocket notification bus (reusable for future features)
-- **Future**: Gotify notifications, agent templates, scheduled pause/resume
+- **Future**: Agent templates, scheduled pause/resume

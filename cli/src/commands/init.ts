@@ -105,32 +105,6 @@ export async function init() {
   })
   if (p.isCancel(adminName)) process.exit(0)
 
-  // Step 8: Integrations
-  p.log.step(pc.bold('Integrations'))
-  const wantGotify = await p.confirm({
-    message: 'Set up Gotify push notifications?',
-    initialValue: false
-  })
-  if (p.isCancel(wantGotify)) process.exit(0)
-
-  let gotifyUrl: string | undefined
-  let gotifyToken: string | undefined
-
-  if (wantGotify) {
-    const url = await p.text({
-      message: 'Gotify server URL',
-      placeholder: 'https://gotify.example.com'
-    })
-    if (p.isCancel(url)) process.exit(0)
-    gotifyUrl = url
-
-    const token = await p.text({
-      message: 'Gotify application token'
-    })
-    if (p.isCancel(token)) process.exit(0)
-    gotifyToken = token
-  }
-
   // Assemble config
   const config: InitConfig = {
     personality,
@@ -141,10 +115,6 @@ export async function init() {
       adminPassword,
       adminName,
       authSecret: crypto.randomBytes(32).toString('base64')
-    },
-    integrations: {
-      gotifyUrl,
-      gotifyToken
     },
     appUrl,
     accessMode: accessMode as 'localhost' | 'specific' | 'any',

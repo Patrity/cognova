@@ -56,7 +56,6 @@ export async function reset() {
     vault: { path: metadata.vaultPath },
     database: { type: 'remote', connectionString: '' },
     auth: { adminEmail: '', adminPassword: '', adminName: '', authSecret: '' },
-    integrations: {},
     appUrl: 'http://localhost:3000',
     accessMode: 'localhost',
     installDir: metadata.installDir

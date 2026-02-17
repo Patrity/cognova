@@ -128,8 +128,6 @@ services:
 | `ADMIN_EMAIL` | No | Default admin email (default: `admin@example.com`) |
 | `ADMIN_PASSWORD` | No | Default admin password (default: `changeme123`) |
 | `ADMIN_NAME` | No | Default admin display name (default: `Admin`) |
-| `GOTIFY_URL` | No | Gotify server for notifications |
-| `GOTIFY_TOKEN` | No | Gotify app token |
 
 ### Authentication
 

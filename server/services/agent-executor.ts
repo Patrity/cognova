@@ -98,8 +98,6 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
       status,
       color: status === 'success' ? 'success' : 'warning'
     })
-
-    // TODO: Send Gotify notification
   } catch (error) {
     const durationMs = Date.now() - startTime
     const isCancelled = error instanceof AgentCancelledError
@@ -157,8 +155,6 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
         color: 'error'
       })
     }
-
-    // TODO: Send Gotify notification (high priority for errors)
   } finally {
     // Always unregister the agent when done
     agentRegistry.unregister(runId)

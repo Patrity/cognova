@@ -15,8 +15,6 @@ services:
       - VAULT_PATH=/vault
       - SECOND_BRAIN_API_URL=http://localhost:3000
       - SECOND_BRAIN_API_TOKEN=${SECOND_BRAIN_API_TOKEN}
-      - GOTIFY_URL=${GOTIFY_URL}
-      - GOTIFY_TOKEN=${GOTIFY_TOKEN}
     depends_on:
       db:
         condition: service_healthy

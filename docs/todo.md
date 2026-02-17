@@ -23,7 +23,6 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Interactive Chat | Done | WebSocket + Claude Agent SDK streaming chat UI |
 | CLI Installer | Done | `cli/` — init, update, start/stop, reset |
 | Memory Dashboard | Done | Memory context viewer + skill |
-| Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
 | Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
 
@@ -50,7 +49,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 ```
 database-init ─┬─► auth
-               ├─► task-skill ──► notifications
+               ├─► task-skill
                ├─► ai-history
                └─► search
 

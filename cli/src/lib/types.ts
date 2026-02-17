@@ -24,17 +24,11 @@ export interface AuthConfig {
   authSecret: string
 }
 
-export interface IntegrationsConfig {
-  gotifyUrl?: string
-  gotifyToken?: string
-}
-
 export interface InitConfig {
   personality: PersonalityConfig
   vault: VaultConfig
   database: DatabaseConfig
   auth: AuthConfig
-  integrations: IntegrationsConfig
   appUrl: string
   accessMode: 'localhost' | 'specific' | 'any'
   installDir: string
