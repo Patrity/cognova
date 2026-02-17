@@ -36,6 +36,7 @@ export interface InitConfig {
   auth: AuthConfig
   integrations: IntegrationsConfig
   appUrl: string
+  accessMode: 'localhost' | 'specific' | 'any'
   installDir: string
 }
 

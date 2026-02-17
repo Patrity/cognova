@@ -19,5 +19,10 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24 // Update session every 24 hours
   },
-  trustedOrigins: process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []
+  trustedOrigins: process.env.ACCESS_MODE === 'any'
+    ? (request?: Request) => {
+        const origin = request?.headers.get('origin')
+        return origin ? [origin] : []
+      }
+    : process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []
 })

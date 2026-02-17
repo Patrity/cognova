@@ -45,7 +45,29 @@ export async function init() {
   p.log.step(pc.bold('Database'))
   const database = await setupDatabase(prereqs.hasDocker)
 
-  // Step 6: Auth
+  // Step 6: Network Access
+  p.log.step(pc.bold('Network Access'))
+  const accessMode = await p.select({
+    message: 'How will you access Second Brain?',
+    options: [
+      { value: 'localhost', label: 'Local only', hint: 'http://localhost:3000' },
+      { value: 'specific', label: 'Specific IP or domain', hint: 'LAN IP, hostname, or domain' },
+      { value: 'any', label: 'Any connection', hint: 'Accepts requests from any origin (0.0.0.0)' }
+    ]
+  })
+  if (p.isCancel(accessMode)) process.exit(0)
+
+  let appUrl = 'http://localhost:3000'
+  if (accessMode === 'specific') {
+    const host = await p.text({
+      message: 'IP address or domain (include port if not 80/443)',
+      placeholder: '192.168.1.100:3000'
+    })
+    if (p.isCancel(host)) process.exit(0)
+    appUrl = host.startsWith('http') ? host : `http://${host}`
+  }
+
+  // Step 7: Auth
   p.log.step(pc.bold('Authentication'))
   const adminEmail = await p.text({
     message: 'Admin email',
@@ -62,6 +84,16 @@ export async function init() {
   })
   if (p.isCancel(adminPassword)) process.exit(0)
 
+  const confirmPassword = await p.password({
+    message: 'Confirm password'
+  })
+  if (p.isCancel(confirmPassword)) process.exit(0)
+
+  if (adminPassword !== confirmPassword) {
+    p.log.error('Passwords do not match')
+    process.exit(1)
+  }
+
   const adminName = await p.text({
     message: 'Admin display name',
     placeholder: personality.userName,
@@ -69,7 +101,7 @@ export async function init() {
   })
   if (p.isCancel(adminName)) process.exit(0)
 
-  // Step 7: Integrations
+  // Step 8: Integrations
   p.log.step(pc.bold('Integrations'))
   const wantGotify = await p.confirm({
     message: 'Set up Gotify push notifications?',
@@ -110,7 +142,8 @@ export async function init() {
       gotifyUrl,
       gotifyToken
     },
-    appUrl: 'http://localhost:3000',
+    appUrl,
+    accessMode: accessMode as 'localhost' | 'specific' | 'any',
     installDir: resolvedInstallDir
   }
 
@@ -148,8 +181,8 @@ export async function init() {
   p.log.step(pc.bold('Launch'))
   await setupAndStart(config)
 
-  // Health check
-  await waitForHealth(config.appUrl)
+  // Health check (always use localhost — we're running on the same machine)
+  await waitForHealth('http://localhost:3000')
 
   // Step 10: Summary
   p.log.step(pc.bold('Summary'))

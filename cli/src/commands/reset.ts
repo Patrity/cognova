@@ -58,6 +58,7 @@ export async function reset() {
     auth: { adminEmail: '', adminPassword: '', adminName: '', authSecret: '' },
     integrations: {},
     appUrl: 'http://localhost:3000',
+    accessMode: 'localhost',
     installDir: metadata.installDir
   } satisfies InitConfig, {
     claudeMd: items.includes('claude-md'),
