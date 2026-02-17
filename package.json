@@ -38,7 +38,8 @@
     "db:down": "docker compose --profile local down",
     "docker:up": "./scripts/docker-up.sh -d",
     "docker:down": "docker compose --profile local down",
-    "auth:create-admin": "tsx scripts/create-admin.ts"
+    "auth:create-admin": "tsx scripts/create-admin.ts",
+    "auth:reset-pw": "tsx scripts/reset-password.ts"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.23",

@@ -133,7 +133,7 @@ const conversationTitle = computed(() => {
           </div>
 
           <!-- Input -->
-          <ChatChatInput
+          <ChatInput
             :session-status="sessionStatus"
             :connection-status="connectionStatus"
             @send="handleSend"

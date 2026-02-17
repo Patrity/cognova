@@ -8,8 +8,11 @@ import type { ChatClientMessage, ChatContentBlock } from '~~/shared/types'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function send(peer: any, data: object) {
   try {
-    peer.send(JSON.stringify(data))
-  } catch { /* peer disconnected */ }
+    const json = JSON.stringify(data)
+    peer.send(json)
+  } catch (err) {
+    console.error('[chat] send failed:', err)
+  }
 }
 
 export default defineWebSocketHandler({
@@ -130,19 +133,36 @@ async function streamSDKResponse(peer: any, session: any, conversationId: string
 
       if (message.type === 'system' && message.subtype === 'init') {
         session.sdkSessionId = message.session_id
-        // Persist SDK session ID for future resume
         await db.update(schema.conversations)
           .set({ sdkSessionId: message.session_id })
           .where(eq(schema.conversations.id, conversationId))
+      } else if (message.type === 'stream_event') {
+        // Real-time streaming events from the Anthropic API
+        const event = message.event
+        if (event.type === 'content_block_delta') {
+          const deltaType = event.delta?.type
+          if (deltaType === 'text_delta' && event.delta.text) {
+            currentText += event.delta.text
+            send(peer, { type: 'chat:text_delta', conversationId, delta: event.delta.text })
+          }
+        } else if (event.type === 'content_block_start') {
+          if (event.content_block?.type === 'tool_use') {
+            send(peer, {
+              type: 'chat:tool_start',
+              conversationId,
+              toolUseId: event.content_block.id,
+              toolName: event.content_block.name
+            })
+          }
+        }
       } else if (message.type === 'assistant') {
-        // Complete assistant message — process content blocks
+        // Complete assistant turn — capture content blocks for persistence
         for (const block of message.message?.content || []) {
           if (block.type === 'text') {
-            // If we haven't been getting streaming deltas, send the full text
-            if (!currentText) {
-              send(peer, { type: 'chat:text_delta', conversationId, delta: block.text })
-            }
             contentBlocks.push({ type: 'text', text: block.text })
+            // Fallback: if no stream_events arrived, send full text now
+            if (!currentText)
+              send(peer, { type: 'chat:text_delta', conversationId, delta: block.text })
           } else if (block.type === 'tool_use') {
             contentBlocks.push({
               type: 'tool_use',
@@ -150,51 +170,39 @@ async function streamSDKResponse(peer: any, session: any, conversationId: string
               name: block.name,
               input: block.input as Record<string, unknown>
             })
-            send(peer, {
-              type: 'chat:tool_start',
-              conversationId,
-              toolUseId: block.id,
-              toolName: block.name
-            })
-          } else if (block.type === 'tool_result') {
-            const resultText = typeof block.content === 'string'
-              ? block.content
-              : JSON.stringify(block.content)
-            contentBlocks.push({
-              type: 'tool_result',
-              tool_use_id: block.tool_use_id,
-              content: resultText,
-              is_error: block.is_error
-            })
-            send(peer, {
-              type: 'chat:tool_end',
-              conversationId,
-              toolUseId: block.tool_use_id,
-              result: resultText.slice(0, 5000),
-              isError: !!block.is_error
-            })
           }
         }
-        // Reset currentText after each assistant turn persists
-        if (currentText) {
-          contentBlocks.push({ type: 'text', text: currentText })
-          currentText = ''
-        }
-      } else if (message.type === 'partial') {
-        // Streaming delta — real-time text chunks
-        const delta = message.delta
-        if (delta?.type === 'text_delta' && delta.text) {
-          currentText += delta.text
-          send(peer, { type: 'chat:text_delta', conversationId, delta: delta.text })
+        currentText = ''
+      } else if (message.type === 'user') {
+        // User messages contain tool results from SDK tool execution
+        const content = message.message?.content
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'tool_result') {
+              const resultText = typeof block.content === 'string'
+                ? block.content
+                : Array.isArray(block.content)
+                  ? block.content.map((c: { text?: string }) => c.text || '').join('')
+                  : JSON.stringify(block.content ?? '')
+              contentBlocks.push({
+                type: 'tool_result',
+                tool_use_id: block.tool_use_id,
+                content: resultText,
+                is_error: !!block.is_error
+              })
+              send(peer, {
+                type: 'chat:tool_end',
+                conversationId,
+                toolUseId: block.tool_use_id,
+                result: resultText.slice(0, 5000),
+                isError: !!block.is_error
+              })
+            }
+          }
         }
       } else if (message.type === 'result') {
         const costUsd = message.total_cost_usd || 0
         const durationMs = message.duration_ms || 0
-
-        // Capture any remaining streamed text
-        if (currentText && !contentBlocks.some(b => b.type === 'text' && b.text === currentText)) {
-          contentBlocks.push({ type: 'text', text: currentText })
-        }
 
         // Persist assistant message
         if (contentBlocks.length > 0) {

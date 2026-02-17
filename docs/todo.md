@@ -20,6 +20,9 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 |---------|--------|------|
 | Task Skill | Done | (included in Skills System) |
 | Cron Agents | Done | [cron-agents.md](./complete/cron-agents.md) |
+| Interactive Chat | Done | WebSocket + Claude Agent SDK streaming chat UI |
+| CLI Installer | Done | `cli/` — init, update, start/stop, reset |
+| Memory Dashboard | Done | Memory context viewer + skill |
 | Notifications | Planned | [notifications.md](./todo/notifications.md) |
 | Search | Planned | [search.md](./todo/search.md) |
 | Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
@@ -28,7 +31,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| AI History | Planned | [ai-history.md](./todo/ai-history.md) |
+| AI History | Partial | [ai-history.md](./todo/ai-history.md) — chat conversations stored, JSONL parsing not yet done |
 
 ## Priority 4: Polish
 

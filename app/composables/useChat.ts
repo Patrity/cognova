@@ -15,7 +15,7 @@ const activeConversationId = ref<string | null>(null)
 const messages = ref<ChatMessage[]>([])
 const conversations = ref<ChatConversation[]>([])
 const streamingText = ref('')
-const streamingToolCalls = ref<Map<string, { name: string, result?: string, isError?: boolean }>>(new Map())
+const streamingToolCalls = ref<Record<string, { name: string, result?: string, isError?: boolean }>>({})
 const lastCostUsd = ref(0)
 
 const ws = ref<WebSocket | null>(null)
@@ -40,7 +40,7 @@ export function useChat() {
       case 'chat:stream_start':
         sessionStatus.value = 'streaming'
         streamingText.value = ''
-        streamingToolCalls.value = new Map()
+        streamingToolCalls.value = {}
         break
 
       case 'chat:text_delta':
@@ -48,17 +48,16 @@ export function useChat() {
         break
 
       case 'chat:tool_start':
-        streamingToolCalls.value.set(msg.toolUseId, { name: msg.toolName })
-        // Trigger reactivity
-        streamingToolCalls.value = new Map(streamingToolCalls.value)
+        streamingToolCalls.value = { ...streamingToolCalls.value, [msg.toolUseId]: { name: msg.toolName } }
         break
 
       case 'chat:tool_end': {
-        const tool = streamingToolCalls.value.get(msg.toolUseId)
+        const tool = streamingToolCalls.value[msg.toolUseId]
         if (tool) {
-          tool.result = msg.result
-          tool.isError = msg.isError
-          streamingToolCalls.value = new Map(streamingToolCalls.value)
+          streamingToolCalls.value = {
+            ...streamingToolCalls.value,
+            [msg.toolUseId]: { ...tool, result: msg.result, isError: msg.isError }
+          }
         }
         break
       }
@@ -72,7 +71,7 @@ export function useChat() {
         if (streamingText.value)
           contentBlocks.push({ type: 'text', text: streamingText.value })
 
-        for (const [id, tool] of streamingToolCalls.value) {
+        for (const [id, tool] of Object.entries(streamingToolCalls.value)) {
           contentBlocks.push({ type: 'tool_use', id, name: tool.name, input: {} })
           if (tool.result !== undefined)
             contentBlocks.push({ type: 'tool_result', tool_use_id: id, content: tool.result, is_error: tool.isError })
@@ -91,7 +90,7 @@ export function useChat() {
         }
 
         streamingText.value = ''
-        streamingToolCalls.value = new Map()
+        streamingToolCalls.value = {}
 
         // Refresh conversations list
         loadConversations()
@@ -115,7 +114,7 @@ export function useChat() {
             createdAt: new Date()
           })
           streamingText.value = ''
-          streamingToolCalls.value = new Map()
+          streamingToolCalls.value = {}
         }
         break
     }
@@ -220,29 +219,42 @@ export function useChat() {
     messages.value = []
     sessionStatus.value = 'idle'
     streamingText.value = ''
-    streamingToolCalls.value = new Map()
+    streamingToolCalls.value = {}
   }
 
   async function loadConversation(conversationId: string) {
-    const response = await $fetch<{ data: ChatConversation & { messages: ChatMessage[] } }>(`/api/conversations/${conversationId}`)
-    activeConversationId.value = conversationId
-    messages.value = (response.data.messages || []).map(m => ({
-      ...m,
-      createdAt: new Date(m.createdAt)
-    }))
-    sessionStatus.value = 'idle'
+    try {
+      const response = await $fetch<{ data: ChatConversation & { messages: ChatMessage[] } }>(`/api/conversations/${conversationId}`)
+      activeConversationId.value = conversationId
+      messages.value = (response.data.messages || []).map(m => ({
+        ...m,
+        createdAt: new Date(m.createdAt)
+      }))
+      sessionStatus.value = 'idle'
+    } catch (e) {
+      console.error('[chat] Failed to load conversation:', e)
+    }
   }
 
   async function loadConversations() {
-    const response = await $fetch<{ data: ChatConversation[] }>('/api/conversations')
-    conversations.value = response.data
+    try {
+      const response = await $fetch<{ data: ChatConversation[] }>('/api/conversations')
+      conversations.value = response.data
+    } catch (e) {
+      // Database may be unavailable — fail silently
+      console.error('[chat] Failed to load conversations:', e)
+    }
   }
 
   async function deleteConversation(conversationId: string) {
-    await $fetch(`/api/conversations/${conversationId}`, { method: 'DELETE' })
-    conversations.value = conversations.value.filter(c => c.id !== conversationId)
-    if (activeConversationId.value === conversationId)
-      startNewConversation()
+    try {
+      await $fetch(`/api/conversations/${conversationId}`, { method: 'DELETE' })
+      conversations.value = conversations.value.filter(c => c.id !== conversationId)
+      if (activeConversationId.value === conversationId)
+        startNewConversation()
+    } catch (e) {
+      console.error('[chat] Failed to delete conversation:', e)
+    }
   }
 
   return {

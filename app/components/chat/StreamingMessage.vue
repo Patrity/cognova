@@ -1,32 +1,24 @@
 <script setup lang="ts">
-import { refDebounced } from '@vueuse/core'
-
-const props = defineProps<{
+defineProps<{
   text: string
-  toolCalls: Map<string, { name: string, result?: string, isError?: boolean }>
+  toolCalls: Record<string, { name: string, result?: string, isError?: boolean }>
 }>()
-
-// Debounce MDC rendering to avoid excessive re-renders during fast streaming
-const debouncedText = refDebounced(toRef(() => props.text), 150)
 </script>
 
 <template>
-  <div
-    v-if="text || toolCalls.size > 0"
-    class="flex justify-start"
-  >
+  <div class="flex justify-start">
     <div class="max-w-[85%] rounded-xl px-4 py-3 bg-elevated/50">
-      <!-- Streaming text -->
+      <!-- Streaming text rendered as markdown -->
       <div
-        v-if="debouncedText"
+        v-if="text"
         class="prose prose-sm dark:prose-invert max-w-none"
       >
-        <MDC :value="debouncedText" />
+        <MDC :value="text" />
       </div>
 
       <!-- Active tool calls -->
       <ChatToolCallBlock
-        v-for="[id, tool] in toolCalls"
+        v-for="(tool, id) in toolCalls"
         :key="id"
         :tool-name="tool.name"
         :result="tool.result"

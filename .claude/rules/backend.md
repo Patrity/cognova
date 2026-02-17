@@ -10,10 +10,41 @@ paths: "server/**/*.ts"
 server/
 ├── api/              # API routes (auto-registered)
 │   ├── fs/           # File system operations
-│   └── tasks/        # Task CRUD (when added)
+│   ├── tasks/        # Task CRUD
+│   ├── agents/       # Agent CRUD + runs + stats
+│   └── conversations/ # Chat conversation history
 ├── routes/           # WebSocket and special routes
-├── utils/            # Server utilities
-└── middleware/       # Server middleware
+│   ├── terminal.ts   # PTY WebSocket
+│   ├── notifications.ts
+│   └── _ws/          # WebSocket routes that share names with pages
+│       └── chat.ts   # Chat WebSocket (Claude Agent SDK bridge)
+├── services/         # Business logic
+│   ├── agent-executor.ts
+│   └── cron-scheduler.ts
+├── db/               # Drizzle ORM (schema, migrations, seed)
+├── plugins/          # Nitro startup plugins
+├── utils/            # Server utilities (singletons, helpers)
+└── middleware/       # Server middleware (auth, etc.)
+```
+
+### WebSocket Route Collision Rule
+
+Nitro `server/routes/` takes precedence over Nuxt pages. If a WebSocket
+handler shares a name with a page route (e.g., `/chat`), place it under
+`server/routes/_ws/` to avoid blocking the page. The client connects to
+`/_ws/chat` instead of `/chat`.
+
+### Server Imports
+
+Use `~~/server/` aliases for imports within server code, not relative paths:
+
+```typescript
+// Good
+import { getDb } from '~~/server/db'
+import { chatSessionManager } from '~~/server/utils/chat-session-manager'
+
+// Bad
+import { getDb } from '../db'
 ```
 
 ## Types

@@ -49,8 +49,37 @@ shared: false
 ├─────────────────────────────────────────────────────────────────┤
 │  /terminal        │  PTY-based terminal (xterm.js ↔ node-pty)   │
 │  /notifications   │  Real-time event bus (agent status, toasts) │
+│  /_ws/chat        │  Interactive Claude chat (Agent SDK stream) │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Important**: WebSocket handlers live in `server/routes/` but must not
+collide with Nuxt page routes. Use the `_ws/` prefix for any WebSocket
+handler that shares a name with a page (e.g. `server/routes/_ws/chat.ts`
+so it doesn't block `app/pages/chat.vue`).
+
+## Interactive Chat System
+
+```
+Browser (Vue)                    Nuxt Server                     Claude Agent SDK
+┌─────────────┐    WebSocket    ┌───────────────┐    query()    ┌──────────────┐
+│ useChat()   │◄──────────────►│ _ws/chat.ts   │──────────────►│ Agent loop   │
+│ composable  │  typed protocol │ chat-session  │  async iter   │ (tools, bash │
+│             │                 │ -manager.ts   │◄──────────────│  file edit)  │
+└─────────────┘                 └───────────────┘               └──────────────┘
+                                       │
+                                       ▼
+                                ┌───────────────┐
+                                │  PostgreSQL    │
+                                │  conversations │
+                                │  conv_messages │
+                                └───────────────┘
+```
+
+- WebSocket route streams SDK messages to browser in real-time
+- REST endpoints (`/api/conversations/`) serve conversation history
+- SDK sessions can be resumed via stored `sdkSessionId`
+- Fire-and-forget streaming loop keeps WS responsive for interrupts
 
 ## Scheduled Agents System
 
@@ -149,6 +178,8 @@ Reference: [Nuxt UI Dashboard Template - Inbox Page](https://github.com/nuxt-ui-
 | `/docs` | Document workspace | Sidebar + 3-panel (tree/editor/terminal) |
 | `/agents` | Scheduled agents dashboard | Stats, chart, agent cards |
 | `/agents/[id]` | Agent detail | Stats, run history, controls |
+| `/chat` | Interactive Claude chat | Sidebar + conversation list/chat |
+| `/memories` | Memory dashboard | Sidebar + memory list |
 
 ## Data Flow
 
@@ -207,66 +238,58 @@ Browser (xterm.js)  ←──WebSocket──►  Nitro Server  ←──PTY─�
 
 ## Deployment
 
-### Docker Compose
+### Bare-Metal (CLI)
 
-```yaml
-services:
-  second-brain:
-    build: .
-    container_name: second-brain
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      # Vault directory
-      - ${VAULT_PATH:-~/vault}:/vault:rw
-      # Claude settings persistence (SDK state, cached auth)
-      - claude_settings:/home/node/.claude
-      # Anthropic credentials (for Claude Code CLI auth)
-      - ${HOME}/.anthropic:/home/node/.anthropic:ro
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - VAULT_PATH=/vault
-      - GOTIFY_URL=${GOTIFY_URL}
-      - GOTIFY_TOKEN=${GOTIFY_TOKEN}
+The `second-brain` CLI handles installation, updates, and process management.
 
-volumes:
-  claude_settings:  # Persists Claude SDK state between restarts
+```bash
+# Install globally
+npm i -g second-brain
+
+# Initialize (copies app to ~/second-brain, sets up .env, builds)
+second-brain init
+
+# Process management
+second-brain start     # PM2 start
+second-brain stop      # PM2 stop
+second-brain status    # Health check
+second-brain logs      # PM2 logs
+
+# Update to latest version
+second-brain update    # Downloads, installs deps, migrates DB, rebuilds, restarts
 ```
 
-### Dockerfile
+**Install directory**: `~/second-brain/` (or custom via `init --dir`)
 
-```dockerfile
-FROM node:22-bookworm
+**Process manager**: PM2 with `ecosystem.config.cjs` — loads `.env` via `env_file`.
 
-# Install Claude Code CLI
-RUN npm install -g @anthropic-ai/claude-code
+**Database migrations**: Auto-run on production startup via `server/plugins/01.database.ts`.
+The CLI `update` command also runs `pnpm db:migrate` as a safety net.
 
-# Install node-pty build dependencies
-RUN apt-get update && apt-get install -y \
-    python3 make g++ \
-    && rm -rf /var/lib/apt/lists/*
+### Development Deployment (git-based)
 
-WORKDIR /app
+When the CLI isn't published to npm yet, deploy from the repo:
 
-# Install dependencies
-COPY package*.json ./
-RUN npm install
+```bash
+# On the VM, in the repo clone
+git pull
+pnpm install
+pnpm db:generate   # if schema changed
+pnpm build
 
-# Build app
-COPY . .
-RUN npm run build
+# Sync to install dir (exclude config/state files)
+rsync -av --delete \
+  --exclude='.env' --exclude='node_modules' --exclude='.output' \
+  --exclude='logs' --exclude='.api-token' --exclude='.second-brain' \
+  --exclude='ecosystem.config.cjs' \
+  ./ ~/bridget/
 
-EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
+# Rebuild in install dir
+cd ~/bridget && pnpm install && pnpm build
+
+# Restart
+pm2 restart second-brain
 ```
-
-### Coolify Deployment
-
-1. Connect GitHub repo
-2. Set environment variables
-3. Configure your domain
-4. Set up authentication at reverse proxy layer
 
 ## Security
 
@@ -280,13 +303,15 @@ CMD ["node", ".output/server/index.mjs"]
 ## File Structure (Nuxt App)
 
 ```
-second-brain-app/
+second-brain/
 ├── app/
 │   ├── pages/
 │   │   ├── index.vue              # Dashboard
 │   │   ├── conversations.vue      # Session history
 │   │   ├── tasks.vue              # Task management
 │   │   ├── docs.vue               # Document workspace (3-panel)
+│   │   ├── chat.vue               # Interactive Claude chat
+│   │   ├── memories.vue           # Memory dashboard
 │   │   └── agents/
 │   │       ├── index.vue          # Agents dashboard
 │   │       └── [id].vue           # Agent detail page
@@ -295,12 +320,18 @@ second-brain-app/
 │   │   │   ├── AppSidebar.vue
 │   │   │   └── AppToolbar.vue
 │   │   ├── files/
-│   │   │   ├── FileTree.vue       # UTree wrapper
+│   │   │   ├── FileTree.vue
 │   │   │   └── FileContextMenu.vue
 │   │   ├── editor/
-│   │   │   └── MarkdownEditor.vue # UEditor wrapper
+│   │   │   └── MarkdownEditor.vue
 │   │   ├── terminal/
 │   │   │   └── Terminal.vue       # xterm.js
+│   │   ├── chat/
+│   │   │   ├── MessageBubble.vue      # User/assistant message render
+│   │   │   ├── ToolCallBlock.vue      # Collapsible tool call display
+│   │   │   ├── StreamingMessage.vue   # Live streaming text + tools
+│   │   │   ├── ChatInput.vue          # Textarea + send/interrupt
+│   │   │   └── ConversationList.vue   # Sidebar conversation list
 │   │   ├── tasks/
 │   │   │   ├── TaskList.vue
 │   │   │   └── TaskForm.vue
@@ -319,49 +350,61 @@ second-brain-app/
 │   │   ├── useTerminal.ts
 │   │   ├── useTasks.ts
 │   │   ├── useAgents.ts           # Agent CRUD, stats, cancel
+│   │   ├── useChat.ts             # Interactive chat WebSocket
 │   │   └── useNotificationBus.ts  # WebSocket notifications
 │   └── layouts/
-│       └── default.vue
+│       ├── default.vue
+│       └── dashboard.vue          # Sidebar + content layout
 ├── server/
 │   ├── api/
-│   │   ├── fs/
-│   │   │   └── [...].ts
-│   │   ├── tasks/
-│   │   │   └── [...].ts
-│   │   ├── agents/
-│   │   │   ├── index.get.ts       # List agents
-│   │   │   ├── index.post.ts      # Create agent
-│   │   │   ├── stats.get.ts       # Global stats
+│   │   ├── fs/                    # File system operations
+│   │   ├── tasks/                 # Task CRUD
+│   │   ├── agents/                # Agent CRUD + runs
+│   │   │   ├── index.get.ts
+│   │   │   ├── index.post.ts
+│   │   │   ├── stats.get.ts
 │   │   │   └── [id]/
-│   │   │       ├── index.get.ts   # Get agent
-│   │   │       ├── index.put.ts   # Update agent
-│   │   │       ├── index.delete.ts
-│   │   │       ├── toggle.post.ts
-│   │   │       ├── run.post.ts
-│   │   │       ├── cancel.post.ts
-│   │   │       ├── stats.get.ts   # Agent stats
-│   │   │       └── runs.get.ts    # Run history
-│   │   └── conversations/
-│   │       └── [...].ts
+│   │   └── conversations/         # Chat conversation history
+│   │       ├── index.get.ts       # List conversations
+│   │       ├── [id].get.ts        # Get conversation + messages
+│   │       └── [id].delete.ts     # Delete conversation
 │   ├── routes/
 │   │   ├── terminal.ts            # PTY WebSocket
-│   │   └── notifications.ts       # Notification WebSocket
+│   │   ├── notifications.ts       # Notification WebSocket
+│   │   └── _ws/
+│   │       └── chat.ts            # Chat WebSocket (Agent SDK bridge)
 │   ├── services/
-│   │   ├── agent-executor.ts      # Claude SDK execution
+│   │   ├── agent-executor.ts      # Claude SDK execution (cron agents)
 │   │   └── cron-scheduler.ts      # Job management
 │   ├── plugins/
+│   │   ├── 01.database.ts         # DB init + auto-migrations (prod)
 │   │   └── 03.cron-agents.ts      # Startup initialization
+│   ├── db/
+│   │   ├── schema.ts              # Drizzle schema
+│   │   ├── migrate.ts             # Migration runner
+│   │   ├── seed.ts                # Default data seeding
+│   │   └── index.ts               # DB connection + warmup
 │   └── utils/
 │       ├── pty-manager.ts
 │       ├── path-validator.ts
 │       ├── notification-bus.ts    # Server event bus
 │       ├── agent-registry.ts      # Running agent tracking
-│       └── agent-cleanup.ts       # Orphan cleanup
+│       ├── agent-cleanup.ts       # Orphan cleanup
+│       ├── chat-session-manager.ts # Active chat sessions (SDK)
+│       └── db-state.ts            # DB availability flag
+├── cli/
+│   └── src/
+│       ├── index.ts               # CLI entry point
+│       └── commands/
+│           ├── init.ts            # Install + setup
+│           ├── update.ts          # Update + migrate + rebuild
+│           ├── start.ts           # PM2 start
+│           ├── stop.ts            # PM2 stop
+│           ├── status.ts          # Health check
+│           ├── logs.ts            # PM2 logs
+│           └── reset.ts          # Sync Claude config
 ├── shared/
 │   └── types/
 │       └── index.ts               # Shared type definitions
-├── nuxt.config.ts
-├── Dockerfile
-├── docker-entrypoint.sh           # Volume initialization
-└── docker-compose.yml
+└── nuxt.config.ts
 ```
