@@ -19,6 +19,7 @@ class ChatSessionManager {
       prompt,
       options: {
         cwd: projectDir,
+        settingSources: ['user', 'project'],
         permissionMode: 'bypassPermissions',
         allowDangerouslySkipPermissions: true,
         maxTurns: 200,

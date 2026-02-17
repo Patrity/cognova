@@ -168,6 +168,7 @@ async function runAgentSDK(config: AgentConfig, runId: string): Promise<AgentRes
     prompt: config.prompt,
     options: {
       cwd: process.env.VAULT_PATH || process.cwd(),
+      settingSources: ['user', 'project'],
       permissionMode: 'bypassPermissions',
       allowDangerouslySkipPermissions: true,
       maxTurns: config.maxTurns ?? 50,
