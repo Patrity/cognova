@@ -343,3 +343,19 @@ export const memoryChunks = pgTable('memory_chunks', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }) // For dynamic forgetting
 })
+
+// =============================================================================
+// User Settings - Generic app settings per user (JSON as text)
+// =============================================================================
+
+export const userSettings = pgTable('user_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').notNull().unique().references(() => user.id, { onDelete: 'cascade' }),
+  settings: text('settings').notNull().default('{}'), // JSON string of UserSettings
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+})
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(user, { fields: [userSettings.userId], references: [user.id] })
+}))

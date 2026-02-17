@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -21,6 +22,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Memory not found' })
 
   await db.delete(schema.memoryChunks).where(eq(schema.memoryChunks.id, id))
+
+  notifyResourceChange({ resource: 'memory', action: 'delete', resourceId: id })
 
   return { data: { success: true } }
 })

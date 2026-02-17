@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { NotificationPreferences, NotificationResource, NotificationAction } from '~~/shared/types'
+import { defaultNotificationPreferences } from '~~/shared/utils/notification-defaults'
+
 interface Secret {
   id: string
   key: string
@@ -14,6 +17,7 @@ definePageMeta({
 
 const { user, updateProfile, changeEmail, changePassword } = useAuth()
 const toast = useToast()
+const { updatePreferences } = useNotificationBus()
 
 // Profile form state
 const profileState = reactive({
@@ -190,9 +194,73 @@ function formatDate(dateStr: string) {
   })
 }
 
-// Load secrets when component mounts
+// === Notification Preferences ===
+const notifPrefs = ref<NotificationPreferences>({ ...defaultNotificationPreferences })
+const notifLoading = ref(false)
+const notifSaving = ref(false)
+const expandedResources = ref<Set<string>>(new Set())
+
+const resourceConfig: { key: NotificationResource, label: string, icon: string, subtypes: NotificationAction[] }[] = [
+  { key: 'task', label: 'Tasks', icon: 'i-lucide-check-square', subtypes: ['create', 'edit', 'delete', 'restore'] },
+  { key: 'project', label: 'Projects', icon: 'i-lucide-folder', subtypes: ['create', 'edit', 'delete'] },
+  { key: 'agent', label: 'Agents', icon: 'i-lucide-bot', subtypes: ['create', 'edit', 'delete', 'run', 'complete', 'fail', 'cancel'] },
+  { key: 'document', label: 'Documents', icon: 'i-lucide-file-text', subtypes: ['edit', 'delete', 'restore'] },
+  { key: 'memory', label: 'Memories', icon: 'i-lucide-brain', subtypes: ['create', 'delete'] },
+  { key: 'reminder', label: 'Reminders', icon: 'i-lucide-bell', subtypes: ['create'] },
+  { key: 'secret', label: 'Secrets', icon: 'i-lucide-key-round', subtypes: ['create', 'edit', 'delete'] },
+  { key: 'hook', label: 'Hooks', icon: 'i-lucide-webhook', subtypes: ['create'] },
+  { key: 'conversation', label: 'Conversations', icon: 'i-lucide-message-square', subtypes: ['delete'] }
+]
+
+async function loadNotificationPrefs() {
+  notifLoading.value = true
+  try {
+    const { data } = await $fetch<{ data: { notifications: NotificationPreferences } }>('/api/settings')
+    notifPrefs.value = { ...defaultNotificationPreferences, ...data.notifications }
+  } catch {
+    notifPrefs.value = { ...defaultNotificationPreferences }
+  }
+  notifLoading.value = false
+}
+
+async function saveNotificationPrefs() {
+  notifSaving.value = true
+  try {
+    await $fetch('/api/settings', {
+      method: 'PUT',
+      body: { notifications: notifPrefs.value }
+    })
+    updatePreferences(notifPrefs.value)
+    toast.add({ title: 'Notification preferences saved', color: 'success' })
+  } catch {
+    toast.add({ title: 'Failed to save preferences', color: 'error' })
+  }
+  notifSaving.value = false
+}
+
+function toggleResourceExpand(key: string) {
+  if (expandedResources.value.has(key))
+    expandedResources.value.delete(key)
+  else
+    expandedResources.value.add(key)
+}
+
+function setResourceEnabled(key: NotificationResource, enabled: boolean) {
+  notifPrefs.value[key] = { ...notifPrefs.value[key], enabled }
+}
+
+function setSubtypeEnabled(key: NotificationResource, subtype: NotificationAction, enabled: boolean) {
+  const current = notifPrefs.value[key]
+  notifPrefs.value[key] = {
+    ...current,
+    subtypes: { ...current?.subtypes, [subtype]: enabled }
+  }
+}
+
+// Load secrets + notification prefs when component mounts
 onMounted(() => {
   fetchSecrets()
+  loadNotificationPrefs()
 })
 
 // Form handlers
@@ -498,17 +566,84 @@ async function handlePasswordSubmit() {
 
           <!-- App Tab -->
           <template #app>
-            <div class="py-12 text-center">
-              <UIcon
-                name="i-lucide-settings"
-                class="size-16 mx-auto mb-4 text-dimmed"
-              />
-              <h3 class="text-lg font-semibold mb-2">
-                App Settings
-              </h3>
-              <p class="text-dimmed">
-                Coming soon...
-              </p>
+            <div class="max-w-2xl mx-auto py-6">
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-1">
+                  Notification Preferences
+                </h3>
+                <p class="text-sm text-dimmed">
+                  Choose which resource changes show toast notifications.
+                </p>
+              </div>
+
+              <div
+                v-if="notifLoading"
+                class="space-y-3"
+              >
+                <USkeleton
+                  v-for="i in 5"
+                  :key="i"
+                  class="h-12 w-full"
+                />
+              </div>
+
+              <div
+                v-else
+                class="space-y-2"
+              >
+                <div
+                  v-for="rc in resourceConfig"
+                  :key="rc.key"
+                  class="border border-default rounded-lg"
+                >
+                  <div class="flex items-center justify-between px-4 py-3">
+                    <div class="flex items-center gap-3">
+                      <UButton
+                        variant="ghost"
+                        size="xs"
+                        :icon="expandedResources.has(rc.key) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+                        @click="toggleResourceExpand(rc.key)"
+                      />
+                      <UIcon
+                        :name="rc.icon"
+                        class="size-5 text-dimmed"
+                      />
+                      <span class="font-medium">{{ rc.label }}</span>
+                    </div>
+                    <USwitch
+                      :model-value="notifPrefs[rc.key]?.enabled ?? false"
+                      @update:model-value="(v: boolean) => setResourceEnabled(rc.key, v)"
+                    />
+                  </div>
+
+                  <div
+                    v-if="expandedResources.has(rc.key) && notifPrefs[rc.key]?.enabled"
+                    class="border-t border-default px-4 py-3 space-y-2 bg-elevated/50"
+                  >
+                    <div
+                      v-for="subtype in rc.subtypes"
+                      :key="subtype"
+                      class="flex items-center justify-between pl-11"
+                    >
+                      <span class="text-sm text-dimmed capitalize">{{ subtype }}</span>
+                      <USwitch
+                        :model-value="notifPrefs[rc.key]?.subtypes?.[subtype] !== false"
+                        size="sm"
+                        @update:model-value="(v: boolean) => setSubtypeEnabled(rc.key, subtype, v)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <UButton
+                  :loading="notifSaving"
+                  @click="saveNotificationPrefs"
+                >
+                  Save Preferences
+                </UButton>
+              </div>
             </div>
           </template>
         </UTabs>

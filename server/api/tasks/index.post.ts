@@ -1,5 +1,6 @@
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 import type { CreateTaskInput } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
@@ -42,6 +43,8 @@ export default defineEventHandler(async (event) => {
     with: { project: true },
     limit: 1
   })
+
+  notifyResourceChange({ resource: 'task', action: 'create', resourceId: task.id, resourceName: taskWithProject.title })
 
   return { data: taskWithProject }
 })

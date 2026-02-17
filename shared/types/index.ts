@@ -291,24 +291,55 @@ export interface UpdateAgentInput {
   maxBudgetUsd?: number | null
 }
 
-// === Notification Bus ===
+// === Notification System ===
 
-export type NotificationType
-  = 'agent:started'
-    | 'agent:completed'
-    | 'agent:failed'
-    | 'toast'
+export type NotificationResource
+  = 'task'
+    | 'reminder'
+    | 'agent'
+    | 'hook'
+    | 'memory'
+    | 'document'
+    | 'project'
+    | 'conversation'
+    | 'secret'
+
+export type NotificationAction
+  = 'create'
+    | 'edit'
+    | 'delete'
+    | 'restore'
+    | 'run'
+    | 'cancel'
+    | 'complete'
+    | 'fail'
+
+export type NotificationColor = 'success' | 'error' | 'warning' | 'info'
 
 export interface NotificationPayload {
-  type: NotificationType
-  agentId?: string
-  agentName?: string
-  runId?: string
-  status?: string
+  type: 'resource_change'
+  resource: NotificationResource
+  action: NotificationAction
+  resourceId?: string
+  resourceName?: string
   message?: string
   title?: string
-  color?: 'success' | 'error' | 'warning' | 'info'
+  color?: NotificationColor
+  meta?: Record<string, unknown>
   timestamp?: string
+}
+
+// === Notification Preferences ===
+
+export interface NotificationResourcePreference {
+  enabled: boolean
+  subtypes?: Partial<Record<NotificationAction, boolean>>
+}
+
+export type NotificationPreferences = Record<NotificationResource, NotificationResourcePreference>
+
+export interface UserSettings {
+  notifications: NotificationPreferences
 }
 
 // === Agent Stats ===

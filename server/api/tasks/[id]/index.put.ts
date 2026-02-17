@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 import type { UpdateTaskInput } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
@@ -65,6 +66,8 @@ export default defineEventHandler(async (event) => {
     with: { project: true },
     limit: 1
   })
+
+  notifyResourceChange({ resource: 'task', action: 'edit', resourceId: id, resourceName: task.title })
 
   return { data: task }
 })

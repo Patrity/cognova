@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -35,6 +36,8 @@ export default defineEventHandler(async (event) => {
     })
     .where(eq(schema.projects.id, id))
     .returning()
+
+  notifyResourceChange({ resource: 'project', action: 'delete', resourceId: id, resourceName: project.name })
 
   return { data: project }
 })

@@ -1,6 +1,7 @@
 import { getDb } from '~~/server/db'
 import { secrets } from '~~/server/db/schema'
 import { encryptSecret } from '~~/server/utils/crypto'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 import { eq } from 'drizzle-orm'
 
 interface UpdateSecretInput {
@@ -47,6 +48,8 @@ export default defineEventHandler(async (event) => {
       description: secrets.description,
       updatedAt: secrets.updatedAt
     })
+
+  notifyResourceChange({ resource: 'secret', action: 'edit', resourceId: result!.id, resourceName: result!.key })
 
   return { data: result }
 })

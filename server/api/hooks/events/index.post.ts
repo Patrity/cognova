@@ -1,5 +1,6 @@
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 import type { CreateHookEventInput } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
@@ -31,6 +32,8 @@ export default defineEventHandler(async (event) => {
 
   if (!hookEvent)
     throw createError({ statusCode: 500, message: 'Failed to create hook event' })
+
+  notifyResourceChange({ resource: 'hook', action: 'create', resourceId: hookEvent!.id, resourceName: body.eventType })
 
   return { data: hookEvent }
 })

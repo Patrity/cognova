@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import { unscheduleAgent } from '~~/server/services/cron-scheduler'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -24,6 +25,8 @@ export default defineEventHandler(async (event) => {
   if (!deleted) {
     throw createError({ statusCode: 404, message: 'Agent not found' })
   }
+
+  notifyResourceChange({ resource: 'agent', action: 'delete', resourceId: id, resourceName: deleted.name })
 
   return { data: deleted }
 })

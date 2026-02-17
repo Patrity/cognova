@@ -1,6 +1,7 @@
 import { getDb } from '~~/server/db'
 import { secrets } from '~~/server/db/schema'
 import { eq } from 'drizzle-orm'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   const key = getRouterParam(event, 'key')
@@ -26,6 +27,8 @@ export default defineEventHandler(async (event) => {
   }
 
   await db.delete(secrets).where(eq(secrets.key, key))
+
+  notifyResourceChange({ resource: 'secret', action: 'delete', resourceName: key })
 
   return { data: { deleted: true } }
 })

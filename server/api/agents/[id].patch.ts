@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import { scheduleAgent, unscheduleAgent } from '~~/server/services/cron-scheduler'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 interface UpdateAgentBody {
   name?: string
@@ -50,6 +51,8 @@ export default defineEventHandler(async (event) => {
       unscheduleAgent(agent!.id)
     }
   }
+
+  notifyResourceChange({ resource: 'agent', action: 'edit', resourceId: id, resourceName: agent!.name })
 
   return { data: agent }
 })

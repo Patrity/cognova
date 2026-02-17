@@ -2,8 +2,8 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import { eq } from 'drizzle-orm'
 import { getDb } from '../db'
 import * as schema from '../db/schema'
-import { notificationBus } from '../utils/notification-bus'
 import { agentRegistry } from '../utils/agent-registry'
+import { notifyResourceChange } from '../utils/notify-resource'
 
 // Custom error for cancellation
 export class AgentCancelledError extends Error {
@@ -49,11 +49,12 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
   agentRegistry.register(runId, config.id, config.name)
 
   // Notify: agent started
-  notificationBus.broadcast({
-    type: 'agent:started',
-    agentId: config.id,
-    agentName: config.name,
-    runId
+  notifyResourceChange({
+    resource: 'agent',
+    action: 'run',
+    resourceId: config.id,
+    resourceName: config.name,
+    meta: { runId }
   })
 
   try {
@@ -90,13 +91,12 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
     console.log(`[agent] ${config.name} completed: ${status} (${durationMs}ms, $${result.total_cost_usd.toFixed(4)})`)
 
     // Notify: agent completed
-    notificationBus.broadcast({
-      type: 'agent:completed',
-      agentId: config.id,
-      agentName: config.name,
-      runId,
-      status,
-      color: status === 'success' ? 'success' : 'warning'
+    notifyResourceChange({
+      resource: 'agent',
+      action: 'complete',
+      resourceId: config.id,
+      resourceName: config.name,
+      meta: { runId, status }
     })
   } catch (error) {
     const durationMs = Date.now() - startTime
@@ -119,13 +119,12 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
 
       console.log(`[agent] ${config.name} cancelled after ${durationMs}ms`)
 
-      notificationBus.broadcast({
-        type: 'agent:failed',
-        agentId: config.id,
-        agentName: config.name,
-        runId,
-        message: 'Cancelled by user',
-        color: 'warning'
+      notifyResourceChange({
+        resource: 'agent',
+        action: 'cancel',
+        resourceId: config.id,
+        resourceName: config.name,
+        meta: { runId }
       })
     } else {
       // Handle other errors
@@ -146,13 +145,13 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
 
       console.error(`[agent] ${config.name} failed:`, errorMessage)
 
-      notificationBus.broadcast({
-        type: 'agent:failed',
-        agentId: config.id,
-        agentName: config.name,
-        runId,
+      notifyResourceChange({
+        resource: 'agent',
+        action: 'fail',
+        resourceId: config.id,
+        resourceName: config.name,
         message: errorMessage,
-        color: 'error'
+        meta: { runId }
       })
     }
   } finally {

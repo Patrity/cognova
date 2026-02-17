@@ -4,6 +4,7 @@ import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { requireDb } from '~~/server/utils/db-guard'
 import { validatePath } from '~~/server/utils/path-validator'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -42,6 +43,8 @@ export default defineEventHandler(async (event) => {
     modifiedAt: new Date(),
     modifiedBy: userId
   }).where(eq(schema.documents.id, id))
+
+  notifyResourceChange({ resource: 'document', action: 'delete', resourceId: id, resourceName: document.title })
 
   return { data: { id, deleted: true } }
 })

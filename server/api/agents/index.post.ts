@@ -1,6 +1,7 @@
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import { scheduleAgent } from '~~/server/services/cron-scheduler'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 interface CreateAgentBody {
   name: string
@@ -43,6 +44,8 @@ export default defineEventHandler(async (event) => {
   if (agent!.enabled) {
     scheduleAgent(agent!)
   }
+
+  notifyResourceChange({ resource: 'agent', action: 'create', resourceId: agent!.id, resourceName: agent!.name })
 
   return { data: agent }
 })

@@ -1,6 +1,7 @@
 import { getDb } from '~~/server/db'
 import { secrets } from '~~/server/db/schema'
 import { encryptSecret } from '~~/server/utils/crypto'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 interface CreateSecretInput {
   key: string
@@ -53,6 +54,8 @@ export default defineEventHandler(async (event) => {
     description: secrets.description,
     createdAt: secrets.createdAt
   })
+
+  notifyResourceChange({ resource: 'secret', action: 'create', resourceId: result!.id, resourceName: result!.key })
 
   return { data: result }
 })

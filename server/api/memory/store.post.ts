@@ -1,5 +1,6 @@
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 import type { CreateMemoryInput, MemoryChunk } from '~~/shared/types'
 
 export default defineEventHandler(async (event) => {
@@ -26,6 +27,8 @@ export default defineEventHandler(async (event) => {
     .returning()
 
   console.log(`[memory] Stored memory: ${body.chunkType} - ${body.content.slice(0, 50)}...`)
+
+  notifyResourceChange({ resource: 'memory', action: 'create', resourceId: inserted.id, resourceName: body.chunkType })
 
   return { data: inserted as MemoryChunk }
 })

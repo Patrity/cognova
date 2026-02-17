@@ -6,6 +6,7 @@ import * as schema from '~~/server/db/schema'
 import { requireDb } from '~~/server/utils/db-guard'
 import { validatePath } from '~~/server/utils/path-validator'
 import { stringifyFrontmatter } from '~~/server/utils/frontmatter'
+import { notifyResourceChange } from '~~/server/utils/notify-resource'
 
 export default defineEventHandler(async (event) => {
   requireDb(event)
@@ -60,6 +61,8 @@ export default defineEventHandler(async (event) => {
     where: eq(schema.documents.id, id),
     with: { project: true }
   })
+
+  notifyResourceChange({ resource: 'document', action: 'restore', resourceId: id, resourceName: restored?.title })
 
   return { data: restored }
 })
