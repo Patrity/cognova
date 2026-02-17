@@ -2,6 +2,9 @@
   "name": "second-brain-cli",
   "private": true,
   "type": "module",
+  "bin": {
+    "second-brain": "../dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch"
