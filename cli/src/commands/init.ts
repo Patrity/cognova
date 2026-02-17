@@ -76,22 +76,26 @@ export async function init() {
   })
   if (p.isCancel(adminEmail)) process.exit(0)
 
-  const adminPassword = await p.password({
-    message: 'Admin password',
-    validate: (v) => {
-      if (v.length < 8) return 'Minimum 8 characters'
+  let adminPassword: string
+  while (true) {
+    const pw = await p.password({
+      message: 'Admin password',
+      validate: (v) => {
+        if (!v || v.length < 8) return 'Minimum 8 characters'
+      }
+    })
+    if (p.isCancel(pw)) process.exit(0)
+
+    const confirm = await p.password({
+      message: 'Confirm password'
+    })
+    if (p.isCancel(confirm)) process.exit(0)
+
+    if (pw === confirm) {
+      adminPassword = pw
+      break
     }
-  })
-  if (p.isCancel(adminPassword)) process.exit(0)
-
-  const confirmPassword = await p.password({
-    message: 'Confirm password'
-  })
-  if (p.isCancel(confirmPassword)) process.exit(0)
-
-  if (adminPassword !== confirmPassword) {
-    p.log.error('Passwords do not match')
-    process.exit(1)
+    p.log.warn('Passwords do not match. Try again.')
   }
 
   const adminName = await p.text({
