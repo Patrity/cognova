@@ -28,7 +28,7 @@ export function useChat() {
   function getWebSocketUrl(): string {
     if (import.meta.server) return ''
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    return `${protocol}//${window.location.host}/chat`
+    return `${protocol}//${window.location.host}/_ws/chat`
   }
 
   function handleServerMessage(msg: ChatServerMessage) {

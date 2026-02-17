@@ -54,6 +54,15 @@ export async function update() {
   execSync('pnpm install --frozen-lockfile', { cwd: installDir, stdio: 'pipe' })
   s.stop('Dependencies installed')
 
+  // Run database migrations
+  s.start('Running database migrations')
+  try {
+    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe' })
+    s.stop('Migrations complete')
+  } catch {
+    s.stop('No migrations to run (or DATABASE_URL not set)')
+  }
+
   s.start('Building application')
   execSync('pnpm build', {
     cwd: installDir,
