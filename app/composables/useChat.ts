@@ -8,6 +8,18 @@ import type {
 
 export type ChatConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
+// crypto.randomUUID() requires secure context (HTTPS). Fallback for HTTP.
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID)
+    return crypto.randomUUID()
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  bytes[6] = (bytes[6]! & 0x0f) | 0x40
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
 // Shared state across component instances
 const connectionStatus = ref<ChatConnectionStatus>('disconnected')
 const sessionStatus = ref<ChatSessionStatus>('idle')
@@ -79,7 +91,7 @@ export function useChat() {
 
         if (contentBlocks.length > 0) {
           messages.value.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             conversationId: msg.conversationId,
             role: 'assistant',
             content: contentBlocks,
@@ -107,7 +119,7 @@ export function useChat() {
         // Save any partial streaming text as a message
         if (streamingText.value) {
           messages.value.push({
-            id: crypto.randomUUID(),
+            id: generateId(),
             conversationId: msg.conversationId,
             role: 'assistant',
             content: [{ type: 'text', text: streamingText.value }],
@@ -192,7 +204,7 @@ export function useChat() {
 
     // Add user message locally
     messages.value.push({
-      id: crypto.randomUUID(),
+      id: generateId(),
       conversationId: activeConversationId.value || '',
       role: 'user',
       content: [{ type: 'text', text: message }],
