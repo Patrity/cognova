@@ -20,7 +20,7 @@ definePageMeta({
       <div class="space-y-6">
         <div>
           <h1 class="text-2xl font-bold">
-            Welcome to Second Brain
+            Welcome to Cognova
           </h1>
           <p class="text-muted mt-1">
             Your personal knowledge management system.

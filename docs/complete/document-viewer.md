@@ -91,7 +91,7 @@ Custom table of contents component that:
 
 The `view` layout provides:
 - Header with logo and color mode toggle
-- Footer with "Shared via Second Brain" text and GitHub link
+- Footer with "Shared via Cognova" text and GitHub link
 - No authentication UI (public-facing)
 
 ## File Locations

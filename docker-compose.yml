@@ -1,7 +1,7 @@
 services:
-  second-brain:
+  cognova:
     build: .
-    container_name: second-brain
+    container_name: cognova
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -11,10 +11,10 @@ services:
       # Claude settings persistence (entire home dir for .claude/ and .claude.json)
       - claude_home:/home/node
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/second_brain}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/cognova}
       - VAULT_PATH=/vault
-      - SECOND_BRAIN_API_URL=http://localhost:3000
-      - SECOND_BRAIN_API_TOKEN=${SECOND_BRAIN_API_TOKEN}
+      - COGNOVA_API_URL=http://localhost:3000
+      - COGNOVA_API_TOKEN=${COGNOVA_API_TOKEN}
     depends_on:
       db:
         condition: service_healthy
@@ -22,14 +22,14 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: second-brain-db
+    container_name: cognova-db
     restart: unless-stopped
     profiles:
       - local
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: second_brain
+      POSTGRES_DB: cognova
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

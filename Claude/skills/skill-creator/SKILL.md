@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Skill Creator
 
-Assists in creating new Claude Code skills for Second Brain or personal use.
+Assists in creating new Claude Code skills for Cognova or personal use.
 
 ## Process
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
 
 **NEVER hardcode API keys, tokens, or sensitive values in skills.**
 
-Second Brain provides an encrypted secrets store. Use the shared API client:
+Cognova provides an encrypted secrets store. Use the shared API client:
 
 ```python
 #!/usr/bin/env python3
@@ -153,7 +153,7 @@ if not success:
 |----------|----------|
 | API keys for external services | Secrets store (`get_secret()`) |
 | Webhook URLs, tokens | Secrets store |
-| Second Brain API URL | Environment variable (pre-configured) |
+| Cognova API URL | Environment variable (pre-configured) |
 | Database URLs | Environment variables (system config) |
 
 #### Environment Variables
@@ -162,8 +162,8 @@ The `_lib/api.py` module automatically handles these environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SECOND_BRAIN_API_URL` | `http://localhost:3000` | API base URL |
-| `SECOND_BRAIN_API_TOKEN` | Auto-generated | Auth token (auto-read from `.api-token`) |
+| `COGNOVA_API_URL` | `http://localhost:3000` | API base URL |
+| `COGNOVA_API_TOKEN` | Auto-generated | Auth token (auto-read from `.api-token`) |
 
 **For Docker deployments**, these are pre-configured in `docker-compose.yml`. Skills don't need to set them.
 
@@ -198,7 +198,7 @@ my_var = os.environ.get('MY_CUSTOM_VAR', 'default')
 
 | Location | Use Case |
 |----------|----------|
-| `~/.claude/skills/` | Personal + Second Brain bundled skills |
+| `~/.claude/skills/` | Personal + Cognova bundled skills |
 | `.claude/skills/` | Project-specific skills |
 
 ### 8. Testing

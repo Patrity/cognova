@@ -9,8 +9,8 @@ import { join } from 'path'
  */
 export default defineNitroPlugin(() => {
   // Skip if token already set via environment variable
-  if (process.env.SECOND_BRAIN_API_TOKEN) {
-    console.log('[api-token] Using existing SECOND_BRAIN_API_TOKEN from environment')
+  if (process.env.COGNOVA_API_TOKEN) {
+    console.log('[api-token] Using existing COGNOVA_API_TOKEN from environment')
     return
   }
 
@@ -18,7 +18,7 @@ export default defineNitroPlugin(() => {
   const token = randomBytes(32).toString('hex')
 
   // Set in process environment for auth middleware
-  process.env.SECOND_BRAIN_API_TOKEN = token
+  process.env.COGNOVA_API_TOKEN = token
 
   // Write to file for CLI tools to read
   const tokenPath = join(process.cwd(), '.api-token')

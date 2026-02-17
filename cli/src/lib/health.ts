@@ -20,6 +20,6 @@ export async function waitForHealth(url: string, maxWaitSeconds = 30): Promise<b
   }
 
   s.stop('App did not become healthy in time')
-  p.log.warn(`Check logs: pm2 logs second-brain`)
+  p.log.warn(`Check logs: pm2 logs cognova`)
   return false
 }

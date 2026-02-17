@@ -15,7 +15,7 @@ const publicPaths = [
 
 // Check for API token authentication (for CLI tools)
 async function checkApiToken(event: H3Event): Promise<boolean> {
-  const apiToken = process.env.SECOND_BRAIN_API_TOKEN
+  const apiToken = process.env.COGNOVA_API_TOKEN
   if (!apiToken) return false
 
   const headerToken = getHeader(event, 'X-API-Token')

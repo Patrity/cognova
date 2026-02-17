@@ -14,7 +14,7 @@ class ChatSessionManager {
   startSession(conversationId: string, prompt: string, resumeSessionId?: string): ActiveSession {
     // Use the project directory as CWD so the SDK picks up .claude/ (skills, rules, CLAUDE.md)
     // The vault is accessible via VAULT_PATH env var in tools
-    const projectDir = process.env.SECOND_BRAIN_PROJECT_DIR || process.cwd()
+    const projectDir = process.env.COGNOVA_PROJECT_DIR || process.cwd()
     const conversation = query({
       prompt,
       options: {

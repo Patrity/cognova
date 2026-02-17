@@ -1,4 +1,4 @@
-# Second Brain
+# Cognova
 
 A personal knowledge management system with an embedded AI terminal. Built out of personal necessity to have a unified place for notes, tasks, and AI-assisted workflows accessible from anywhere.
 
@@ -48,8 +48,8 @@ This is an opinionated tool built for my workflow, but open-sourced in case othe
 
 ```bash
 # Clone the repo
-git clone https://github.com/patrity/second-brain.git
-cd second-brain
+git clone https://github.com/patrity/cognova.git
+cd cognova
 
 # Install dependencies
 pnpm install
@@ -108,9 +108,9 @@ To authenticate Claude Code, open the terminal in the app and run `claude auth`.
 
 ```yaml
 services:
-  second-brain:
+  cognova:
     build: .
-    container_name: second-brain
+    container_name: cognova
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -156,7 +156,7 @@ For production, this app should sit behind a reverse proxy (Nginx, Traefik, Clou
 
 ### Platform Options
 
-- **CLI installer** - `npm i -g second-brain && second-brain init` (bare metal with PM2)
+- **CLI installer** - `npm i -g cognova && cognova init` (bare metal with PM2)
 - **Coolify** - Connect repo, set env vars, deploy
 - **Docker host** - `docker compose up -d`
 - **Bare metal** - `pnpm build && node .output/server/index.mjs`
@@ -178,7 +178,7 @@ This is a power-user tool designed for personal use on trusted networks. If you 
 ## Project Structure
 
 ```
-second-brain/
+cognova/
 ├── app/
 │   ├── components/     # Vue components
 │   ├── composables/    # Shared logic
@@ -189,7 +189,7 @@ second-brain/
 │   ├── routes/         # WebSocket handlers
 │   ├── services/       # Agent executor, cron scheduler
 │   └── db/             # Drizzle schema + migrations
-├── cli/                # CLI installer (second-brain init/update/start/stop)
+├── cli/                # CLI installer (cognova init/update/start/stop)
 ├── shared/             # Shared types and utilities
 ├── docs/               # Architecture docs
 └── .claude/            # Claude Code skills & rules

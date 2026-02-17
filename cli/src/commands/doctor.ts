@@ -11,7 +11,7 @@ interface Check {
 }
 
 export async function doctor() {
-  p.intro(pc.bgCyan(pc.black(' Second Brain Doctor ')))
+  p.intro(pc.bgCyan(pc.black(' Cognova Doctor ')))
 
   const installDir = findInstallDir()
   const claudeDir = getClaudeDir()
@@ -83,7 +83,7 @@ export async function doctor() {
           const out = execSync('pm2 jlist', { encoding: 'utf-8' })
           const procs = JSON.parse(out)
           return procs.some((proc: { name: string, pm2_env?: { status?: string } }) =>
-            proc.name === 'second-brain' && proc.pm2_env?.status === 'online'
+            proc.name === 'cognova' && proc.pm2_env?.status === 'online'
           )
         } catch {
           return false
@@ -126,7 +126,7 @@ export async function doctor() {
       check: () => {
         if (!metadata) return 'unknown'
         try {
-          const latest = execSync('npm view second-brain version', { encoding: 'utf-8' }).trim()
+          const latest = execSync('npm view cognova version', { encoding: 'utf-8' }).trim()
           return latest === metadata.version ? true : `outdated (${metadata.version} → ${latest})`
         } catch {
           return 'could not check'

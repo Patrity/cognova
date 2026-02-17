@@ -23,7 +23,7 @@ export async function setupDatabase(hasDocker: boolean): Promise<DatabaseConfig>
     }
 
     const password = crypto.randomBytes(16).toString('hex')
-    const containerName = 'second-brain-db'
+    const containerName = 'cognova-db'
 
     // Check if container already exists
     try {
@@ -48,8 +48,8 @@ export async function setupDatabase(hasDocker: boolean): Promise<DatabaseConfig>
           p.log.info('Using existing container. Ensure DATABASE_URL in .env matches its credentials.')
           const connStr = await p.text({
             message: 'Connection string for existing container',
-            placeholder: 'postgres://postgres:password@localhost:5432/second_brain',
-            defaultValue: 'postgres://postgres:postgres@localhost:5432/second_brain'
+            placeholder: 'postgres://postgres:password@localhost:5432/cognova',
+            defaultValue: 'postgres://postgres:postgres@localhost:5432/cognova'
           })
           if (p.isCancel(connStr)) process.exit(0)
           return { type: 'local', connectionString: connStr }
@@ -71,7 +71,7 @@ export async function setupDatabase(hasDocker: boolean): Promise<DatabaseConfig>
         `--name ${containerName}`,
         `-e POSTGRES_USER=postgres`,
         `-e POSTGRES_PASSWORD=${password}`,
-        `-e POSTGRES_DB=second_brain`,
+        `-e POSTGRES_DB=cognova`,
         `-p 5432:5432`,
         `--restart unless-stopped`,
         `postgres:16-alpine`
@@ -101,7 +101,7 @@ export async function setupDatabase(hasDocker: boolean): Promise<DatabaseConfig>
       process.exit(1)
     }
 
-    const connectionString = `postgres://postgres:${password}@localhost:5432/second_brain`
+    const connectionString = `postgres://postgres:${password}@localhost:5432/cognova`
     p.log.info(`Connection: ${pc.dim(connectionString)}`)
 
     return { type: 'local', connectionString }
@@ -110,7 +110,7 @@ export async function setupDatabase(hasDocker: boolean): Promise<DatabaseConfig>
   // Remote database
   const connectionString = await p.text({
     message: 'PostgreSQL connection string',
-    placeholder: 'postgres://user:pass@ep-xxx.us-east-2.aws.neon.tech/second_brain?sslmode=require',
+    placeholder: 'postgres://user:pass@ep-xxx.us-east-2.aws.neon.tech/cognova?sslmode=require',
     validate: (v) => {
       if (!v.startsWith('postgres://') && !v.startsWith('postgresql://'))
         return 'Must be a postgres:// or postgresql:// URL'

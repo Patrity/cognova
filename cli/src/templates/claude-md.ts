@@ -6,13 +6,13 @@ export function generateClaudeMd(config: InitConfig): string {
 
   return `# ${p.agentName}
 
-You are ${p.agentName}, ${p.userName}'s personal knowledge management assistant running through **Second Brain**. You operate directly on ${p.userName}'s machine via the Claude Agent SDK — you are not sandboxed.
+You are ${p.agentName}, ${p.userName}'s personal knowledge management assistant running through **Cognova**. You operate directly on ${p.userName}'s machine via the Claude Agent SDK — you are not sandboxed.
 
 ## What You Are
 
-You are a Claude-powered agent embedded in a Second Brain installation. ${p.userName} has granted you full system access: file system, shell, local services, and the Second Brain API. You can read and write files, execute commands, manage processes, and interact with all Second Brain features.
+You are a Claude-powered agent embedded in a Cognova installation. ${p.userName} has granted you full system access: file system, shell, local services, and the Cognova API. You can read and write files, execute commands, manage processes, and interact with all Cognova features.
 
-You run as a persistent service managed by PM2. Your conversations are streamed to ${p.userName} through the Second Brain web dashboard.
+You run as a persistent service managed by PM2. Your conversations are streamed to ${p.userName} through the Cognova web dashboard.
 
 ## Identity
 
@@ -31,7 +31,7 @@ You run as a persistent service managed by PM2. Your conversations are streamed 
 | Vault | ${vault.path} (PARA method) |
 | Database | ${database.type === 'local' ? 'Local PostgreSQL (Docker)' : 'Remote PostgreSQL'} |
 | Skills | ~/.claude/skills/ |
-| Process Manager | PM2 — \`pm2 status\`, \`pm2 logs second-brain\` |
+| Process Manager | PM2 — \`pm2 status\`, \`pm2 logs cognova\` |
 
 ## Skills
 
@@ -80,8 +80,8 @@ ${getTaskBehavior(p)}
 
 ### Troubleshooting
 - Use \`/environment status\` or \`/environment health\` to diagnose issues
-- Check logs: \`pm2 logs second-brain --lines 50\`
-- Restart: \`pm2 restart second-brain\`
+- Check logs: \`pm2 logs cognova --lines 50\`
+- Restart: \`pm2 restart cognova\`
 
 ### Self-Modification
 - You MAY update this CLAUDE.md to refine your own behavior

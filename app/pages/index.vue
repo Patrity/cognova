@@ -27,7 +27,7 @@ const heroLinks = computed(() => {
     },
     {
       label: 'View on GitHub',
-      to: 'https://github.com/patrity/second-brain',
+      to: 'https://github.com/Patrity/cognova',
       target: '_blank',
       color: 'neutral' as const,
       variant: 'subtle' as const,
@@ -124,7 +124,7 @@ const ctaLinks = computed(() => {
     },
     {
       label: 'Read the Docs',
-      to: 'https://github.com/patrity/second-brain#readme',
+      to: 'https://github.com/Patrity/cognova#readme',
       target: '_blank',
       color: 'neutral' as const,
       variant: 'subtle' as const,
@@ -177,7 +177,7 @@ const ctaLinks = computed(() => {
     <UPageSection
       headline="Features"
       title="Everything you need for knowledge management"
-      description="Second Brain combines powerful tools for note-taking, task management, and AI-assisted workflows in one self-hosted solution."
+      description="Cognova combines powerful tools for note-taking, task management, and AI-assisted workflows in one self-hosted solution."
       :features="coreFeatures"
     />
 
@@ -209,7 +209,7 @@ const ctaLinks = computed(() => {
     <UPageSection
       headline="Built With"
       title="Modern, battle-tested technologies"
-      description="Second Brain is built on a solid foundation of open-source tools."
+      description="Cognova is built on a solid foundation of open-source tools."
     >
       <UCarousel
         :items="techStack"
@@ -239,7 +239,7 @@ const ctaLinks = computed(() => {
 
     <!-- CTA Section -->
     <UPageCTA
-      title="Ready to build your second brain?"
+      title="Ready to build your knowledge system?"
       description="Get started in minutes. Self-host with Docker or deploy to your favorite cloud platform."
       :links="ctaLinks"
       variant="subtle"

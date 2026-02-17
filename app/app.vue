@@ -17,7 +17,7 @@ useHead({
   }
 })
 
-const title = 'Second Brain'
+const title = 'Cognova'
 const description = 'A personal knowledge management system powered by Claude Code.'
 
 useSeoMeta({

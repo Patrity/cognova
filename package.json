@@ -1,14 +1,14 @@
 {
-  "name": "second-brain",
+  "name": "cognova",
   "type": "module",
   "version": "0.1.0",
   "description": "Personal knowledge management system with Claude Code integration",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Patrity/second-brain.git"
+    "url": "https://github.com/Patrity/cognova.git"
   },
   "bin": {
-    "second-brain": "./dist/cli/index.js"
+    "cognova": "./dist/cli/index.js"
   },
   "files": [
     "dist/cli",
@@ -22,8 +22,8 @@
     ".env.example"
   ],
   "scripts": {
-    "cli:build": "pnpm --filter second-brain-cli build",
-    "cli:dev": "pnpm --filter second-brain-cli dev",
+    "cli:build": "pnpm --filter cognova-cli build",
+    "cli:dev": "pnpm --filter cognova-cli dev",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "preview": "nuxt preview",

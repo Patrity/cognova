@@ -10,7 +10,7 @@
             name="i-lucide-brain"
             class="size-10 text-primary"
           />
-          <span class="font-bold text-2xl">Second Brain</span>
+          <span class="font-bold text-2xl">Cognova</span>
         </div>
       </div>
 

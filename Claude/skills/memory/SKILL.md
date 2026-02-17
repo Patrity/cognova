@@ -86,7 +86,7 @@ Options:
 Examples:
 ```bash
 python3 ~/.claude/skills/memory/memory.py decisions
-python3 ~/.claude/skills/memory/memory.py decisions --project "second-brain"
+python3 ~/.claude/skills/memory/memory.py decisions --project "cognova"
 ```
 
 ### Find memories about a topic

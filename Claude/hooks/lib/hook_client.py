@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Hook client library for logging events to Second Brain API.
+Hook client library for logging events to Cognova API.
 Uses curl subprocess to avoid pip dependencies (same as skills/_lib/api.py).
 """
 
@@ -13,19 +13,19 @@ from typing import Optional, Dict, Any
 
 
 def _get_api_base() -> str:
-    """Get the Second Brain API URL from environment."""
-    return os.environ.get('SECOND_BRAIN_API_URL', 'http://localhost:3000')
+    """Get the Cognova API URL from environment."""
+    return os.environ.get('COGNOVA_API_URL', 'http://localhost:3000')
 
 
 def _get_api_token() -> str:
     """Get API token from environment or .api-token file."""
-    token = os.environ.get('SECOND_BRAIN_API_TOKEN', '')
+    token = os.environ.get('COGNOVA_API_TOKEN', '')
     if token:
         return token
 
     possible_paths = [
         # Bare-metal: project dir from environment (set by PM2/settings.json)
-        Path(os.environ.get('SECOND_BRAIN_PROJECT_DIR', '')) / '.api-token',
+        Path(os.environ.get('COGNOVA_PROJECT_DIR', '')) / '.api-token',
         # Docker: app is at /home/node/app
         Path('/home/node/app/.api-token'),
         # Local dev: navigate from lib -> hooks -> Claude -> project root
@@ -57,7 +57,7 @@ def log_event(
     session_id: Optional[str] = None
 ) -> bool:
     """
-    Log a hook event to the Second Brain API.
+    Log a hook event to the Cognova API.
 
     Returns True if successful, False otherwise.
     Fails silently to not block Claude operations.

@@ -52,13 +52,13 @@ function cleanupBackup(backupDir: string) {
 }
 
 export async function update() {
-  p.intro(pc.bgCyan(pc.black(' Second Brain Update ')))
+  p.intro(pc.bgCyan(pc.black(' Cognova Update ')))
 
   const installDir = findInstallDir()
   const metadata = readMetadata(installDir)
 
   if (!metadata) {
-    p.log.error('No Second Brain installation found. Run `second-brain init` first.')
+    p.log.error('No Cognova installation found. Run `cognova init` first.')
     process.exit(1)
   }
 
@@ -68,7 +68,7 @@ export async function update() {
   s.start('Checking for updates')
   let latestVersion: string
   try {
-    latestVersion = execSync('npm view second-brain version', { encoding: 'utf-8' }).trim()
+    latestVersion = execSync('npm view cognova version', { encoding: 'utf-8' }).trim()
   } catch {
     s.stop('Could not check npm registry')
     p.log.warn('Unable to check for updates. Rebuilding current version.')
@@ -94,8 +94,8 @@ export async function update() {
       s.start('Downloading latest version')
       const tmpDir = execSync('mktemp -d', { encoding: 'utf-8' }).trim()
       try {
-        execSync(`npm pack second-brain@${latestVersion} --pack-destination ${tmpDir}`, { stdio: 'pipe' })
-        execSync(`tar -xzf ${tmpDir}/second-brain-${latestVersion}.tgz -C ${tmpDir}`, { stdio: 'pipe' })
+        execSync(`npm pack cognova@${latestVersion} --pack-destination ${tmpDir}`, { stdio: 'pipe' })
+        execSync(`tar -xzf ${tmpDir}/cognova-${latestVersion}.tgz -C ${tmpDir}`, { stdio: 'pipe' })
         copyAppSource(`${tmpDir}/package`, installDir)
         s.stop('Source files updated')
       } finally {
@@ -170,12 +170,12 @@ export async function update() {
   // Restart
   s.start('Restarting application')
   try {
-    execSync('pm2 restart second-brain', { stdio: 'pipe' })
+    execSync('pm2 restart cognova', { stdio: 'pipe' })
     s.stop('Application restarted')
   } catch {
-    s.stop('PM2 restart failed — start manually with `second-brain start`')
+    s.stop('PM2 restart failed — start manually with `cognova start`')
   }
 
-  p.log.info(`Run ${pc.cyan('second-brain reset')} to regenerate CLAUDE.md or settings.json.`)
+  p.log.info(`Run ${pc.cyan('cognova reset')} to regenerate CLAUDE.md or settings.json.`)
   p.outro(`Updated to v${latestVersion}`)
 }

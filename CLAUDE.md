@@ -1,4 +1,4 @@
-# Second Brain
+# Cognova
 
 Personal knowledge management system with Claude Code integration.
 

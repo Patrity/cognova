@@ -328,7 +328,7 @@ The encryption functions are located in `/server/utils/crypto.ts`:
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
-const SALT = 'second-brain-secrets-salt'
+const SALT = 'cognova-secrets-salt'
 
 function deriveKey(): Buffer {
   const secret = process.env.BETTER_AUTH_SECRET

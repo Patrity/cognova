@@ -8,7 +8,7 @@ import type { SecondBrainMetadata } from './types'
 const PRESERVE_ON_UPDATE = new Set([
   '.env',
   '.api-token',
-  '.second-brain',
+  '.cognova',
   'node_modules',
   '.output',
   'ecosystem.config.cjs',
@@ -64,7 +64,7 @@ export async function setupInstallDir(installDir: string): Promise<void> {
   s.stop('Application files installed')
 }
 
-/** Write .second-brain metadata file */
+/** Write .cognova metadata file */
 export function writeMetadata(installDir: string, vaultPath: string, version: string) {
   const metadata: SecondBrainMetadata = {
     version,
@@ -75,9 +75,9 @@ export function writeMetadata(installDir: string, vaultPath: string, version: st
   }
 
   // Write to install dir
-  writeFileSync(join(installDir, '.second-brain'), JSON.stringify(metadata, null, 2))
+  writeFileSync(join(installDir, '.cognova'), JSON.stringify(metadata, null, 2))
 
   // Also write a pointer in home dir so CLI can find the install from anywhere
-  const homeMeta = join(process.env.HOME || '~', '.second-brain')
+  const homeMeta = join(process.env.HOME || '~', '.cognova')
   writeFileSync(homeMeta, JSON.stringify(metadata, null, 2))
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Memory Management Skill for Second Brain
+Memory Management Skill for Cognova
 
 Provides access to persistent memory across Claude sessions.
 

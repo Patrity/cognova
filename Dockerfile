@@ -43,7 +43,7 @@ ENV HOME=/home/node
 RUN mkdir -p /home/node/.claude && chown -R node:node /home/node
 
 # Set environment for skills
-ENV SECOND_BRAIN_API_URL=http://localhost:3000
+ENV COGNOVA_API_URL=http://localhost:3000
 
 # Copy and setup entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/

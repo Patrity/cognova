@@ -1,12 +1,12 @@
 ---
 name: project
-description: Manage Second Brain projects - create, list, update projects. ALWAYS searches for existing projects before creating new ones. ALWAYS confirms with user before creating, showing potential matches.
+description: Manage Cognova projects - create, list, update projects. ALWAYS searches for existing projects before creating new ones. ALWAYS confirms with user before creating, showing potential matches.
 allowed-tools: Bash, Read
 ---
 
 # Project Management Skill
 
-Manage projects in Second Brain. Projects organize related tasks.
+Manage projects in Cognova. Projects organize related tasks.
 
 ## CRITICAL: Duplicate Prevention
 
@@ -47,7 +47,7 @@ python3 ~/.claude/skills/project/project.py create <name> --color <hex> [--descr
 
 Example:
 ```bash
-python3 ~/.claude/skills/project/project.py create "Second Brain" --color "#8b5cf6" --description "Personal knowledge management app"
+python3 ~/.claude/skills/project/project.py create "Cognova" --color "#8b5cf6" --description "Personal knowledge management app"
 ```
 
 ### Update a project

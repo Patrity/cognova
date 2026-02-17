@@ -24,7 +24,7 @@ const dotenv = loadEnv('${config.installDir}')
 
 module.exports = {
   apps: [{
-    name: 'second-brain',
+    name: 'cognova',
     script: '.output/server/index.mjs',
     cwd: '${config.installDir}',
     node_args: '--max-old-space-size=4096',
@@ -32,7 +32,7 @@ module.exports = {
       ...dotenv,
       NODE_ENV: 'production',
       PORT: 3000,
-      SECOND_BRAIN_PROJECT_DIR: '${config.installDir}'
+      COGNOVA_PROJECT_DIR: '${config.installDir}'
     },
     // Restart on crash
     autorestart: true,

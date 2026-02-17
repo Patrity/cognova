@@ -1,4 +1,4 @@
-# Contributing to Second Brain
+# Contributing to Cognova
 
 Thanks for considering contributing! This is a personal project that I've open-sourced, so contributions are welcome but the scope is intentionally limited to my use cases.
 

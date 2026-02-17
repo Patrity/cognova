@@ -20,15 +20,15 @@ function getVersion(): string {
 }
 
 const HELP_TEXT = `
-  second-brain v${getVersion()} — Personal knowledge management with Claude Code
+  cognova v${getVersion()} — Personal knowledge management with Claude Code
 
-  Usage: second-brain <command> [options]
+  Usage: cognova <command> [options]
 
   Commands:
     init      Interactive setup wizard
-    start     Start Second Brain (PM2)
-    stop      Stop Second Brain
-    restart   Restart Second Brain
+    start     Start Cognova (PM2)
+    stop      Stop Cognova
+    restart   Restart Cognova
     update    Update to latest version
     doctor    Check health of all components
     reset     Re-generate configuration files
@@ -37,14 +37,14 @@ const HELP_TEXT = `
     --help, -h       Show this help message
     --version, -v    Show version number
 
-  Run 'second-brain <command> --help' for command-specific help.
+  Run 'cognova <command> --help' for command-specific help.
 `
 
 const COMMAND_HELP: Record<string, string> = {
   init: `
-  second-brain init — Interactive setup wizard
+  cognova init — Interactive setup wizard
 
-  Sets up a new Second Brain installation:
+  Sets up a new Cognova installation:
     1. Checks prerequisites (Node 22+, Python 3, pnpm, Docker)
     2. Configures agent personality (name, tone, traits)
     3. Chooses install directory
@@ -54,42 +54,42 @@ const COMMAND_HELP: Record<string, string> = {
     7. Creates admin credentials
     8. Installs dependencies, builds, and starts with PM2
 
-  Usage: second-brain init
+  Usage: cognova init
 `,
   start: `
-  second-brain start — Start Second Brain
+  cognova start — Start Cognova
 
   Starts the application using PM2 process manager.
-  Requires a prior 'second-brain init' to have been run.
+  Requires a prior 'cognova init' to have been run.
 
-  Usage: second-brain start
+  Usage: cognova start
 `,
   stop: `
-  second-brain stop — Stop Second Brain
+  cognova stop — Stop Cognova
 
   Stops the PM2 process. Data and configuration are preserved.
 
-  Usage: second-brain stop
+  Usage: cognova stop
 `,
   restart: `
-  second-brain restart — Restart Second Brain
+  cognova restart — Restart Cognova
 
   Restarts the PM2 process. Useful after manual config changes.
 
-  Usage: second-brain restart
+  Usage: cognova restart
 `,
   update: `
-  second-brain update — Update to latest version
+  cognova update — Update to latest version
 
   Checks npm registry for a newer version, downloads and installs it.
   Preserves: .env, .api-token, ecosystem.config.cjs, logs/
   Runs database migrations and rebuilds automatically.
   Creates a backup before updating so failed updates can be rolled back.
 
-  Usage: second-brain update
+  Usage: cognova update
 `,
   doctor: `
-  second-brain doctor — Check health of all components
+  cognova doctor — Check health of all components
 
   Runs diagnostic checks on your installation:
     - Configuration files (.env, Claude config)
@@ -101,17 +101,17 @@ const COMMAND_HELP: Record<string, string> = {
     - Vault directory
     - Version status
 
-  Usage: second-brain doctor
+  Usage: cognova doctor
 `,
   reset: `
-  second-brain reset — Re-generate configuration files
+  cognova reset — Re-generate configuration files
 
   Interactively choose which config files to regenerate:
     - CLAUDE.md (agent identity — re-runs personality prompts)
     - Skills, Hooks, Rules (re-copy from bundled defaults)
     - settings.json (Claude Code hook configuration)
 
-  Usage: second-brain reset
+  Usage: cognova reset
 `
 }
 

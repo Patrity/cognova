@@ -22,7 +22,7 @@ Implement a flexible database layer that:
 │                    Docker Compose                        │
 ├─────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐      ┌─────────────────────────┐   │
-│  │  second-brain   │ ───► │  postgres (optional)    │   │
+│  │  cognova   │ ───► │  postgres (optional)    │   │
 │  │  (Nuxt app)     │      │  Local development DB   │   │
 │  └────────┬────────┘      └─────────────────────────┘   │
 │           │                                              │
@@ -154,9 +154,9 @@ export default {
 
 ```yaml
 services:
-  second-brain:
+  cognova:
     build: .
-    container_name: second-brain
+    container_name: cognova
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -165,7 +165,7 @@ services:
       - ${HOME}/.claude:/home/node/.claude:rw
       - ${HOME}/.anthropic:/home/node/.anthropic:ro
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/second_brain}
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@db:5432/cognova}
       - VAULT_PATH=/vault
     depends_on:
       db:
@@ -173,12 +173,12 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: second-brain-db
+    container_name: cognova-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: second_brain
+      POSTGRES_DB: cognova
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -295,10 +295,10 @@ This happens when you use `db:push` then `db:generate` on the same database. Opt
 
 ```bash
 # Use local postgres (default when using docker-compose)
-DATABASE_URL=postgres://postgres:postgres@db:5432/second_brain
+DATABASE_URL=postgres://postgres:postgres@db:5432/cognova
 
 # Use external database (Neon)
-DATABASE_URL=postgres://user:pass@ep-xxx.us-east-2.aws.neon.tech/second_brain?sslmode=require
+DATABASE_URL=postgres://user:pass@ep-xxx.us-east-2.aws.neon.tech/cognova?sslmode=require
 
 # Use external database (Supabase)
 DATABASE_URL=postgres://postgres:pass@db.xxx.supabase.co:5432/postgres

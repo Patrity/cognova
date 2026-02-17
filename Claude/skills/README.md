@@ -1,6 +1,6 @@
-# Second Brain Skills
+# Cognova Skills
 
-Built-in Claude Code skills for Second Brain task and project management.
+Built-in Claude Code skills for Cognova task and project management.
 
 ## Available Skills
 
@@ -14,11 +14,11 @@ Built-in Claude Code skills for Second Brain task and project management.
 
 ### In Container (Production)
 
-Skills are automatically available when running Second Brain in Docker:
+Skills are automatically available when running Cognova in Docker:
 
 ```bash
 docker compose up -d
-docker exec -it second-brain claude
+docker exec -it cognova claude
 
 # Inside Claude Code:
 > /task list
@@ -46,7 +46,7 @@ python3 Claude/skills/project/project.py search "home"
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SECOND_BRAIN_API_URL` | `http://localhost:3000` | API base URL |
+| `COGNOVA_API_URL` | `http://localhost:3000` | API base URL |
 
 ## Directory Structure
 

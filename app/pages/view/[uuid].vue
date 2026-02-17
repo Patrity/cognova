@@ -43,7 +43,7 @@ const codeLanguage = computed(() => detectLanguage(data.value?.data?.document?.p
 // SEO with robots control based on shareType
 useSeoMeta({
   title: () => data.value?.data?.document?.title || 'Document',
-  description: 'Shared document from Second Brain',
+  description: 'Shared document from Cognova',
   robots: () => {
     const shareType = data.value?.data?.document?.shareType
     return shareType === 'public' ? 'index, follow' : 'noindex, nofollow'

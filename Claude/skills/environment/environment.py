@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Environment Skill for Second Brain
+Environment Skill for Cognova
 
 Provides system information, service status, and troubleshooting utilities.
 
@@ -25,13 +25,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent / '_lib'))
 
 from api import api_request, API_BASE
 
-INSTALL_DIR = os.environ.get('SECOND_BRAIN_PROJECT_DIR', '')
+INSTALL_DIR = os.environ.get('COGNOVA_PROJECT_DIR', '')
 VAULT_PATH = os.environ.get('VAULT_PATH', '')
 
 
 def cmd_info(args):
     """Show system and installation information."""
-    print("=== Second Brain Environment ===\n")
+    print("=== Cognova Environment ===\n")
 
     # System
     print(f"OS:           {platform.system()} {platform.release()}")
@@ -53,7 +53,7 @@ def cmd_info(args):
     print(f"Home Claude:  {Path.home() / '.claude'}")
 
     # Metadata
-    meta_path = Path.home() / '.second-brain'
+    meta_path = Path.home() / '.cognova'
     if meta_path.exists():
         try:
             meta = json.loads(meta_path.read_text())
@@ -119,7 +119,7 @@ def cmd_status(args):
         )
         if result.returncode == 0:
             processes = json.loads(result.stdout)
-            sb = [p for p in processes if p.get('name') == 'second-brain']
+            sb = [p for p in processes if p.get('name') == 'cognova']
             if sb:
                 proc = sb[0]
                 env = proc.get('pm2_env', {})
@@ -135,7 +135,7 @@ def cmd_status(args):
                 print(f"CPU:          {cpu}%")
                 print(f"Restarts:     {restarts}")
             else:
-                print("PM2 Status:   not found (process 'second-brain' not registered)")
+                print("PM2 Status:   not found (process 'cognova' not registered)")
         else:
             print("PM2 Status:   error running pm2")
     except FileNotFoundError:
@@ -166,7 +166,7 @@ def cmd_logs(args):
     lines = args.lines or 30
     try:
         result = subprocess.run(
-            ['pm2', 'logs', 'second-brain', '--lines', str(lines), '--nostream'],
+            ['pm2', 'logs', 'cognova', '--lines', str(lines), '--nostream'],
             capture_output=True, text=True, timeout=15
         )
         if result.stdout:

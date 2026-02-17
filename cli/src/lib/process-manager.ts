@@ -40,13 +40,13 @@ export async function setupAndStart(config: InitConfig) {
 
   // Start
   const s = p.spinner()
-  s.start('Starting Second Brain with PM2')
+  s.start('Starting Cognova with PM2')
   try {
     execSync('pm2 start ecosystem.config.cjs', {
       cwd: config.installDir,
       stdio: 'pipe'
     })
-    s.stop('Second Brain is running')
+    s.stop('Cognova is running')
   } catch (err) {
     s.stop('Failed to start')
     p.log.error(`PM2 error: ${err}`)

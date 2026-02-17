@@ -1,12 +1,12 @@
 ---
 name: environment
-description: Check system status, view configuration, troubleshoot issues with the Second Brain installation. Use when diagnosing problems, checking health, or understanding the current setup.
+description: Check system status, view configuration, troubleshoot issues with the Cognova installation. Use when diagnosing problems, checking health, or understanding the current setup.
 allowed-tools: Bash, Read
 ---
 
 # Environment Skill
 
-Check and manage the Second Brain installation environment.
+Check and manage the Cognova installation environment.
 
 ## Commands
 
@@ -55,19 +55,19 @@ Checks multiple API endpoints and reports response times.
 
 | Resource | How to Find |
 |----------|-------------|
-| Install dir | `$SECOND_BRAIN_PROJECT_DIR` or check `~/.second-brain` metadata file |
+| Install dir | `$COGNOVA_PROJECT_DIR` or check `~/.cognova` metadata file |
 | Vault | `$VAULT_PATH` |
-| PM2 config | `$SECOND_BRAIN_PROJECT_DIR/ecosystem.config.cjs` |
-| App logs | `$SECOND_BRAIN_PROJECT_DIR/logs/` |
-| Environment | `$SECOND_BRAIN_PROJECT_DIR/.env` |
-| Database migrations | `$SECOND_BRAIN_PROJECT_DIR/server/drizzle/migrations/` |
+| PM2 config | `$COGNOVA_PROJECT_DIR/ecosystem.config.cjs` |
+| App logs | `$COGNOVA_PROJECT_DIR/logs/` |
+| Environment | `$COGNOVA_PROJECT_DIR/.env` |
+| Database migrations | `$COGNOVA_PROJECT_DIR/server/drizzle/migrations/` |
 
 ## Common Troubleshooting
 
 | Symptom | Check |
 |---------|-------|
 | 503 errors | `status` — DB might not have initialized; check logs |
-| API unreachable | `pm2 status` — process may have crashed; `pm2 restart second-brain` |
-| Skills not working | Verify `~/.claude/skills/` has skill directories; re-run `second-brain update` |
+| API unreachable | `pm2 status` — process may have crashed; `pm2 restart cognova` |
+| Skills not working | Verify `~/.claude/skills/` has skill directories; re-run `cognova update` |
 | Out of memory | Check `info` for disk/memory; PM2 config has `--max-old-space-size=4096` |
 | Build failures | `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` |

@@ -1,1 +1,1 @@
-# Second Brain Skills Library
+# Cognova Skills Library

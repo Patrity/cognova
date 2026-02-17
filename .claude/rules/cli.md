@@ -59,11 +59,11 @@ execSync(cmd, { stdio: 'inherit' }) // inherit so sudo prompt shows
 ### Install dir vs repo dir
 - **Repo dir**: where the git repo is cloned (development)
 - **Install dir**: where `init` copies the app source (e.g., `~/bridget`)
-- `.second-brain` metadata file tracks the install dir path and version
+- `.cognova` metadata file tracks the install dir path and version
 - `findInstallDir()` in `lib/paths.ts` resolves the install dir from cwd, home dir, or metadata
 
 ### Config sync is manual
-`second-brain update` syncs app source but does NOT touch `~/.claude/` config (CLAUDE.md, skills, hooks, rules). Users run `second-brain reset` separately when they want to update Claude config. This is intentional — users may have customized their config.
+`cognova update` syncs app source but does NOT touch `~/.claude/` config (CLAUDE.md, skills, hooks, rules). Users run `cognova reset` separately when they want to update Claude config. This is intentional — users may have customized their config.
 
 ## Caveats
 
@@ -74,10 +74,10 @@ The `update` command checks the npm registry, so it won't work until the package
 # On VM
 git pull
 rsync -av --exclude node_modules --exclude .output --exclude .env \
-  --exclude logs --exclude .api-token --exclude .second-brain \
-  --exclude ecosystem.config.cjs ~/second-brain/ ~/install-dir/
+  --exclude logs --exclude .api-token --exclude .cognova \
+  --exclude ecosystem.config.cjs ~/cognova/ ~/install-dir/
 cd ~/install-dir && pnpm install && NODE_OPTIONS='--max-old-space-size=4096' pnpm build
-pm2 restart second-brain
+pm2 restart cognova
 ```
 
 ### Database migrations run on app startup
@@ -94,6 +94,6 @@ Server routes in `server/routes/` take precedence over Nuxt pages. WebSocket han
 All CLI types are in `cli/src/lib/types.ts`. Key types:
 - `InitConfig` — full config object assembled during the init wizard
 - `PersonalityConfig` — agent personality settings (name, tone, traits, etc.)
-- `SecondBrainMetadata` — `.second-brain` file structure (version, paths, timestamps)
+- `SecondBrainMetadata` — `.cognova` file structure (version, paths, timestamps)
 
 These are CLI-internal types, NOT shared with the Nuxt app. The Nuxt app's shared types live in `shared/types/index.ts`.

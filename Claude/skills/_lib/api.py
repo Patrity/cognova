@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Second Brain API Client
+Cognova API Client
 
 Provides consistent API access for all built-in skills.
 Uses curl subprocess to avoid pip dependencies.
@@ -13,13 +13,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
-API_BASE = os.environ.get('SECOND_BRAIN_API_URL', 'http://localhost:3000')
+API_BASE = os.environ.get('COGNOVA_API_URL', 'http://localhost:3000')
 
 
 def _get_api_token() -> str:
     """Get API token from environment or .api-token file."""
     # Check environment variable first
-    token = os.environ.get('SECOND_BRAIN_API_TOKEN', '')
+    token = os.environ.get('COGNOVA_API_TOKEN', '')
     if token:
         return token
 
@@ -27,7 +27,7 @@ def _get_api_token() -> str:
     # to handle bare-metal, Docker, and local dev environments
     possible_paths = [
         # Bare-metal: project dir from environment (set by PM2/settings.json)
-        Path(os.environ.get('SECOND_BRAIN_PROJECT_DIR', '')) / '.api-token',
+        Path(os.environ.get('COGNOVA_PROJECT_DIR', '')) / '.api-token',
         # Docker: app is at /home/node/app, skills at /home/node/.claude/skills
         Path('/home/node/app/.api-token'),
         # Local dev: navigate from _lib -> skills -> Claude -> project root
@@ -52,7 +52,7 @@ API_TOKEN = _get_api_token()
 # Debug: warn if no token found
 if not API_TOKEN and os.environ.get('DEBUG'):
     print(f"[api.py] Warning: No API token found", file=sys.stderr)
-    print(f"[api.py] Env SECOND_BRAIN_API_TOKEN: {bool(os.environ.get('SECOND_BRAIN_API_TOKEN'))}", file=sys.stderr)
+    print(f"[api.py] Env COGNOVA_API_TOKEN: {bool(os.environ.get('COGNOVA_API_TOKEN'))}", file=sys.stderr)
     print(f"[api.py] Checked paths: {[str(p) for p in [Path('/home/node/app/.api-token'), Path(__file__).parent.parent.parent.parent / '.api-token', Path.cwd() / '.api-token']]}", file=sys.stderr)
 
 
@@ -63,7 +63,7 @@ def api_request(
     params: dict | None = None
 ) -> tuple[bool, Any]:
     """
-    Make an API request to Second Brain.
+    Make an API request to Cognova.
 
     Args:
         method: HTTP method (GET, POST, PUT, DELETE)

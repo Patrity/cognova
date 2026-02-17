@@ -146,7 +146,7 @@ If you learn something new during this session, store it with /memory store.
 6. [ ] Update `session-start.py` context injection format
 7. [ ] Test secrets skill end-to-end (set, get, list, delete)
 8. [ ] Test memory injection with new directive preamble
-9. [ ] Run `second-brain reset --skills --hooks` to deploy changes
+9. [ ] Run `cognova reset --skills --hooks` to deploy changes
 
 ## Dependencies
 

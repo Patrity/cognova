@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Project Management Skill for Second Brain
+Project Management Skill for Cognova
 
 Usage:
     python project.py search <query>

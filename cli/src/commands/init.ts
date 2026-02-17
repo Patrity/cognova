@@ -15,7 +15,7 @@ import { waitForHealth } from '../lib/health'
 import type { InitConfig } from '../lib/types'
 
 export async function init() {
-  p.intro(pc.bgCyan(pc.black(' Second Brain Setup ')))
+  p.intro(pc.bgCyan(pc.black(' Cognova Setup ')))
 
   // Step 1: Prerequisites
   const prereqs = await checkPrerequisites()
@@ -26,9 +26,9 @@ export async function init() {
 
   // Step 3: Install Location
   p.log.step(pc.bold('Installation'))
-  const defaultDir = join(process.env.HOME || '~', 'second-brain')
+  const defaultDir = join(process.env.HOME || '~', 'cognova')
   const installDir = await p.text({
-    message: 'Where should Second Brain be installed?',
+    message: 'Where should Cognova be installed?',
     placeholder: defaultDir,
     defaultValue: defaultDir
   })
@@ -48,7 +48,7 @@ export async function init() {
   // Step 6: Network Access
   p.log.step(pc.bold('Network Access'))
   const accessMode = await p.select({
-    message: 'How will you access Second Brain?',
+    message: 'How will you access Cognova?',
     options: [
       { value: 'localhost', label: 'Local only', hint: 'http://localhost:3000' },
       { value: 'specific', label: 'Specific IP or domain', hint: 'LAN IP, hostname, or domain' },
@@ -169,14 +169,14 @@ export async function init() {
     `  ${pc.cyan('Agent:')}          ${personality.agentName}`,
     '',
     `  ${pc.dim('Manage:')}`,
-    `    second-brain start     Start the app`,
-    `    second-brain stop      Stop the app`,
-    `    second-brain restart   Restart the app`,
-    `    second-brain update    Update to latest version`,
-    `    second-brain doctor    Check health`,
-    `    second-brain reset     Re-generate configs`,
+    `    cognova start     Start the app`,
+    `    cognova stop      Stop the app`,
+    `    cognova restart   Restart the app`,
+    `    cognova update    Update to latest version`,
+    `    cognova doctor    Check health`,
+    `    cognova reset     Re-generate configs`,
     '',
-    `    pm2 logs second-brain  View logs`,
+    `    pm2 logs cognova  View logs`,
     `    pm2 monit              Monitor resources`,
     ''
   ].join('\n'))

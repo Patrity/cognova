@@ -45,8 +45,8 @@ export function generateSettingsJson(config: InitConfig): string {
       }]
     },
     env: {
-      SECOND_BRAIN_API_URL: config.appUrl,
-      SECOND_BRAIN_PROJECT_DIR: config.installDir
+      COGNOVA_API_URL: config.appUrl,
+      COGNOVA_PROJECT_DIR: config.installDir
     }
   }
 

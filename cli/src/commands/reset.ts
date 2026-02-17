@@ -6,13 +6,13 @@ import { promptPersonality } from '../lib/personality'
 import type { InitConfig } from '../lib/types'
 
 export async function reset() {
-  p.intro(pc.bgCyan(pc.black(' Second Brain Reset ')))
+  p.intro(pc.bgCyan(pc.black(' Cognova Reset ')))
 
   const installDir = findInstallDir()
   const metadata = readMetadata(installDir)
 
   if (!metadata) {
-    p.log.error('No Second Brain installation found. Run `second-brain init` first.')
+    p.log.error('No Cognova installation found. Run `cognova init` first.')
     process.exit(1)
   }
 
@@ -46,7 +46,7 @@ export async function reset() {
 
   await installClaudeConfig({
     personality: personality || {
-      agentName: 'Second Brain',
+      agentName: 'Cognova',
       userName: 'User',
       tone: 'concise',
       traits: ['organized'],

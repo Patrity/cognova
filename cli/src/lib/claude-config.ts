@@ -71,10 +71,10 @@ export async function installClaudeConfig(config: InitConfig, options?: InstallO
         const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'))
         const generated = JSON.parse(generateSettingsJson(config))
 
-        // Merge: keep existing hooks, add/replace Second Brain hooks
+        // Merge: keep existing hooks, add/replace Cognova hooks
         const merged = mergeSettings(existing, generated)
         writeFileSync(settingsPath, JSON.stringify(merged, null, 2) + '\n')
-        p.log.info('Merged Second Brain hooks into existing settings.json')
+        p.log.info('Merged Cognova hooks into existing settings.json')
       } catch {
         // If merge fails, just write the new one
         writeFileSync(settingsPath, generateSettingsJson(config))
@@ -130,7 +130,7 @@ function mergeSettings(existing: Record<string, unknown>, generated: Record<stri
     result.env = { ...(existing.env as Record<string, string> || {}), ...(generated.env as Record<string, string>) }
   }
 
-  // Replace hooks entirely with generated (our hooks are the complete set for Second Brain)
+  // Replace hooks entirely with generated (our hooks are the complete set for Cognova)
   if (generated.hooks) {
     result.hooks = generated.hooks
   }

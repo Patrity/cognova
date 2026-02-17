@@ -4,7 +4,7 @@ shared: false
 ---
 # Skills System
 
-Project-specific Claude Code skills that integrate with Second Brain's ecosystem.
+Project-specific Claude Code skills that integrate with Cognova's ecosystem.
 
 ## Overview
 
@@ -38,7 +38,7 @@ Create a `/skills/` folder at the repo root containing custom skills designed fo
 
 ```dockerfile
 # Copy project skills to Claude Code commands directory
-COPY /skills/ /home/node/.claude/commands/second-brain/
+COPY /skills/ /home/node/.claude/commands/cognova/
 ```
 
 ### Alternative: Runtime Mount
@@ -48,7 +48,7 @@ Instead of copying at build time, mount at runtime for easier development:
 ```yaml
 # docker-compose.yml
 volumes:
-  - ./skills:/home/node/.claude/commands/second-brain:ro
+  - ./skills:/home/node/.claude/commands/cognova:ro
 ```
 
 ## Skill Format
@@ -60,7 +60,7 @@ Each skill follows Claude Code's skill format:
 ```markdown
 # Vault Read
 
-Read files from the Second Brain vault.
+Read files from the Cognova vault.
 
 ## Usage
 
@@ -190,7 +190,7 @@ Creates: `inbox/2026-01-14-interesting-idea-about-project-structure.md`
 Skills can be orchestrated via CLAUDE.md for session behaviors:
 
 ```markdown
-# Second Brain
+# Cognova
 
 You are my personal knowledge management assistant.
 

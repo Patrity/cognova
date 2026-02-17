@@ -14,7 +14,7 @@
             name="i-lucide-brain"
             class="size-6 text-primary"
           />
-          <span class="font-semibold">Second Brain</span>
+          <span class="font-semibold">Cognova</span>
         </NuxtLink>
       </template>
 
@@ -33,14 +33,14 @@
     <UFooter>
       <template #left>
         <p class="text-muted text-sm">
-          Shared via Second Brain
+          Shared via Cognova
         </p>
       </template>
 
       <template #right>
         <UButton
           icon="i-simple-icons-github"
-          to="https://github.com/patrity/second-brain"
+          to="https://github.com/Patrity/cognova"
           target="_blank"
           aria-label="View on GitHub"
           color="neutral"

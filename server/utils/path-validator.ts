@@ -5,7 +5,7 @@ function getDefaultVaultPath(): string {
   // Check common locations in order of preference
   const candidates = [
     process.env.VAULT_PATH,
-    '/tmp/second-brain-vault',
+    '/tmp/cognova-vault',
     process.env.HOME ? join(process.env.HOME, 'Documents', 'vault') : null,
     process.cwd()
   ].filter(Boolean) as string[]

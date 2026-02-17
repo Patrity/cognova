@@ -4,8 +4,8 @@ import type { PersonalityConfig } from './types'
 export async function promptPersonality(): Promise<PersonalityConfig> {
   const agentName = await p.text({
     message: 'What should your agent be called?',
-    placeholder: 'Second Brain',
-    defaultValue: 'Second Brain'
+    placeholder: 'Cognova',
+    defaultValue: 'Cognova'
   })
   if (p.isCancel(agentName)) process.exit(0)
 

@@ -11,7 +11,7 @@ scripts/
 .api-token
 .gitignore
 .eslintrc*
-.second-brain
+.cognova
 Dockerfile
 docker-compose.yml
 docker-entrypoint.sh

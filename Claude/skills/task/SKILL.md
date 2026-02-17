@@ -1,12 +1,12 @@
 ---
 name: task
-description: Manage Second Brain tasks - create, list, update, complete tasks. Use when the user wants to track work items, todos, or action items. Can search for and associate tasks with projects.
+description: Manage Cognova tasks - create, list, update, complete tasks. Use when the user wants to track work items, todos, or action items. Can search for and associate tasks with projects.
 allowed-tools: Bash, Read
 ---
 
 # Task Management Skill
 
-Manage tasks in Second Brain through natural language commands.
+Manage tasks in Cognova through natural language commands.
 
 ## Commands
 
@@ -25,7 +25,7 @@ Options:
 
 Examples:
 ```bash
-python3 ~/.claude/skills/task/task.py create "Review PR for auth feature" --project "second-brain" --priority 3
+python3 ~/.claude/skills/task/task.py create "Review PR for auth feature" --project "cognova" --priority 3
 python3 ~/.claude/skills/task/task.py create "Call dentist" --due tomorrow
 python3 ~/.claude/skills/task/task.py create "Write documentation" --tags "docs,urgent"
 ```

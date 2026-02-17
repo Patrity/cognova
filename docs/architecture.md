@@ -244,26 +244,26 @@ Browser (xterm.js)  ←──WebSocket──►  Nitro Server  ←──PTY─�
 
 ### Bare-Metal (CLI)
 
-The `second-brain` CLI handles installation, updates, and process management.
+The `cognova` CLI handles installation, updates, and process management.
 
 ```bash
 # Install globally
-npm i -g second-brain
+npm i -g cognova
 
-# Initialize (copies app to ~/second-brain, sets up .env, builds)
-second-brain init
+# Initialize (copies app to ~/cognova, sets up .env, builds)
+cognova init
 
 # Process management
-second-brain start     # PM2 start
-second-brain stop      # PM2 stop
-second-brain status    # Health check
-second-brain logs      # PM2 logs
+cognova start     # PM2 start
+cognova stop      # PM2 stop
+cognova status    # Health check
+cognova logs      # PM2 logs
 
 # Update to latest version
-second-brain update    # Downloads, installs deps, migrates DB, rebuilds, restarts
+cognova update    # Downloads, installs deps, migrates DB, rebuilds, restarts
 ```
 
-**Install directory**: `~/second-brain/` (or custom via `init --dir`)
+**Install directory**: `~/cognova/` (or custom via `init --dir`)
 
 **Process manager**: PM2 with `ecosystem.config.cjs` — loads `.env` via `env_file`.
 
@@ -284,7 +284,7 @@ pnpm build
 # Sync to install dir (exclude config/state files)
 rsync -av --delete \
   --exclude='.env' --exclude='node_modules' --exclude='.output' \
-  --exclude='logs' --exclude='.api-token' --exclude='.second-brain' \
+  --exclude='logs' --exclude='.api-token' --exclude='.cognova' \
   --exclude='ecosystem.config.cjs' \
   ./ ~/bridget/
 
@@ -292,7 +292,7 @@ rsync -av --delete \
 cd ~/bridget && pnpm install && pnpm build
 
 # Restart
-pm2 restart second-brain
+pm2 restart cognova
 ```
 
 ## Security
@@ -307,7 +307,7 @@ pm2 restart second-brain
 ## File Structure (Nuxt App)
 
 ```
-second-brain/
+cognova/
 ├── app/
 │   ├── pages/
 │   │   ├── index.vue              # Homepage (custom or default landing)

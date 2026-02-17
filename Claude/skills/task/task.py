@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Task Management Skill for Second Brain
+Task Management Skill for Cognova
 
 Usage:
     python task.py create <title> [options]
