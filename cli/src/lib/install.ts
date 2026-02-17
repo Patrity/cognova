@@ -24,6 +24,7 @@ export function copyAppSource(sourceDir: string, installDir: string) {
     'app',
     'server',
     'shared',
+    'Claude',
     'nuxt.config.ts',
     'tsconfig.json',
     'drizzle.config.ts',

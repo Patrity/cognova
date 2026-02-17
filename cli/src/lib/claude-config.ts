@@ -85,6 +85,41 @@ export async function installClaudeConfig(config: InitConfig, options?: InstallO
   }
 }
 
+/**
+ * Sync bundled Claude config (skills, hooks, rules) from a source directory to ~/.claude/.
+ * Used during updates when we don't have InitConfig for CLAUDE.md/settings generation.
+ * Additive: copies bundled files without deleting user-defined skills.
+ */
+export function syncClaudeConfig(sourceDir: string) {
+  const claudeDir = getClaudeDir()
+  const claudeSrc = join(sourceDir, 'Claude')
+
+  if (!existsSync(claudeSrc)) return
+
+  mkdirSync(claudeDir, { recursive: true })
+
+  // Skills — additive merge (user-defined skills with different names are preserved)
+  const skillsSrc = join(claudeSrc, 'skills')
+  if (existsSync(skillsSrc)) {
+    mkdirSync(join(claudeDir, 'skills'), { recursive: true })
+    cpSync(skillsSrc, join(claudeDir, 'skills'), { recursive: true, force: true })
+  }
+
+  // Hooks
+  const hooksSrc = join(claudeSrc, 'hooks')
+  if (existsSync(hooksSrc)) {
+    mkdirSync(join(claudeDir, 'hooks'), { recursive: true })
+    cpSync(hooksSrc, join(claudeDir, 'hooks'), { recursive: true, force: true })
+  }
+
+  // Rules
+  const rulesSrc = join(claudeSrc, 'rules')
+  if (existsSync(rulesSrc)) {
+    mkdirSync(join(claudeDir, 'rules'), { recursive: true })
+    cpSync(rulesSrc, join(claudeDir, 'rules'), { recursive: true, force: true })
+  }
+}
+
 function mergeSettings(existing: Record<string, unknown>, generated: Record<string, unknown>): Record<string, unknown> {
   // For hooks: the generated config replaces hook entries that reference our scripts
   // but preserves any user-added hooks

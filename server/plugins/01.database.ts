@@ -3,6 +3,15 @@ import { warmupDb } from '~~/server/db'
 import { seedIfEmpty } from '~~/server/db/seed'
 import { setDbState } from '~~/server/utils/db-state'
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    )
+  ])
+}
+
 export default defineNitroPlugin(async () => {
   if (!process.env.DATABASE_URL) {
     console.warn('[db] DATABASE_URL not set, database features disabled')
@@ -18,10 +27,15 @@ export default defineNitroPlugin(async () => {
     if (skipMigrations) {
       console.log('[db] Skipping migrations in development (use db:push for schema changes)')
     } else {
-      await runMigrations()
+      try {
+        await withTimeout(runMigrations(), 30000, 'Migration')
+      } catch (migrationError) {
+        // Don't let migration failure prevent DB from being usable
+        console.error('[db] Migration issue (continuing anyway):', migrationError instanceof Error ? migrationError.message : migrationError)
+      }
     }
 
-    await warmupDb()
+    await withTimeout(warmupDb(), 15000, 'DB warmup')
 
     // Seed default user if database is empty
     await seedIfEmpty()

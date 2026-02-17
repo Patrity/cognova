@@ -3,6 +3,7 @@ import * as p from '@clack/prompts'
 import pc from 'picocolors'
 import { findInstallDir, readMetadata } from '../lib/paths'
 import { copyAppSource } from '../lib/install'
+import { syncClaudeConfig } from '../lib/claude-config'
 
 export async function update() {
   p.intro(pc.bgCyan(pc.black(' Second Brain Update ')))
@@ -49,6 +50,11 @@ export async function update() {
     }
   }
 
+  // Sync bundled Claude config (skills, hooks, rules) to ~/.claude/
+  s.start('Syncing Claude config')
+  syncClaudeConfig(installDir)
+  s.stop('Claude config synced (skills, hooks, rules)')
+
   // Rebuild
   s.start('Installing dependencies')
   execSync('pnpm install --frozen-lockfile', { cwd: installDir, stdio: 'pipe' })
@@ -81,6 +87,6 @@ export async function update() {
     s.stop('PM2 restart failed — start manually with `second-brain start`')
   }
 
-  p.log.info(`Run ${pc.cyan('second-brain reset')} to update Claude config (skills, hooks, rules).`)
+  p.log.info(`Run ${pc.cyan('second-brain reset')} to regenerate CLAUDE.md or settings.json.`)
   p.outro(`Updated to v${latestVersion}`)
 }

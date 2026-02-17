@@ -13,7 +13,7 @@ Manage tasks in Second Brain through natural language commands.
 ### Create a task
 
 ```bash
-python3 Claude/skills/task/task.py create "Task title" [options]
+python3 ~/.claude/skills/task/task.py create "Task title" [options]
 ```
 
 Options:
@@ -25,15 +25,15 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/task/task.py create "Review PR for auth feature" --project "second-brain" --priority 3
-python3 Claude/skills/task/task.py create "Call dentist" --due tomorrow
-python3 Claude/skills/task/task.py create "Write documentation" --tags "docs,urgent"
+python3 ~/.claude/skills/task/task.py create "Review PR for auth feature" --project "second-brain" --priority 3
+python3 ~/.claude/skills/task/task.py create "Call dentist" --due tomorrow
+python3 ~/.claude/skills/task/task.py create "Write documentation" --tags "docs,urgent"
 ```
 
 ### List tasks
 
 ```bash
-python3 Claude/skills/task/task.py list [filters]
+python3 ~/.claude/skills/task/task.py list [filters]
 ```
 
 Filters:
@@ -44,40 +44,40 @@ Filters:
 
 Examples:
 ```bash
-python3 Claude/skills/task/task.py list
-python3 Claude/skills/task/task.py list --project homelab --status todo
-python3 Claude/skills/task/task.py list --due overdue
+python3 ~/.claude/skills/task/task.py list
+python3 ~/.claude/skills/task/task.py list --project homelab --status todo
+python3 ~/.claude/skills/task/task.py list --due overdue
 ```
 
 ### Update a task
 
 ```bash
-python3 Claude/skills/task/task.py update <id> [options]
+python3 ~/.claude/skills/task/task.py update <id> [options]
 ```
 
 Options: Same as create, plus `--status`
 
 Example:
 ```bash
-python3 Claude/skills/task/task.py update abc123 --status in_progress --priority 3
+python3 ~/.claude/skills/task/task.py update abc123 --status in_progress --priority 3
 ```
 
 ### Complete a task
 
 ```bash
-python3 Claude/skills/task/task.py done <id_or_search>
+python3 ~/.claude/skills/task/task.py done <id_or_search>
 ```
 
 Examples:
 ```bash
-python3 Claude/skills/task/task.py done abc123
-python3 Claude/skills/task/task.py done "PR review"
+python3 ~/.claude/skills/task/task.py done abc123
+python3 ~/.claude/skills/task/task.py done "PR review"
 ```
 
 ### Delete a task
 
 ```bash
-python3 Claude/skills/task/task.py delete <id>
+python3 ~/.claude/skills/task/task.py delete <id>
 ```
 
 ## Natural Language Patterns

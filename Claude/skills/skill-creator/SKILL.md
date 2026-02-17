@@ -92,7 +92,7 @@ allowed-tools: Bash, Read
 ## Commands
 
 \`\`\`bash
-python3 .claude/skills/<name>/<name>.py <command> [options]
+python3 ~/.claude/skills/<name>/<name>.py <command> [options]
 \`\`\`
 
 ## Examples
@@ -198,15 +198,14 @@ my_var = os.environ.get('MY_CUSTOM_VAR', 'default')
 
 | Location | Use Case |
 |----------|----------|
-| `~/.claude/skills/` | Personal skills (all projects) |
+| `~/.claude/skills/` | Personal + Second Brain bundled skills |
 | `.claude/skills/` | Project-specific skills |
-| `Claude/skills/` | Second Brain bundled skills |
 
 ### 8. Testing
 
 ```bash
 # Test Python script directly
-python3 .claude/skills/<name>/<name>.py --help
+python3 ~/.claude/skills/<name>/<name>.py --help
 
 # Test via Claude Code
 claude

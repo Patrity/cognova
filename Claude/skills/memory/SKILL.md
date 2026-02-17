@@ -24,7 +24,7 @@ Access and manage persistent memory from previous Claude sessions. Memories are 
 ### Search memories
 
 ```bash
-python3 Claude/skills/memory/memory.py search "<query>" [options]
+python3 ~/.claude/skills/memory/memory.py search "<query>" [options]
 ```
 
 Options:
@@ -34,15 +34,15 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/memory/memory.py search "authentication"
-python3 Claude/skills/memory/memory.py search "database" --type decision
-python3 Claude/skills/memory/memory.py search "API" --project "/Users/me/project"
+python3 ~/.claude/skills/memory/memory.py search "authentication"
+python3 ~/.claude/skills/memory/memory.py search "database" --type decision
+python3 ~/.claude/skills/memory/memory.py search "API" --project "/Users/me/project"
 ```
 
 ### Get recent memories
 
 ```bash
-python3 Claude/skills/memory/memory.py recent [limit] [options]
+python3 ~/.claude/skills/memory/memory.py recent [limit] [options]
 ```
 
 Options:
@@ -50,15 +50,15 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/memory/memory.py recent
-python3 Claude/skills/memory/memory.py recent 5
-python3 Claude/skills/memory/memory.py recent --type decision
+python3 ~/.claude/skills/memory/memory.py recent
+python3 ~/.claude/skills/memory/memory.py recent 5
+python3 ~/.claude/skills/memory/memory.py recent --type decision
 ```
 
 ### Store a memory
 
 ```bash
-python3 Claude/skills/memory/memory.py store "<content>" [options]
+python3 ~/.claude/skills/memory/memory.py store "<content>" [options]
 ```
 
 Options:
@@ -68,15 +68,15 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/memory/memory.py store "We use PostgreSQL with Drizzle ORM"
-python3 Claude/skills/memory/memory.py store "API rate limit set to 100 req/min" --type decision
-python3 Claude/skills/memory/memory.py store "User prefers pnpm over npm" --type preference
+python3 ~/.claude/skills/memory/memory.py store "We use PostgreSQL with Drizzle ORM"
+python3 ~/.claude/skills/memory/memory.py store "API rate limit set to 100 req/min" --type decision
+python3 ~/.claude/skills/memory/memory.py store "User prefers pnpm over npm" --type preference
 ```
 
 ### List decisions
 
 ```bash
-python3 Claude/skills/memory/memory.py decisions [options]
+python3 ~/.claude/skills/memory/memory.py decisions [options]
 ```
 
 Options:
@@ -85,14 +85,14 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/memory/memory.py decisions
-python3 Claude/skills/memory/memory.py decisions --project "second-brain"
+python3 ~/.claude/skills/memory/memory.py decisions
+python3 ~/.claude/skills/memory/memory.py decisions --project "second-brain"
 ```
 
 ### Find memories about a topic
 
 ```bash
-python3 Claude/skills/memory/memory.py about "<topic>" [options]
+python3 ~/.claude/skills/memory/memory.py about "<topic>" [options]
 ```
 
 Options:
@@ -100,14 +100,14 @@ Options:
 
 Examples:
 ```bash
-python3 Claude/skills/memory/memory.py about "error handling"
-python3 Claude/skills/memory/memory.py about "testing strategy"
+python3 ~/.claude/skills/memory/memory.py about "error handling"
+python3 ~/.claude/skills/memory/memory.py about "testing strategy"
 ```
 
 ### Preview session context
 
 ```bash
-python3 Claude/skills/memory/memory.py context [options]
+python3 ~/.claude/skills/memory/memory.py context [options]
 ```
 
 Shows what context would be injected into a new session.

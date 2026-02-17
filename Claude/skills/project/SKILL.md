@@ -11,7 +11,7 @@ Manage projects in Second Brain. Projects organize related tasks.
 ## CRITICAL: Duplicate Prevention
 
 **ALWAYS search for existing projects before creating:**
-1. Run `python3 .claude/skills/project/project.py search <name>` first
+1. Run `python3 ~/.claude/skills/project/project.py search <name>` first
 2. Show user any matches found
 3. Only create if user confirms no existing project fits
 
@@ -20,12 +20,12 @@ Manage projects in Second Brain. Projects organize related tasks.
 ### Search for projects
 
 ```bash
-python3 .claude/skills/project/project.py search <query>
+python3 ~/.claude/skills/project/project.py search <query>
 ```
 
 Example:
 ```bash
-python3 .claude/skills/project/project.py search "home"
+python3 ~/.claude/skills/project/project.py search "home"
 # Output: Found 2 projects matching "home":
 #   - homelab (#3b82f6) - ID: abc12345
 #   - home-automation (#22c55e) - ID: def67890
@@ -34,26 +34,26 @@ python3 .claude/skills/project/project.py search "home"
 ### List all projects
 
 ```bash
-python3 .claude/skills/project/project.py list
+python3 ~/.claude/skills/project/project.py list
 ```
 
 ### Create a project
 
 ```bash
-python3 .claude/skills/project/project.py create <name> --color <hex> [--description <text>]
+python3 ~/.claude/skills/project/project.py create <name> --color <hex> [--description <text>]
 ```
 
 **Required:** `--color` must be a valid hex color (e.g., #3b82f6)
 
 Example:
 ```bash
-python3 .claude/skills/project/project.py create "Second Brain" --color "#8b5cf6" --description "Personal knowledge management app"
+python3 ~/.claude/skills/project/project.py create "Second Brain" --color "#8b5cf6" --description "Personal knowledge management app"
 ```
 
 ### Update a project
 
 ```bash
-python3 .claude/skills/project/project.py update <id> [options]
+python3 ~/.claude/skills/project/project.py update <id> [options]
 ```
 
 Options:
@@ -64,7 +64,7 @@ Options:
 ### Delete a project
 
 ```bash
-python3 .claude/skills/project/project.py delete <id>
+python3 ~/.claude/skills/project/project.py delete <id>
 ```
 
 ## Workflow: Creating a Project
@@ -73,7 +73,7 @@ When user asks to create a project:
 
 1. **Search first:**
    ```bash
-   python3 .claude/skills/project/project.py search "project name"
+   python3 ~/.claude/skills/project/project.py search "project name"
    ```
 
 2. **If matches found, ask user:**
@@ -85,7 +85,7 @@ When user asks to create a project:
 
 3. **If user confirms new project:**
    - Ask for color preference (suggest one if not provided)
-   - Create with: `python3 .claude/skills/project/project.py create "name" --color "#hexcolor"`
+   - Create with: `python3 ~/.claude/skills/project/project.py create "name" --color "#hexcolor"`
 
 ## Color Suggestions
 
