@@ -1,8 +1,8 @@
 import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
-import { chatSessionManager } from '../utils/chat-session-manager'
-import { getDb } from '../db'
-import * as schema from '../db/schema'
+import { chatSessionManager } from '~~/server/utils/chat-session-manager'
+import { getDb } from '~~/server/db'
+import * as schema from '~~/server/db/schema'
 import type { ChatClientMessage, ChatContentBlock } from '~~/shared/types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
