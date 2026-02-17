@@ -310,11 +310,12 @@ async function handlePasswordSubmit() {
         <UTabs
           :items="tabs"
           default-value="account"
-          class="w-full"
+          class="w-full mx-auto"
+          :ui="{ list: 'max-w-xl' }"
         >
           <!-- Account Tab -->
           <template #account>
-            <div class="space-y-8 max-w-xl mx-auto py-6">
+            <div class="space-y-8 max-w-2xl mx-auto py-6">
               <!-- Profile Section -->
               <div>
                 <h3 class="text-lg font-semibold mb-4">

@@ -3,10 +3,9 @@ import type {
   ChatMessage,
   ChatContentBlock,
   ChatServerMessage,
-  ChatSessionStatus
+  ChatSessionStatus,
+  ChatConnectionStatus
 } from '~~/shared/types'
-
-export type ChatConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 // crypto.randomUUID() requires secure context (HTTPS). Fallback for HTTP.
 function generateId(): string {
@@ -29,6 +28,7 @@ const conversations = ref<ChatConversation[]>([])
 const streamingText = ref('')
 const streamingToolCalls = ref<Record<string, { name: string, result?: string, isError?: boolean }>>({})
 const lastCostUsd = ref(0)
+const loading = ref(false)
 
 const ws = ref<WebSocket | null>(null)
 const reconnectAttempts = ref(0)
@@ -47,6 +47,7 @@ export function useChat() {
     switch (msg.type) {
       case 'chat:session_created':
         activeConversationId.value = msg.conversationId
+        loadConversations()
         break
 
       case 'chat:stream_start':
@@ -235,6 +236,7 @@ export function useChat() {
   }
 
   async function loadConversation(conversationId: string) {
+    loading.value = true
     try {
       const response = await $fetch<{ data: ChatConversation & { messages: ChatMessage[] } }>(`/api/conversations/${conversationId}`)
       activeConversationId.value = conversationId
@@ -245,6 +247,8 @@ export function useChat() {
       sessionStatus.value = 'idle'
     } catch (e) {
       console.error('[chat] Failed to load conversation:', e)
+    } finally {
+      loading.value = false
     }
   }
 
@@ -274,11 +278,12 @@ export function useChat() {
     connectionStatus: readonly(connectionStatus),
     sessionStatus: readonly(sessionStatus),
     activeConversationId: readonly(activeConversationId),
-    messages: readonly(messages),
+    messages,
     conversations,
     streamingText: readonly(streamingText),
     streamingToolCalls: readonly(streamingToolCalls),
     lastCostUsd: readonly(lastCostUsd),
+    loading: readonly(loading),
 
     // Actions
     connect,

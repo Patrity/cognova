@@ -37,8 +37,8 @@ function getToolPairs(blocks: ChatContentBlock[]) {
     <div
       class="max-w-[85%] rounded-xl px-4 py-3"
       :class="message.role === 'user'
-        ? 'bg-primary/10 text-highlighted'
-        : 'bg-elevated/50'"
+        ? 'bg-primary/5 text-highlighted'
+        : 'bg-muted'"
     >
       <!-- User message -->
       <div
@@ -53,7 +53,7 @@ function getToolPairs(blocks: ChatContentBlock[]) {
         <!-- Text content rendered as markdown -->
         <div
           v-if="getTextContent(message.content)"
-          class="prose prose-sm dark:prose-invert max-w-none"
+          class="chat-prose prose prose-sm dark:prose-invert max-w-none"
         >
           <MDC :value="getTextContent(message.content)" />
         </div>

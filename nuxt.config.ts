@@ -45,7 +45,8 @@ export default defineNuxtConfig({
         'cs',
         'java',
         'dockerfile',
-        'diff'
+        'diff',
+        'kotlin'
       ]
     }
   },

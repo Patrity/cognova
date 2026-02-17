@@ -11,7 +11,9 @@ interface Preferences {
   // Layout
   sidebarOpen: boolean
   docsTreeWidth: number
-  terminalOpen: boolean
+  assistantPanelOpen: boolean
+  assistantPanelTab: 'chat' | 'terminal'
+  assistantLastConversationId: string | null
 
   // Task filters
   taskStatusFilter: TaskStatus | 'all'
@@ -30,7 +32,9 @@ const defaults: Preferences = {
   lastDocumentPath: null,
   sidebarOpen: true,
   docsTreeWidth: 16,
-  terminalOpen: false,
+  assistantPanelOpen: false,
+  assistantPanelTab: 'chat',
+  assistantLastConversationId: null,
   taskStatusFilter: 'all',
   taskProjectFilter: null,
   agentStatsPeriod: '7d'
@@ -91,9 +95,19 @@ export function usePreferences() {
     set: v => set('agentStatsPeriod', v)
   })
 
-  const terminalOpen = computed({
-    get: () => get('terminalOpen'),
-    set: v => set('terminalOpen', v)
+  const assistantPanelOpen = computed({
+    get: () => get('assistantPanelOpen'),
+    set: v => set('assistantPanelOpen', v)
+  })
+
+  const assistantPanelTab = computed({
+    get: () => get('assistantPanelTab'),
+    set: v => set('assistantPanelTab', v)
+  })
+
+  const assistantLastConversationId = computed({
+    get: () => get('assistantLastConversationId'),
+    set: v => set('assistantLastConversationId', v)
   })
 
   return {
@@ -107,7 +121,9 @@ export function usePreferences() {
     lastDocumentPath,
     sidebarOpen,
     docsTreeWidth,
-    terminalOpen,
+    assistantPanelOpen,
+    assistantPanelTab,
+    assistantLastConversationId,
     taskStatusFilter,
     taskProjectFilter,
     agentStatsPeriod

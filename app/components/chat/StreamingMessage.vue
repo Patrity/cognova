@@ -11,7 +11,7 @@ defineProps<{
       <!-- Streaming text rendered as markdown -->
       <div
         v-if="text"
-        class="prose prose-sm dark:prose-invert max-w-none"
+        class="chat-prose prose prose-sm dark:prose-invert max-w-none"
       >
         <MDC :value="text" />
       </div>

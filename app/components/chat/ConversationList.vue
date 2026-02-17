@@ -62,7 +62,7 @@ function formatDate(date: Date | string) {
             icon="i-lucide-trash-2"
             variant="ghost"
             color="error"
-            size="2xs"
+            size="xs"
             class="opacity-0 group-hover:opacity-100 shrink-0"
             @click.stop="emit('delete', conv.id)"
           />

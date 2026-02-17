@@ -177,7 +177,7 @@ const links = [[{
     <slot />
 
     <ClientOnly>
-      <TerminalPopover />
+      <AssistantPanel />
       <template #fallback>
         <span />
       </template>

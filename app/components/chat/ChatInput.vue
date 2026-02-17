@@ -58,7 +58,7 @@ function autoResize(e: Event) {
         v-model="inputText"
         :disabled="!isConnected || isStreaming"
         placeholder="Send a message..."
-        rows="3"
+        rows="1"
         class="flex-1 resize-none bg-elevated/50 border border-default rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50"
         @keydown="handleKeydown"
         @input="autoResize"

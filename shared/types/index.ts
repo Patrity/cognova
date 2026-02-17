@@ -480,6 +480,7 @@ export interface MemoryContextResponse {
 // === Chat System ===
 
 export type ChatSessionStatus = 'idle' | 'streaming' | 'interrupted' | 'error'
+export type ChatConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
 // Content blocks (maps to SDK content structure)
 export interface ChatTextBlock {
