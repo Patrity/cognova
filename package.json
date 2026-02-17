@@ -8,7 +8,7 @@
     "url": "https://github.com/Patrity/second-brain.git"
   },
   "bin": {
-    "second-brain": "./dist/cli/index.mjs"
+    "second-brain": "./dist/cli/index.js"
   },
   "files": [
     "dist/cli",
