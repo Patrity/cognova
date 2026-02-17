@@ -6,6 +6,7 @@ import pc from 'picocolors'
 import { findInstallDir, readMetadata } from '../lib/paths'
 import { copyAppSource } from '../lib/install'
 import { syncClaudeConfig } from '../lib/claude-config'
+import { loadEnvFile } from '../lib/config'
 
 /** Directories/files that make up the app source (backed up before update) */
 const BACKUP_ITEMS = [
@@ -108,6 +109,10 @@ export async function update() {
     syncClaudeConfig(installDir)
     s.stop('Claude config synced (skills, hooks, rules)')
 
+    // Load .env from install dir so child processes get DATABASE_URL etc.
+    const dotenv = loadEnvFile(installDir)
+    const envWithDotenv = { ...process.env, ...dotenv }
+
     // Rebuild
     s.start('Installing dependencies')
     execSync('pnpm install', { cwd: installDir, stdio: 'pipe' })
@@ -115,21 +120,15 @@ export async function update() {
 
     // Run database migrations
     s.start('Running database migrations')
-    try {
-      execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe' })
-      s.stop('Migrations complete')
-    } catch (migErr) {
-      s.stop(pc.yellow('Migration warning'))
-      p.log.warn(`Database migration issue: ${migErr instanceof Error ? migErr.message : migErr}`)
-      p.log.warn('The app may still work. Check logs after starting.')
-    }
+    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe', env: envWithDotenv })
+    s.stop('Migrations complete')
 
     s.start('Building application')
     execSync('pnpm build', {
       cwd: installDir,
       stdio: 'pipe',
       timeout: 600000,
-      env: { ...process.env, NODE_OPTIONS: '--max-old-space-size=4096' }
+      env: { ...envWithDotenv, NODE_OPTIONS: '--max-old-space-size=4096' }
     })
     s.stop('Build complete')
   } catch (err) {
