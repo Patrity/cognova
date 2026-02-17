@@ -118,9 +118,9 @@ export async function update() {
     execSync('pnpm install', { cwd: installDir, stdio: 'pipe' })
     s.stop('Dependencies installed')
 
-    // Run database migrations (drizzle-kit auto-loads .env from cwd)
+    // Run database migrations
     s.start('Running database migrations')
-    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe' })
+    execSync('pnpm db:migrate', { cwd: installDir, stdio: 'pipe', env: envWithDotenv })
     s.stop('Migrations complete')
 
     s.start('Building application')
