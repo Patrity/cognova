@@ -135,7 +135,10 @@ export async function update() {
     updateFailed = true
     s.stop(pc.red('Update failed'))
 
-    p.log.error(`Error: ${err instanceof Error ? err.message : err}`)
+    const execErr = err as { message?: string, stderr?: Buffer | string }
+    p.log.error(`Error: ${execErr.message || err}`)
+    if (execErr.stderr)
+      p.log.error(pc.dim(String(execErr.stderr).trim()))
     p.log.step(pc.bold('Rolling back'))
 
     const rollbackSpinner = p.spinner()
