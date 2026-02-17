@@ -45,7 +45,17 @@ export function readMetadata(installDir?: string): SecondBrainMetadata | null {
 export function findInstallDir(): string {
   // Check current working directory first
   const cwdMeta = join(process.cwd(), '.cognova')
-  if (existsSync(cwdMeta)) return process.cwd()
+  if (existsSync(cwdMeta)) {
+    try {
+      const meta: SecondBrainMetadata = JSON.parse(readFileSync(cwdMeta, 'utf-8'))
+      // Always follow the installDir pointer if it exists
+      if (meta.installDir && existsSync(meta.installDir))
+        return meta.installDir
+    } catch {
+      // Unreadable metadata — assume cwd is the install dir
+      return process.cwd()
+    }
+  }
 
   // Check home directory for a global pointer
   const homeMeta = join(homedir(), '.cognova')
