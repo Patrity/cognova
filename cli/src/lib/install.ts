@@ -12,7 +12,8 @@ const PRESERVE_ON_UPDATE = new Set([
   'node_modules',
   '.output',
   'ecosystem.config.cjs',
-  'logs'
+  'logs',
+  '.update-backup'
 ])
 
 /** Copy app source files from the npm package to the install directory */

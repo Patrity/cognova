@@ -172,14 +172,18 @@ Reference: [Nuxt UI Dashboard Template - Inbox Page](https://github.com/nuxt-ui-
 
 | Route | Purpose | Layout |
 |-------|---------|--------|
-| `/` | Dashboard | Sidebar + single panel |
-| `/conversations` | Claude Code session history | Sidebar + list/detail |
+| `/` | Homepage (custom via `vault/index.md` or default landing) | Landing page |
+| `/login` | Authentication | Auth layout |
+| `/dashboard` | Overview with quick capture and recent activity | Sidebar + single panel |
 | `/tasks` | Task management | Sidebar + task list |
 | `/docs` | Document workspace | Sidebar + 3-panel (tree/editor/terminal) |
+| `/chat` | Interactive Claude chat | Sidebar + conversation list/chat |
 | `/agents` | Scheduled agents dashboard | Stats, chart, agent cards |
 | `/agents/[id]` | Agent detail | Stats, run history, controls |
-| `/chat` | Interactive Claude chat | Sidebar + conversation list/chat |
+| `/hooks` | Hook event log and stats | Sidebar + event list |
 | `/memories` | Memory dashboard | Sidebar + memory list |
+| `/settings` | User profile, password, API secrets | Sidebar + settings forms |
+| `/view/[uuid]` | Public document viewer (no auth) | Standalone with TOC |
 
 ## Data Flow
 
@@ -295,7 +299,7 @@ pm2 restart second-brain
 
 | Layer | Approach |
 |-------|----------|
-| Authentication | External (reverse proxy, SSO, etc.) |
+| Authentication | BetterAuth (session-based) + reverse proxy recommended for production |
 | Database | Neon with SSL required |
 | Filesystem | Container bind-mount, isolated to vault |
 | API keys | Environment variables, not in repo |
@@ -306,15 +310,20 @@ pm2 restart second-brain
 second-brain/
 ├── app/
 │   ├── pages/
-│   │   ├── index.vue              # Dashboard
-│   │   ├── conversations.vue      # Session history
+│   │   ├── index.vue              # Homepage (custom or default landing)
+│   │   ├── login.vue              # Authentication
+│   │   ├── dashboard.vue          # Overview + quick capture
 │   │   ├── tasks.vue              # Task management
 │   │   ├── docs.vue               # Document workspace (3-panel)
 │   │   ├── chat.vue               # Interactive Claude chat
 │   │   ├── memories.vue           # Memory dashboard
-│   │   └── agents/
-│   │       ├── index.vue          # Agents dashboard
-│   │       └── [id].vue           # Agent detail page
+│   │   ├── hooks.vue              # Hook event log + stats
+│   │   ├── settings.vue           # User profile + API secrets
+│   │   ├── agents/
+│   │   │   ├── index.vue          # Agents dashboard
+│   │   │   └── [id].vue           # Agent detail page
+│   │   └── view/
+│   │       └── [uuid].vue         # Public document viewer
 │   ├── components/
 │   │   ├── layout/
 │   │   │   ├── AppSidebar.vue

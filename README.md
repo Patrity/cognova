@@ -8,7 +8,7 @@ I wanted a single web interface where I could:
 - Browse and edit my markdown notes from any device
 - Have Claude Code available in a terminal right next to my documents
 - Track tasks across projects without context-switching
-- Eventually integrate reminders and notifications
+- Customize my homepage with markdown
 
 This is an opinionated tool built for my workflow, but open-sourced in case others find it useful or want to adapt it.
 
@@ -17,8 +17,14 @@ This is an opinionated tool built for my workflow, but open-sourced in case othe
 - **File Browser** - Navigate your vault with drag-drop, context menus, search
 - **Markdown Editor** - WYSIWYG editing powered by TipTap via Nuxt UI
 - **Embedded Terminal** - Claude Code CLI in a floating terminal panel
+- **Interactive Chat** - Conversational Claude interface with streaming, tool calls, and session history
 - **Task Management** - Track tasks with status, priority, and project tags
+- **Scheduled Agents** - Cron-based Claude agents with cost tracking and real-time status
+- **Memory Dashboard** - View and manage Claude's memory context
 - **Dashboard** - Overview of recent activity and quick capture
+- **Custom Homepage** - Override the landing page by creating `index.md` in your vault
+- **Public Document Sharing** - Share vault documents via unique link (no auth required)
+- **Hook Events** - Monitor and review Claude Code hook activity
 
 ## Tech Stack
 
@@ -92,7 +98,7 @@ pnpm docker:up
 The container:
 - Mounts your vault directory (configurable via `VAULT_PATH`)
 - Has Claude Code CLI pre-installed
-- Optionally mounts `~/.claude` and `~/.anthropic` if you have existing config
+- Persists Claude settings via a named volume (`claude_home`)
 
 To authenticate Claude Code, open the terminal in the app and run `claude auth`.
 
@@ -110,11 +116,13 @@ services:
       - "3000:3000"
     volumes:
       - ${VAULT_PATH:-~/vault}:/vault:rw
-      - ${HOME}/.claude:/home/node/.claude:rw
-      - ${HOME}/.anthropic:/home/node/.anthropic:ro
+      - claude_home:/home/node
     environment:
-      - VAULT_PATH=/vault
       - DATABASE_URL=${DATABASE_URL}
+      - VAULT_PATH=/vault
+
+volumes:
+  claude_home:
 ```
 
 ### Environment Variables
@@ -148,8 +156,9 @@ For production, this app should sit behind a reverse proxy (Nginx, Traefik, Clou
 
 ### Platform Options
 
+- **CLI installer** - `npm i -g second-brain && second-brain init` (bare metal with PM2)
 - **Coolify** - Connect repo, set env vars, deploy
-- **Docker host** - `docker-compose up -d`
+- **Docker host** - `docker compose up -d`
 - **Bare metal** - `pnpm build && node .output/server/index.mjs`
 
 ## Security Warning
@@ -173,11 +182,15 @@ second-brain/
 ├── app/
 │   ├── components/     # Vue components
 │   ├── composables/    # Shared logic
-│   ├── layouts/        # Dashboard layout
+│   ├── layouts/        # Dashboard, auth, view layouts
 │   └── pages/          # Route pages
 ├── server/
 │   ├── api/            # REST endpoints
-│   └── routes/         # WebSocket handlers
+│   ├── routes/         # WebSocket handlers
+│   ├── services/       # Agent executor, cron scheduler
+│   └── db/             # Drizzle schema + migrations
+├── cli/                # CLI installer (second-brain init/update/start/stop)
+├── shared/             # Shared types and utilities
 ├── docs/               # Architecture docs
 └── .claude/            # Claude Code skills & rules
 ```
@@ -191,7 +204,7 @@ second-brain/
 
 ## Status
 
-This is an active personal project. Features are added as I need them. The core file browser, editor, and terminal are functional. Task management and notifications are in progress.
+This is an active personal project. Features are added as I need them. The core file browser, editor, terminal, interactive chat, task management, scheduled agents, and memory dashboard are all functional.
 
 ## Contributing
 

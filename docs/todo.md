@@ -24,6 +24,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | CLI Installer | Done | `cli/` — init, update, start/stop, reset |
 | Memory Dashboard | Done | Memory context viewer + skill |
 | Search | Planned | [search.md](./todo/search.md) |
+| Secrets Skill & Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) |
 | Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
 
 ## Priority 3: Advanced

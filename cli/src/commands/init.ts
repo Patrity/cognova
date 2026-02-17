@@ -140,7 +140,7 @@ export async function init() {
   p.log.step(pc.bold('Build'))
 
   s.start('Installing dependencies')
-  execSync('pnpm install --frozen-lockfile', { cwd: resolvedInstallDir, stdio: 'pipe' })
+  execSync('pnpm install', { cwd: resolvedInstallDir, stdio: 'pipe' })
   s.stop('Dependencies installed')
 
   s.start('Building application (this may take a few minutes)')
