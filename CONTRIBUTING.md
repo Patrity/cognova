@@ -33,8 +33,14 @@ Note: This is an opinionated tool for my workflow. Features that don't align wit
 ## Development Setup
 
 ```bash
-# Install dependencies
+git clone https://github.com/patrity/cognova.git
+cd cognova
 pnpm install
+cp .env.example .env
+# Edit .env with your VAULT_PATH
+
+# Start local postgres (requires Docker)
+pnpm db:up
 
 # Start dev server
 pnpm dev

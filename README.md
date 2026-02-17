@@ -1,16 +1,8 @@
 # Cognova
 
-A personal knowledge management system with an embedded AI terminal. Built out of personal necessity to have a unified place for notes, tasks, and AI-assisted workflows accessible from anywhere.
+Personal knowledge management system with an embedded AI terminal. Built for a unified place to manage notes, tasks, and AI-assisted workflows from any device.
 
-## Why This Exists
-
-I wanted a single web interface where I could:
-- Browse and edit my markdown notes from any device
-- Have Claude Code available in a terminal right next to my documents
-- Track tasks across projects without context-switching
-- Customize my homepage with markdown
-
-This is an opinionated tool built for my workflow, but open-sourced in case others find it useful or want to adapt it.
+> **Warning:** This application gives an AI agent unrestricted access to the host machine via an embedded terminal and the Claude Code CLI. It can read, write, and execute anything. **Do not run this on a personal machine or a server with sensitive data.** Deploy only in a sandboxed, isolated, or airgapped environment. See [Security](#security) for details.
 
 ## Features
 
@@ -37,41 +29,99 @@ This is an opinionated tool built for my workflow, but open-sourced in case othe
 | Database | PostgreSQL (local Docker or [Neon](https://neon.tech)) |
 | AI | [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) |
 
-## Quick Start
+## Installation
 
 ### Prerequisites
 
 - Node.js 20+
-- pnpm
+- PostgreSQL (local Docker or hosted like [Neon](https://neon.tech))
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
 
-### Development
+### Install via CLI
 
 ```bash
-# Clone the repo
-git clone https://github.com/patrity/cognova.git
-cd cognova
+# Install globally
+npm install -g cognova
 
-# Install dependencies
-pnpm install
-
-# Copy environment file
-cp .env.example .env
-# Edit .env with your VAULT_PATH
-
-# Start dev server
-pnpm dev
+# Run the interactive setup wizard
+cognova init
 ```
 
-Visit `http://localhost:3000`. On first startup with an empty database, a default admin user is created automatically:
+The setup wizard will:
+1. Ask for your vault path (where your markdown files live)
+2. Configure your database connection (local Docker or Neon)
+3. Set up authentication secrets
+4. Install dependencies and build the application
+5. Start the app via PM2
+
+Once running, visit `http://localhost:3000`.
+
+### Managing the App
+
+```bash
+cognova start      # Start the app (PM2)
+cognova stop       # Stop the app
+cognova restart    # Restart the app
+cognova update     # Update to the latest version (with automatic rollback)
+cognova doctor     # Check health of all components
+cognova reset      # Regenerate configuration files
+```
+
+### Default Admin User
+
+On first startup with an empty database, a default admin user is created:
 - Email: `admin@example.com`
 - Password: `changeme123`
 
 Customize via `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your `.env` file.
 
-#### With Local PostgreSQL
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VAULT_PATH` | Yes | Path to your markdown vault |
+| `DATABASE_URL` | No | PostgreSQL URL (defaults to local Docker) |
+| `BETTER_AUTH_SECRET` | Yes | Secret key for session encryption (generate with `openssl rand -base64 32`) |
+| `BETTER_AUTH_URL` | Yes | Base URL of your app (e.g., `http://localhost:3000`) |
+| `ADMIN_EMAIL` | No | Default admin email (default: `admin@example.com`) |
+| `ADMIN_PASSWORD` | No | Default admin password (default: `changeme123`) |
+| `ADMIN_NAME` | No | Default admin display name (default: `Admin`) |
+
+## Security
+
+Cognova gives an AI agent (Claude Code) and any authenticated user **full, unrestricted access** to the host machine. This includes:
+
+- Arbitrary command execution via the embedded terminal
+- File system read/write through the vault mount and shell
+- Network access from the host (API calls, outbound connections)
+- Access to any credentials or secrets present on the machine
+
+### Deployment Guidelines
+
+- **Never run on a personal machine** — use a dedicated VM, container, or cloud instance
+- **Isolate the environment** — sandbox or airgap the host so a compromised session can't reach sensitive infrastructure
+- **Never expose directly to the internet** — always put a reverse proxy with TLS in front (Nginx, Traefik, Cloudflare Access, Tailscale, etc.)
+- **Limit blast radius** — don't store SSH keys, cloud credentials, or production secrets on the same machine
+- **Review agent activity** — use the Hook Events dashboard to monitor what Claude Code is doing
+
+## Development
+
+### Setup
 
 ```bash
-# Start postgres container
+git clone https://github.com/patrity/cognova.git
+cd cognova
+pnpm install
+cp .env.example .env
+# Edit .env with your VAULT_PATH and database config
+```
+
+### Local PostgreSQL
+
+Docker Compose is used to run a local PostgreSQL instance for development:
+
+```bash
+# Start postgres
 pnpm db:up
 
 # Run dev server
@@ -81,99 +131,14 @@ pnpm dev
 pnpm db:down
 ```
 
-### Docker
+Alternatively, point `DATABASE_URL` at any PostgreSQL instance (hosted Neon, local install, etc.).
+
+### Build
 
 ```bash
-# Copy and configure environment
-cp .env.example .env
-
-# Build and run (auto-detects local vs Neon)
-pnpm docker:up
-
-# Or manually:
-# Local postgres: docker compose --profile local up -d
-# Neon: docker compose up -d
+pnpm build
+node .output/server/index.mjs
 ```
-
-The container:
-- Mounts your vault directory (configurable via `VAULT_PATH`)
-- Has Claude Code CLI pre-installed
-- Persists Claude settings via a named volume (`claude_home`)
-
-To authenticate Claude Code, open the terminal in the app and run `claude auth`.
-
-## Deployment
-
-### Docker Compose (Recommended)
-
-```yaml
-services:
-  cognova:
-    build: .
-    container_name: cognova
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - ${VAULT_PATH:-~/vault}:/vault:rw
-      - claude_home:/home/node
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - VAULT_PATH=/vault
-
-volumes:
-  claude_home:
-```
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VAULT_PATH` | Yes | Path to your markdown vault |
-| `DATABASE_URL` | No | PostgreSQL URL - local (`localhost:5432`) or Neon |
-| `BETTER_AUTH_SECRET` | Yes | Secret key for session encryption (generate with `openssl rand -base64 32`) |
-| `BETTER_AUTH_URL` | Yes | Base URL of your app (e.g., `http://localhost:3000`) |
-| `ADMIN_EMAIL` | No | Default admin email (default: `admin@example.com`) |
-| `ADMIN_PASSWORD` | No | Default admin password (default: `changeme123`) |
-| `ADMIN_NAME` | No | Default admin display name (default: `Admin`) |
-
-### Authentication
-
-This app uses [BetterAuth](https://better-auth.com) for session-based authentication.
-
-**First-run setup:** When the database is empty, a default admin user is created automatically on startup:
-- Default: `admin@example.com` / `changeme123`
-- Customize via `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` in `.env`
-
-**Manual user creation:** If needed, you can still create users manually:
-```bash
-ADMIN_EMAIL=you@example.com ADMIN_PASSWORD=yourpassword pnpm auth:create-admin
-```
-
-### Reverse Proxy
-
-For production, this app should sit behind a reverse proxy (Nginx, Traefik, Cloudflare Access, etc.) for TLS termination and additional security layers.
-
-### Platform Options
-
-- **CLI installer** - `npm i -g cognova && cognova init` (bare metal with PM2)
-- **Coolify** - Connect repo, set env vars, deploy
-- **Docker host** - `docker compose up -d`
-- **Bare metal** - `pnpm build && node .output/server/index.mjs`
-
-## Security Warning
-
-**This application provides full shell access through an embedded terminal.** Anyone with access to the web interface can execute arbitrary commands on your server.
-
-Before deploying:
-
-- **Never expose this directly to the internet** without authentication
-- Use a reverse proxy with authentication (Nginx + basic auth, Cloudflare Access, Authelia, etc.)
-- Consider running on a private network or VPN only
-- The container mounts your vault directory with read/write access
-- Claude Code, when authenticated, has access to your Anthropic API key and can make API calls
-
-This is a power-user tool designed for personal use on trusted networks. If you don't understand the security implications of running a web-accessible terminal, this project may not be for you.
 
 ## Project Structure
 
@@ -191,8 +156,8 @@ cognova/
 │   └── db/             # Drizzle schema + migrations
 ├── cli/                # CLI installer (cognova init/update/start/stop)
 ├── shared/             # Shared types and utilities
-├── docs/               # Architecture docs
-└── .claude/            # Claude Code skills & rules
+├── Claude/             # Claude Code skills, hooks, & config
+└── docs/               # Architecture docs
 ```
 
 ## Documentation
@@ -201,10 +166,6 @@ cognova/
 |----------|-------------|
 | [architecture.md](./docs/architecture.md) | System design and components |
 | [ui-wireframes.md](./docs/ui-wireframes.md) | Interface layouts |
-
-## Status
-
-This is an active personal project. Features are added as I need them. The core file browser, editor, terminal, interactive chat, task management, scheduled agents, and memory dashboard are all functional.
 
 ## Contributing
 

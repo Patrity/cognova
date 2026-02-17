@@ -67,6 +67,31 @@ export async function init() {
     appUrl = host.startsWith('http') ? host : `http://${host}`
   }
 
+  // Security warning — always shown, severity depends on access mode
+  p.log.warn(pc.yellow(pc.bold('Security Notice')))
+  p.log.warn([
+    'Cognova gives an AI agent unrestricted access to this machine.',
+    'It can read, write, and execute anything via the embedded terminal',
+    'and Claude Code CLI.',
+    '',
+    `  ${pc.dim('•')} Do not run on a personal machine or alongside sensitive data`,
+    `  ${pc.dim('•')} Use a dedicated VM, container, or isolated environment`,
+    `  ${pc.dim('•')} Put a reverse proxy with TLS in front for remote access`,
+    `  ${pc.dim('•')} Do not store SSH keys, cloud creds, or production secrets here`
+  ].join('\n'))
+
+  if (accessMode === 'any') {
+    p.log.warn(pc.red(
+      'Binding to 0.0.0.0 exposes this to your entire network.'
+    ))
+  }
+
+  const proceed = await p.confirm({
+    message: 'I understand the risks. Continue?',
+    initialValue: false
+  })
+  if (p.isCancel(proceed) || !proceed) process.exit(0)
+
   // Step 7: Auth
   p.log.step(pc.bold('Authentication'))
   const adminEmail = await p.text({
