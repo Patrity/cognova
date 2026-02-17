@@ -124,11 +124,40 @@ export const reminders = pgTable('reminders', {
 export const conversations = pgTable('conversations', {
   id: uuid('id').primaryKey().defaultRandom(),
   sessionId: text('session_id').notNull().unique(),
+  sdkSessionId: text('sdk_session_id'),
+  title: text('title'),
   summary: text('summary'),
+  status: text('status', {
+    enum: ['idle', 'streaming', 'interrupted', 'error']
+  }).default('idle').notNull(),
+  totalCostUsd: real('total_cost_usd').default(0).notNull(),
   startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
   endedAt: timestamp('ended_at', { withTimezone: true }),
   messageCount: integer('message_count').default(0).notNull()
 })
+
+export const conversationMessages = pgTable('conversation_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id')
+    .notNull()
+    .references(() => conversations.id, { onDelete: 'cascade' }),
+  role: text('role', { enum: ['user', 'assistant'] }).notNull(),
+  content: text('content').notNull(), // JSON string of ChatContentBlock[]
+  costUsd: real('cost_usd'),
+  durationMs: integer('duration_ms'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})
+
+export const conversationsRelations = relations(conversations, ({ many }) => ({
+  messages: many(conversationMessages)
+}))
+
+export const conversationMessagesRelations = relations(conversationMessages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationMessages.conversationId],
+    references: [conversations.id]
+  })
+}))
 
 // Relations for query builder
 export const projectsRelations = relations(projects, ({ one, many }) => ({

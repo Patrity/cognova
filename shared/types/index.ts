@@ -476,3 +476,128 @@ export interface MemoryContextResponse {
   memories: MemoryChunk[]
   formatted: string
 }
+
+// === Chat System ===
+
+export type ChatSessionStatus = 'idle' | 'streaming' | 'interrupted' | 'error'
+
+// Content blocks (maps to SDK content structure)
+export interface ChatTextBlock {
+  type: 'text'
+  text: string
+}
+
+export interface ChatToolUseBlock {
+  type: 'tool_use'
+  id: string
+  name: string
+  input: Record<string, unknown>
+}
+
+export interface ChatToolResultBlock {
+  type: 'tool_result'
+  tool_use_id: string
+  content: string
+  is_error?: boolean
+}
+
+export type ChatContentBlock = ChatTextBlock | ChatToolUseBlock | ChatToolResultBlock
+
+// Persisted message
+export interface ChatMessage {
+  id: string
+  conversationId: string
+  role: 'user' | 'assistant'
+  content: ChatContentBlock[]
+  costUsd?: number
+  durationMs?: number
+  createdAt: Date
+}
+
+// Conversation metadata
+export interface ChatConversation {
+  id: string
+  sessionId: string
+  sdkSessionId?: string
+  title?: string
+  summary?: string
+  status: ChatSessionStatus
+  totalCostUsd: number
+  messageCount: number
+  startedAt: Date
+  endedAt?: Date
+}
+
+// WebSocket protocol: Client -> Server
+export interface ChatSendMessage {
+  type: 'chat:send'
+  message: string
+  conversationId?: string
+}
+
+export interface ChatInterruptMessage {
+  type: 'chat:interrupt'
+  conversationId: string
+}
+
+export type ChatClientMessage = ChatSendMessage | ChatInterruptMessage
+
+// WebSocket protocol: Server -> Client
+export interface ChatSessionCreated {
+  type: 'chat:session_created'
+  conversationId: string
+}
+
+export interface ChatStreamStart {
+  type: 'chat:stream_start'
+  conversationId: string
+}
+
+export interface ChatTextDelta {
+  type: 'chat:text_delta'
+  conversationId: string
+  delta: string
+}
+
+export interface ChatToolStart {
+  type: 'chat:tool_start'
+  conversationId: string
+  toolUseId: string
+  toolName: string
+}
+
+export interface ChatToolEnd {
+  type: 'chat:tool_end'
+  conversationId: string
+  toolUseId: string
+  result: string
+  isError: boolean
+}
+
+export interface ChatStreamEnd {
+  type: 'chat:stream_end'
+  conversationId: string
+  costUsd: number
+  durationMs: number
+}
+
+export interface ChatError {
+  type: 'chat:error'
+  conversationId?: string
+  message: string
+}
+
+export interface ChatInterrupted {
+  type: 'chat:interrupted'
+  conversationId: string
+}
+
+export type ChatServerMessage
+  = ChatSessionCreated
+    | ChatStreamStart
+    | ChatTextDelta
+    | ChatToolStart
+    | ChatToolEnd
+    | ChatStreamEnd
+    | ChatError
+    | ChatInterrupted

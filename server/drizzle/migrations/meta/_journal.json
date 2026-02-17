@@ -64,6 +64,13 @@
       "when": 1769837309085,
       "tag": "0008_talented_zombie",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1771286195501,
+      "tag": "0009_gray_shen",
+      "breakpoints": true
     }
   ]
 }

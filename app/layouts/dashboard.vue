@@ -57,6 +57,13 @@ const links = [[{
     open.value = false
   }
 }, {
+  label: 'Chat',
+  icon: 'i-lucide-message-square',
+  to: '/chat',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Settings',
   icon: 'i-lucide-settings',
   to: '/settings',
