@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.projects.id, id))
     .returning()
 
-  notifyResourceChange({ resource: 'project', action: 'delete', resourceId: id, resourceName: project.name })
+  notifyResourceChange({ resource: 'project', action: 'delete', resourceId: id, resourceName: project!.name })
 
   return { data: project }
 })

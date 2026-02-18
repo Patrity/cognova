@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
   console.log(`[memory] Stored memory: ${body.chunkType} - ${body.content.slice(0, 50)}...`)
 
-  notifyResourceChange({ resource: 'memory', action: 'create', resourceId: inserted.id, resourceName: body.chunkType })
+  notifyResourceChange({ resource: 'memory', action: 'create', resourceId: inserted!.id, resourceName: body.chunkType })
 
   return { data: inserted as MemoryChunk }
 })

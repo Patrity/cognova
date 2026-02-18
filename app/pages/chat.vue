@@ -21,11 +21,26 @@ const {
   deleteConversation
 } = useChat()
 
+const route = useRoute()
+const router = useRouter()
 const messagesContainer = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   connect()
   loadConversations()
+
+  // Auto-send greeting when arriving from onboarding modal
+  if (route.query.onboarding) {
+    const stop = watch(connectionStatus, (status) => {
+      if (status === 'connected') {
+        stop()
+        startNewConversation()
+        sendMessage('Hello!')
+        nextTick(scrollToBottom)
+        router.replace({ query: {} })
+      }
+    }, { immediate: true })
+  }
 })
 
 function handleSend(message: string) {

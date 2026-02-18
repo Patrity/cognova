@@ -52,7 +52,7 @@ function formatForContext(memories: MemoryChunk[]): string {
   if (memories.length === 0)
     return ''
 
-  const lines = ['## Previous Context\n']
+  const lines = [`${memories.length} memories loaded:\n`]
 
   // Group by type
   const byType = memories.reduce((acc, m) => {

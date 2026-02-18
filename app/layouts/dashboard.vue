@@ -182,5 +182,9 @@ const links = [[{
         <span />
       </template>
     </ClientOnly>
+
+    <ClientOnly>
+      <WelcomeModal />
+    </ClientOnly>
   </UDashboardGroup>
 </template>

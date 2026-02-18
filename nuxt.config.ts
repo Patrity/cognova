@@ -52,7 +52,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL || ''
+    databaseUrl: process.env.DATABASE_URL || '',
+    public: {
+      agentName: process.env.AGENT_NAME || 'Cognova',
+      agentTone: process.env.AGENT_TONE || 'casual'
+    }
   },
 
   alias: {

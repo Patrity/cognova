@@ -23,7 +23,11 @@ export function generateEnvFile(config: InitConfig): string {
     '# Admin (used on first startup to seed database)',
     `ADMIN_EMAIL=${config.auth.adminEmail}`,
     `ADMIN_PASSWORD=${config.auth.adminPassword}`,
-    `ADMIN_NAME=${config.auth.adminName}`
+    `ADMIN_NAME=${config.auth.adminName}`,
+    '',
+    '# Agent personality (used by the web UI)',
+    `AGENT_NAME=${config.personality.agentName}`,
+    `AGENT_TONE=${config.personality.tone}`
   ]
 
   lines.push('')

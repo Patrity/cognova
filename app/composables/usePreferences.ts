@@ -21,6 +21,9 @@ interface Preferences {
 
   // Agent stats
   agentStatsPeriod: '24h' | '7d' | '30d'
+
+  // Onboarding
+  onboardingDismissed: boolean
 }
 
 const COOKIE_NAME = 'sb-preferences'
@@ -37,7 +40,8 @@ const defaults: Preferences = {
   assistantLastConversationId: null,
   taskStatusFilter: 'all',
   taskProjectFilter: null,
-  agentStatsPeriod: '7d'
+  agentStatsPeriod: '7d',
+  onboardingDismissed: false
 }
 
 export function usePreferences() {
@@ -110,6 +114,11 @@ export function usePreferences() {
     set: v => set('assistantLastConversationId', v)
   })
 
+  const onboardingDismissed = computed({
+    get: () => get('onboardingDismissed'),
+    set: v => set('onboardingDismissed', v)
+  })
+
   return {
     // Raw access
     get,
@@ -126,6 +135,7 @@ export function usePreferences() {
     assistantLastConversationId,
     taskStatusFilter,
     taskProjectFilter,
-    agentStatsPeriod
+    agentStatsPeriod,
+    onboardingDismissed
   }
 }

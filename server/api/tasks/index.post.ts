@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
     limit: 1
   })
 
-  notifyResourceChange({ resource: 'task', action: 'create', resourceId: task.id, resourceName: taskWithProject.title })
+  notifyResourceChange({ resource: 'task', action: 'create', resourceId: task.id, resourceName: taskWithProject!.title })
 
   return { data: taskWithProject }
 })

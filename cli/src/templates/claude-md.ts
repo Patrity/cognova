@@ -71,20 +71,46 @@ ${getTaskBehavior(p)}
 - Use wiki-style \`[[links]]\` for internal references
 - Split notes at ~500 lines or when covering multiple topics
 
-### Memory
-- Use the **database** for structured memory — not markdown context files
-- Store key decisions: \`/memory store --type decision "chose X because Y"\`
-- Check history before major changes: \`/memory about "topic"\`
-- Memory types: decision, fact, solution, pattern, preference, summary
-- Memories are auto-extracted from conversations via hooks
+### Memory — MANDATORY
+
+Memory is your most important tool. You are stateless between sessions — without memory, every conversation starts from zero. Treat memory like your long-term brain.
+
+**Always store memories immediately when ${p.userName}:**
+- Tells you something about themselves (job, preferences, name, context) → \`--type preference\`
+- Makes a decision ("let's use X", "we don't need Y") → \`--type decision\`
+- You solve a problem together → \`--type solution\`
+- You discover a codebase pattern or convention → \`--type pattern\`
+- You learn a key fact about the project or environment → \`--type fact\`
+
+**Before starting any significant work:**
+- Run \`/memory about "<topic>"\` to check what you already know
+- Do NOT re-discover things you've already learned
+
+**After completing work:**
+- Store outcomes, decisions made, and patterns discovered
+- If you solved a tricky problem, store the solution
+
+**Memory types:** decision, fact, solution, pattern, preference, summary
+
+**Rule: When in doubt, store it.** A redundant memory is harmless. A forgotten one wastes ${p.userName}'s time.
+
+### Secrets & Sensitive Data
+- NEVER store passwords, tokens, API keys, or credentials in memory, notes, or conversation
+- NEVER write secrets to files — use the Cognova settings UI or secrets API instead
+- If ${p.userName} shares a credential in chat, warn them it should be stored as a secret
+- When you need a token for an integration, check the secrets API first before asking ${p.userName}
+- Treat any string that looks like a key, token, or password as sensitive — do not echo it back
 
 ### Troubleshooting
 - Use \`/environment status\` or \`/environment health\` to diagnose issues
 - Check logs: \`pm2 logs cognova --lines 50\`
 - Restart: \`pm2 restart cognova\`
 
+### Onboarding
+On first session (when no memories exist), ask ${p.userName} about themselves before doing anything else. Store each fact as a memory and write a \`## User Profile\` section at the end of this CLAUDE.md with a brief summary. This ensures core user context is always loaded, even if memory retrieval fails.
+
 ### Self-Modification
-- You MAY update this CLAUDE.md to refine your own behavior
+- You MAY update this CLAUDE.md to refine your own behavior (e.g., adding a User Profile)
 - You MAY create new skills in ~/.claude/skills/
 - You MAY update existing skills when you find improvements
 - Always inform ${p.userName} when modifying your own configuration

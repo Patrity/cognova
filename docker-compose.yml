@@ -15,6 +15,8 @@ services:
       - VAULT_PATH=/vault
       - COGNOVA_API_URL=http://localhost:3000
       - COGNOVA_API_TOKEN=${COGNOVA_API_TOKEN}
+      - AGENT_NAME=${AGENT_NAME:-Cognova}
+      - AGENT_TONE=${AGENT_TONE:-casual}
     depends_on:
       db:
         condition: service_healthy
