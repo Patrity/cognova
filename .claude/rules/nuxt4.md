@@ -65,16 +65,31 @@ const emit = defineEmits<{
 
 ### Component Naming
 
-Follow best-practices naming conventions when nesting components in directories
+Nuxt auto-generates component names from `directory + filename` with **duplicate segments removed**.
+
+**Directory prefix becomes part of the name:**
 ```
-project/
-├── app/                    # Source root (NEW in Nuxt 4)
-│   ├── components/
-│   │   ├── MyComponent.vue
-│   │   ├── Home/
-│   │   │   └── Header.vue
+app/components/
+├── MyComponent.vue          → <MyComponent />
+├── chat/
+│   ├── Input.vue            → <ChatInput />
+│   └── MessageBubble.vue    → <ChatMessageBubble />
 ```
-In the example above, `Header.vue` would be used in a template as `<HomeHeader />`
+
+**DO NOT repeat the directory name in the filename:**
+```
+app/components/
+├── usage/
+│   ├── CostChart.vue        → <UsageCostChart />     ✅ GOOD
+│   ├── UsageCostChart.vue   → <UsageCostChart />     ❌ BAD (redundant, relies on dedup)
+│   ├── StatsCards.vue        → <UsageStatsCards />    ✅ GOOD
+```
+
+Nuxt deduplicates matching segments, so `usage/UsageFoo.vue` resolves to `<UsageFoo>` not
+`<UsageUsageFoo>`. But this is fragile — if the directory is plural (`agents/`) and the
+prefix is singular (`Agent`), dedup fails and you get `<AgentsAgentFoo>`.
+
+**Rule: Name files as if the directory prefix is already included.**
 
 ## Data Fetching
 
@@ -121,23 +136,31 @@ export default defineNuxtConfig({
 
 ## Client-Only Components
 
-### .client.vue Suffix
-Components that access browser APIs should use `.client.vue`:
+### .client.vue / .server.vue Suffixes
+Components that access browser APIs should use `.client.vue`. The suffix is **stripped**
+from the component name — reference them WITHOUT "Client" or "Server":
 
 ```
 app/components/
-├── game/
-│   ├── PhaserGame.client.vue   # Imports Phaser
-│   └── GameCanvas.client.vue   # Wrapper
-└── UserMenu.vue                # Normal SSR component
+├── usage/
+│   ├── CostChart.client.vue    # Client-only (unovis charts)
+│   ├── CostChart.server.vue    # SSR placeholder skeleton
+│   └── StatsCards.vue           # Normal SSR component
 ```
 
-The component name becomes `PhaserGameClient` in templates:
 ```vue
 <template>
-  <PhaserGameClient />
+  <!-- ✅ CORRECT — suffix is NOT part of the name -->
+  <UsageCostChart :data="data" />
+
+  <!-- ❌ WRONG — never include "Client" or "Server" in the tag -->
+  <UsageCostChartClient :data="data" />
 </template>
 ```
+
+Nuxt automatically selects the `.client.vue` or `.server.vue` variant based on the
+rendering context. When both exist, the server renders the `.server.vue` version, then
+hydrates with the `.client.vue` version on the client.
 
 ### ClientOnly Wrapper (Alternative)
 ```vue
