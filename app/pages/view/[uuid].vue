@@ -60,18 +60,19 @@ watch(viewSource, v => viewSourceMode.value = v)
 
 // Copy content to clipboard
 const toast = useToast()
+const { copy } = useCopyToClipboard()
 async function copyContent() {
   const content = data.value?.data?.content
   if (!content) return
 
-  try {
-    await navigator.clipboard.writeText(content)
+  const ok = await copy(content)
+  if (ok) {
     toast.add({
       title: 'Copied to clipboard',
       icon: 'i-lucide-check',
       color: 'success'
     })
-  } catch {
+  } else {
     toast.add({
       title: 'Failed to copy',
       icon: 'i-lucide-x',

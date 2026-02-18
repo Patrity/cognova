@@ -122,15 +122,17 @@ function handleShareClick() {
   }
 }
 
+const { copy } = useCopyToClipboard()
+
 async function copyShareLink() {
-  try {
-    await navigator.clipboard.writeText(shareUrl.value)
+  const ok = await copy(shareUrl.value)
+  if (ok) {
     linkCopied.value = true
     toast.add({ title: 'Link copied!', icon: 'i-lucide-check', color: 'success' })
     setTimeout(() => {
       linkCopied.value = false
     }, 2000)
-  } catch {
+  } else {
     toast.add({ title: 'Failed to copy link', icon: 'i-lucide-x', color: 'error' })
   }
 }
