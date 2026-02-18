@@ -415,6 +415,45 @@ export interface UsageStats {
   topConsumers: { name: string, source: TokenUsageSource, cost: number, calls: number }[]
 }
 
+// === Dashboard ===
+
+export interface DashboardOverview {
+  tasks: {
+    todoCount: number
+    inProgressCount: number
+    upcoming: Array<{
+      id: string
+      title: string
+      status: TaskStatus
+      priority: number
+      dueDate: string | null
+      projectName: string | null
+      projectColor: string | null
+    }>
+  }
+  conversations: Array<{
+    id: string
+    sessionId: string
+    title: string | null
+    messageCount: number
+    startedAt: string
+  }>
+  documents: Array<{
+    id: string
+    title: string
+    path: string
+    modifiedAt: string | null
+    projectName: string | null
+    projectColor: string | null
+  }>
+  usage: {
+    totalCost7d: number
+    totalCalls7d: number
+    totalInputTokens7d: number
+    totalOutputTokens7d: number
+  }
+}
+
 // === Hook Events ===
 
 export type HookEventType

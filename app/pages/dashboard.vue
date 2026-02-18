@@ -1,80 +1,81 @@
 <script setup lang="ts">
+import type { DashboardOverview } from '~~/shared/types'
+
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
 })
+
+const { user } = useAuth()
+const overview = ref<DashboardOverview | null>(null)
+const loading = ref(true)
+
+async function loadOverview() {
+  loading.value = true
+  try {
+    const res = await $fetch<{ data: DashboardOverview }>('/api/dashboard/overview')
+    overview.value = res.data
+  } catch {
+    // Silently fail — cards show empty state
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  loadOverview()
+})
 </script>
 
 <template>
-  <UDashboardPanel
-    id="dashboard"
-    grow
-  >
-    <UDashboardNavbar title="Dashboard">
-      <template #actions>
-        <UColorModeButton />
+  <div class="contents">
+    <UDashboardPanel
+      id="dashboard"
+      grow
+    >
+      <template #header>
+        <UDashboardNavbar title="Dashboard" />
       </template>
-    </UDashboardNavbar>
 
-    <div class="p-6 overflow-auto">
-      <div class="space-y-6">
-        <div>
-          <h1 class="text-2xl font-bold">
-            Welcome to Cognova
-          </h1>
-          <p class="text-muted mt-1">
-            Your personal knowledge management system.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <UCard>
-            <template #header>
-              <div class="flex items-center gap-2">
-                <UIcon
-                  name="i-lucide-check-square"
-                  class="size-5 text-primary"
-                />
-                <span class="font-semibold">Tasks Due Today</span>
-              </div>
-            </template>
-            <p class="text-muted text-sm">
-              No tasks due today.
+      <template #body>
+        <div class="p-4 space-y-6">
+          <div>
+            <h1 class="text-2xl font-bold">
+              Welcome back{{ user?.name ? `, ${user.name}` : '' }}
+            </h1>
+            <p class="text-muted mt-1 text-sm">
+              Here's what's happening in your workspace.
             </p>
-          </UCard>
+          </div>
 
-          <UCard>
-            <template #header>
-              <div class="flex items-center gap-2">
-                <UIcon
-                  name="i-lucide-file-text"
-                  class="size-5 text-primary"
-                />
-                <span class="font-semibold">Recent Notes</span>
-              </div>
-            </template>
-            <p class="text-muted text-sm">
-              No recent notes.
-            </p>
-          </UCard>
+          <DashboardStatCards
+            :overview="overview"
+            :loading="loading"
+          />
 
-          <UCard>
-            <template #header>
-              <div class="flex items-center gap-2">
-                <UIcon
-                  name="i-lucide-inbox"
-                  class="size-5 text-primary"
-                />
-                <span class="font-semibold">Quick Capture</span>
-              </div>
-            </template>
-            <UInput
-              placeholder="What's on your mind?"
-              class="mt-2"
+          <div class="grid gap-6 lg:grid-cols-2">
+            <DashboardUpcomingTasks
+              :tasks="overview?.tasks.upcoming ?? []"
+              :loading="loading"
             />
-          </UCard>
+            <DashboardRecentChats
+              :conversations="overview?.conversations ?? []"
+              :loading="loading"
+            />
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-2">
+            <DashboardRecentDocs
+              :documents="overview?.documents ?? []"
+              :loading="loading"
+            />
+            <DashboardUsageSummary
+              :usage="overview?.usage ?? { totalCost7d: 0, totalCalls7d: 0, totalInputTokens7d: 0, totalOutputTokens7d: 0 }"
+              :loading="loading"
+            />
+          </div>
         </div>
-      </div>
-    </div>
-  </UDashboardPanel>
+      </template>
+    </UDashboardPanel>
+  </div>
 </template>

@@ -29,8 +29,18 @@ onMounted(() => {
   connect()
   loadConversations()
 
+  // Load specific conversation from URL param (e.g., from dashboard)
+  if (route.query.conversation) {
+    const conversationId = route.query.conversation as string
+    const stop = watch(connectionStatus, (status) => {
+      if (status === 'connected') {
+        stop()
+        loadConversation(conversationId)
+        router.replace({ query: {} })
+      }
+    }, { immediate: true })
+  } else if (route.query.onboarding) {
   // Auto-send greeting when arriving from onboarding modal
-  if (route.query.onboarding) {
     const stop = watch(connectionStatus, (status) => {
       if (status === 'connected') {
         stop()
