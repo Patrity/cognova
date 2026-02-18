@@ -22,6 +22,9 @@ interface Preferences {
   // Agent stats
   agentStatsPeriod: '24h' | '7d' | '30d'
 
+  // Usage stats
+  usageStatsPeriod: '24h' | '7d' | '30d'
+
   // Onboarding
   onboardingDismissed: boolean
 }
@@ -41,6 +44,7 @@ const defaults: Preferences = {
   taskStatusFilter: 'all',
   taskProjectFilter: null,
   agentStatsPeriod: '7d',
+  usageStatsPeriod: '7d',
   onboardingDismissed: false
 }
 
@@ -114,6 +118,11 @@ export function usePreferences() {
     set: v => set('assistantLastConversationId', v)
   })
 
+  const usageStatsPeriod = computed({
+    get: () => get('usageStatsPeriod'),
+    set: v => set('usageStatsPeriod', v)
+  })
+
   const onboardingDismissed = computed({
     get: () => get('onboardingDismissed'),
     set: v => set('onboardingDismissed', v)
@@ -136,6 +145,7 @@ export function usePreferences() {
     taskStatusFilter,
     taskProjectFilter,
     agentStatsPeriod,
+    usageStatsPeriod,
     onboardingDismissed
   }
 }

@@ -57,6 +57,13 @@ const links = [[{
     open.value = false
   }
 }, {
+  label: 'Usage',
+  icon: 'i-lucide-bar-chart-3',
+  to: '/usage',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Chat',
   icon: 'i-lucide-message-square',
   to: '/chat',
@@ -92,7 +99,7 @@ const links = [[{
           <span
             v-if="!collapsed"
             class="font-semibold text-lg"
-          >Brain</span>
+          >Cognova</span>
         </div>
       </template>
 

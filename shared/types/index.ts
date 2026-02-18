@@ -373,6 +373,48 @@ export interface AgentDetailStats {
   dailyRuns: DailyRunData[]
 }
 
+// === Token Usage ===
+
+export type TokenUsageSource
+  = | 'chat'
+    | 'agent'
+    | 'memory_extraction'
+
+export interface TokenUsageRecord {
+  id: string
+  source: TokenUsageSource
+  sourceId?: string
+  sourceName?: string
+  inputTokens: number
+  outputTokens: number
+  costUsd: number
+  durationMs?: number
+  numTurns?: number
+  createdAt: Date
+}
+
+export interface DailyUsageData {
+  date: string
+  chat: number
+  agent: number
+  memory: number
+  totalCost: number
+  inputTokens: number
+  outputTokens: number
+  calls: number
+}
+
+export interface UsageStats {
+  totalCostUsd: number
+  totalInputTokens: number
+  totalOutputTokens: number
+  totalCalls: number
+  avgCostPerCall: number
+  dailyUsage: DailyUsageData[]
+  bySource: { source: TokenUsageSource, cost: number, calls: number, tokens: number }[]
+  topConsumers: { name: string, source: TokenUsageSource, cost: number, calls: number }[]
+}
+
 // === Hook Events ===
 
 export type HookEventType

@@ -4,6 +4,7 @@ import { getDb } from '../db'
 import * as schema from '../db/schema'
 import { agentRegistry } from '../utils/agent-registry'
 import { notifyResourceChange } from '../utils/notify-resource'
+import { logTokenUsage } from '../utils/log-token-usage'
 
 // Custom error for cancellation
 export class AgentCancelledError extends Error {
@@ -87,6 +88,18 @@ export async function executeAgent(config: AgentConfig): Promise<void> {
     await db.update(schema.cronAgents)
       .set({ lastRunAt: new Date(), lastStatus: status })
       .where(eq(schema.cronAgents.id, config.id))
+
+    // Log token usage
+    logTokenUsage({
+      source: 'agent',
+      sourceId: runId,
+      sourceName: config.name,
+      inputTokens: result.usage.input_tokens,
+      outputTokens: result.usage.output_tokens,
+      costUsd: result.total_cost_usd,
+      durationMs,
+      numTurns: result.num_turns
+    })
 
     console.log(`[agent] ${config.name} completed: ${status} (${durationMs}ms, $${result.total_cost_usd.toFixed(4)})`)
 

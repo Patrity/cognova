@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { chatSessionManager } from '~~/server/utils/chat-session-manager'
 import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
+import { logTokenUsage } from '~~/server/utils/log-token-usage'
 import type { ChatClientMessage, ChatContentBlock } from '~~/shared/types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -201,8 +202,17 @@ async function streamSDKResponse(peer: any, session: any, conversationId: string
           }
         }
       } else if (message.type === 'result') {
-        const costUsd = message.total_cost_usd || 0
-        const durationMs = message.duration_ms || 0
+        // Cast to access usage fields the SDK provides but aren't in the TS types
+        const msg = message as unknown as {
+          total_cost_usd: number
+          duration_ms: number
+          num_turns: number
+          usage: { input_tokens: number, output_tokens: number }
+        }
+        const costUsd = msg.total_cost_usd || 0
+        const durationMs = msg.duration_ms || 0
+        const inputTokens = msg.usage?.input_tokens || 0
+        const outputTokens = msg.usage?.output_tokens || 0
 
         // Persist assistant message
         if (contentBlocks.length > 0) {
@@ -229,6 +239,23 @@ async function streamSDKResponse(peer: any, session: any, conversationId: string
             endedAt: new Date()
           })
           .where(eq(schema.conversations.id, conversationId))
+
+        // Log token usage
+        const [conv] = await db.select({ title: schema.conversations.title })
+          .from(schema.conversations)
+          .where(eq(schema.conversations.id, conversationId))
+          .limit(1)
+
+        logTokenUsage({
+          source: 'chat',
+          sourceId: conversationId,
+          sourceName: conv?.title || 'Chat',
+          inputTokens,
+          outputTokens,
+          costUsd,
+          durationMs,
+          numTurns: msg.num_turns || 1
+        })
 
         send(peer, {
           type: 'chat:stream_end',

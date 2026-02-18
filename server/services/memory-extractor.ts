@@ -1,5 +1,6 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { ExtractedMemory, MemoryChunkType } from '~~/shared/types'
+import { logTokenUsage } from '../utils/log-token-usage'
 
 const EXTRACTION_PROMPT = `You are a memory extraction assistant. Analyze this conversation excerpt and extract key memories worth preserving for future reference.
 
@@ -41,6 +42,10 @@ export async function extractMemories(transcript: string): Promise<ExtractedMemo
     })
 
     let result = ''
+    let costUsd = 0
+    let durationMs = 0
+    let inputTokens = 0
+    let outputTokens = 0
 
     // Stream through messages and get the result
     for await (const message of conversation) {
@@ -48,11 +53,31 @@ export async function extractMemories(transcript: string): Promise<ExtractedMemo
         const msg = message as unknown as {
           subtype: string
           result?: string
+          total_cost_usd: number
+          duration_ms: number
+          usage: { input_tokens: number, output_tokens: number }
         }
         if (msg.subtype === 'success' && msg.result)
           result = msg.result
+
+        costUsd = msg.total_cost_usd || 0
+        durationMs = msg.duration_ms || 0
+        inputTokens = msg.usage?.input_tokens || 0
+        outputTokens = msg.usage?.output_tokens || 0
       }
     }
+
+    // Log token usage for memory extraction
+    if (costUsd > 0 || inputTokens > 0)
+      logTokenUsage({
+        source: 'memory_extraction',
+        sourceName: 'Memory Extraction',
+        inputTokens,
+        outputTokens,
+        costUsd,
+        durationMs,
+        numTurns: 1
+      })
 
     if (!result)
       return []

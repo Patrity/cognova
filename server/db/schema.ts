@@ -359,3 +359,20 @@ export const userSettings = pgTable('user_settings', {
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(user, { fields: [userSettings.userId], references: [user.id] })
 }))
+
+// =============================================================================
+// Token Usage - Unified AI cost & token tracking
+// =============================================================================
+
+export const tokenUsage = pgTable('token_usage', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  source: text('source', { enum: ['chat', 'agent', 'memory_extraction'] }).notNull(),
+  sourceId: text('source_id'),
+  sourceName: text('source_name'),
+  inputTokens: integer('input_tokens').default(0).notNull(),
+  outputTokens: integer('output_tokens').default(0).notNull(),
+  costUsd: real('cost_usd').default(0).notNull(),
+  durationMs: integer('duration_ms'),
+  numTurns: integer('num_turns'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+})
