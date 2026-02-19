@@ -35,13 +35,15 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Hook Analytics | Done | Event tracking, stats, filtering by type/session/tool |
 | Token Usage Tracking | Done | Per-source cost breakdown, daily/hourly granularity |
 | Docker Deployment | Done | Dockerfile, docker-compose, health checks, volume support |
+| Secrets Skill | Done | `/secret` slash command for list, get, set, delete |
+| Skills Management | Done | [skill-expansion.md](./skill-expansion.md) — browse, toggle, edit, create, agent-generate skills |
+| Community Skills Library | Done | [skill-expansion.md](./skill-expansion.md) — GitHub registry sync, install/update, tag filtering |
 
 ## Priority 3: Planned
 
 | Feature | Status | Plan |
 |---------|--------|------|
 | Search | Planned | [search.md](./todo/search.md) — unified full-text search across resources |
-| Secrets Skill | Planned | [env skill.md](./todo/env%20skill.md) — Claude skill for secrets management |
 | Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
 | AI History Export | Planned | [ai-history.md](./todo/ai-history.md) — JSONL parsing for conversation export |
 
@@ -78,7 +80,11 @@ database-init ─┬─► auth
                └─► secrets-api
 
 skills-system ─┬─► task-skill
-               └─► cron-agents
+               ├─► cron-agents
+               ├─► skills-management
+               └─► community-library
 
 secrets-api ───► secrets-skill
+
+skills-management ──► community-library
 ```

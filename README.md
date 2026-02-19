@@ -13,6 +13,9 @@ Personal knowledge management system with an embedded AI terminal. Built for a u
 - **Task Management** - Track tasks with status, priority, and project tags
 - **Scheduled Agents** - Cron-based Claude agents with cost tracking and real-time status
 - **Memory Dashboard** - View and manage Claude's memory context
+- **Skills Management** - Browse, enable/disable, edit, and create skills with a built-in file editor
+- **Community Skills Library** - Install skills from a [GitHub-hosted registry](https://github.com/Patrity/cognova-skills) with tag filtering and one-click updates
+- **Encrypted Secrets** - AES-256-GCM key-value store with a `/secret` skill for agent access
 - **Dashboard** - Overview of recent activity and quick capture
 - **Custom Homepage** - Override the landing page by creating `index.md` in your vault
 - **Public Document Sharing** - Share vault documents via unique link (no auth required)

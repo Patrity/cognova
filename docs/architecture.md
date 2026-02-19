@@ -180,6 +180,9 @@ Reference: [Nuxt UI Dashboard Template - Inbox Page](https://github.com/nuxt-ui-
 | `/chat` | Interactive Claude chat | Sidebar + conversation list/chat |
 | `/agents` | Scheduled agents dashboard | Stats, chart, agent cards |
 | `/agents/[id]` | Agent detail | Stats, run history, controls |
+| `/skills` | Skills management | Sidebar + skill grid |
+| `/skills/[name]` | Skill editor | Sidebar + file tree/CodeMirror editor |
+| `/skills/library` | Community skills library | Sidebar + browsable catalog |
 | `/hooks` | Hook event log and stats | Sidebar + event list |
 | `/memories` | Memory dashboard | Sidebar + memory list |
 | `/settings` | User profile, password, API secrets | Sidebar + settings forms |
