@@ -13,6 +13,16 @@ export function getPackageDir(): string {
   return join(__dirname, '..', '..')
 }
 
+/** Read the version from the npm package's package.json */
+export function getPackageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(join(getPackageDir(), 'package.json'), 'utf-8'))
+    return pkg.version || '0.0.0'
+  } catch {
+    return '0.0.0'
+  }
+}
+
 /** User's home directory */
 export function getHomeDir(): string {
   return homedir()

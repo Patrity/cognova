@@ -1,26 +1,12 @@
-import { readFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
 import { init } from './commands/init'
 import { start, stop, restart } from './commands/start'
 import { update } from './commands/update'
 import { doctor } from './commands/doctor'
 import { reset } from './commands/reset'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-function getVersion(): string {
-  try {
-    const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8'))
-    return pkg.version || '0.0.0'
-  } catch {
-    return '0.0.0'
-  }
-}
+import { getPackageVersion } from './lib/paths'
 
 const HELP_TEXT = `
-  cognova v${getVersion()} — Personal knowledge management with Claude Code
+  cognova v${getPackageVersion()} — Personal knowledge management with Claude Code
 
   Usage: cognova <command> [options]
 
@@ -121,7 +107,7 @@ const flags = new Set(args.filter(a => a.startsWith('-')))
 
 // --version / -v
 if (flags.has('--version') || flags.has('-v')) {
-  console.log(getVersion())
+  console.log(getPackageVersion())
   process.exit(0)
 }
 

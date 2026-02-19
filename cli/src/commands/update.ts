@@ -4,7 +4,7 @@ import { join } from 'path'
 import * as p from '@clack/prompts'
 import pc from 'picocolors'
 import { findInstallDir, readMetadata } from '../lib/paths'
-import { copyAppSource } from '../lib/install'
+import { copyAppSource, writeMetadata } from '../lib/install'
 import { syncClaudeConfig } from '../lib/claude-config'
 import { loadEnvFile } from '../lib/config'
 
@@ -154,9 +154,11 @@ export async function update() {
     }
   }
 
-  // Clean up backup on success
-  if (!updateFailed)
+  // Update metadata and clean up backup on success
+  if (!updateFailed) {
+    writeMetadata(installDir, metadata.vaultPath, latestVersion)
     cleanupBackup(backupDir)
+  }
 
   if (updateFailed) {
     p.outro('Update failed. Previous version has been restored. Try again later.')

@@ -6,6 +6,7 @@ import pc from 'picocolors'
 import { checkPrerequisites } from '../lib/prerequisites'
 import { promptPersonality } from '../lib/personality'
 import { setupInstallDir, writeMetadata } from '../lib/install'
+import { getPackageVersion } from '../lib/paths'
 import { setupVault } from '../lib/vault'
 import { setupDatabase } from '../lib/database'
 import { writeEnvFile } from '../lib/config'
@@ -159,7 +160,7 @@ export async function init() {
   await installClaudeConfig(config)
   s.stop('Claude config installed to ~/.claude/')
 
-  writeMetadata(resolvedInstallDir, vault.path, '0.1.0')
+  writeMetadata(resolvedInstallDir, vault.path, getPackageVersion())
 
   // Step 9: Install & Start
   p.log.step(pc.bold('Setup'))
