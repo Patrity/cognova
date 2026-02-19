@@ -2,6 +2,7 @@
 defineProps<{
   data?: unknown[]
   title?: string
+  displayMode?: string
 }>()
 </script>
 

@@ -2,12 +2,13 @@
 import { format } from 'date-fns'
 import { useElementSize } from '@vueuse/core'
 import { VisXYContainer, VisLine, VisArea, VisAxis, VisCrosshair, VisTooltip } from '@unovis/vue'
-import type { DailyUsageData } from '~~/shared/types'
+import type { DailyUsageData, UsageDisplayMode } from '~~/shared/types'
 
 const props = defineProps<{
   data: DailyUsageData[]
   title?: string
   granularity: 'daily' | 'hourly'
+  displayMode?: UsageDisplayMode
 }>()
 
 const emit = defineEmits<{
@@ -17,9 +18,12 @@ const emit = defineEmits<{
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
 const { width } = useElementSize(cardRef)
 
+const isTokens = computed(() => props.displayMode === 'tokens')
+
 const x = (_: DailyUsageData, i: number) => i
 
-const yTotal = (d: DailyUsageData) => d.totalCost
+const yTotal = (d: DailyUsageData) =>
+  isTokens.value ? d.inputTokens + d.outputTokens : d.totalCost
 
 // Parse "2026-02-18" as local date (not UTC) to avoid off-by-one in western timezones
 function parseLocalDate(dateStr: string): Date {
@@ -41,6 +45,12 @@ const xTicks = (i: number) => {
   return format(parseLocalDate(item.date), 'd MMM')
 }
 
+function formatTokens(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return String(value)
+}
+
 const template = (d: DailyUsageData) => {
   let label: string
   if (props.granularity === 'hourly') {
@@ -51,6 +61,14 @@ const template = (d: DailyUsageData) => {
   } else {
     label = format(parseLocalDate(d.date), 'MMM d, yyyy')
   }
+  if (isTokens.value)
+    return `<div class="p-2 text-sm">
+      <div class="font-medium">${label}</div>
+      <div style="color: var(--ui-primary)">Input: ${formatTokens(d.inputTokens)}</div>
+      <div style="color: var(--ui-warning)">Output: ${formatTokens(d.outputTokens)}</div>
+      <div class="text-muted mt-1">Total: ${formatTokens(d.inputTokens + d.outputTokens)}</div>
+      <div class="text-muted">${d.calls} calls</div>
+    </div>`
   return `<div class="p-2 text-sm">
     <div class="font-medium">${label}</div>
     <div style="color: var(--ui-primary)">Chat: $${d.chat.toFixed(4)}</div>
@@ -96,27 +114,45 @@ const template = (d: DailyUsageData) => {
           </UFieldGroup>
         </div>
         <div class="flex items-center gap-3 text-xs text-muted">
-          <span class="flex items-center gap-1">
-            <span
-              class="inline-block size-2.5 rounded-full"
-              style="background: var(--ui-primary)"
-            />
-            Chat
-          </span>
-          <span class="flex items-center gap-1">
-            <span
-              class="inline-block size-2.5 rounded-full"
-              style="background: var(--ui-warning)"
-            />
-            Agents
-          </span>
-          <span class="flex items-center gap-1">
-            <span
-              class="inline-block size-2.5 rounded-full"
-              style="background: var(--ui-info)"
-            />
-            Memory
-          </span>
+          <template v-if="isTokens">
+            <span class="flex items-center gap-1">
+              <span
+                class="inline-block size-2.5 rounded-full"
+                style="background: var(--ui-primary)"
+              />
+              Input
+            </span>
+            <span class="flex items-center gap-1">
+              <span
+                class="inline-block size-2.5 rounded-full"
+                style="background: var(--ui-warning)"
+              />
+              Output
+            </span>
+          </template>
+          <template v-else>
+            <span class="flex items-center gap-1">
+              <span
+                class="inline-block size-2.5 rounded-full"
+                style="background: var(--ui-primary)"
+              />
+              Chat
+            </span>
+            <span class="flex items-center gap-1">
+              <span
+                class="inline-block size-2.5 rounded-full"
+                style="background: var(--ui-warning)"
+              />
+              Agents
+            </span>
+            <span class="flex items-center gap-1">
+              <span
+                class="inline-block size-2.5 rounded-full"
+                style="background: var(--ui-info)"
+              />
+              Memory
+            </span>
+          </template>
         </div>
       </div>
     </template>

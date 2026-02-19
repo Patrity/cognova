@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import type { TokenUsageSource } from '~~/shared/types'
+import type { TokenUsageSource, UsageDisplayMode } from '~~/shared/types'
 
 interface Consumer {
   name: string
   source: TokenUsageSource
   cost: number
   calls: number
+  tokens: number
 }
 
-defineProps<{
+const props = defineProps<{
   data: Consumer[]
   title?: string
+  displayMode?: UsageDisplayMode
 }>()
 
 const sourceLabels: Record<TokenUsageSource, string> = {
@@ -25,9 +27,17 @@ const sourceColors = {
   memory_extraction: 'info'
 } as const
 
+const isTokens = computed(() => props.displayMode === 'tokens')
+
 function formatCurrency(value: number): string {
   if (value < 0.01 && value > 0) return '<$0.01'
   return `$${value.toFixed(4)}`
+}
+
+function formatTokens(value: number): string {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`
+  return String(value)
 }
 </script>
 
@@ -77,7 +87,7 @@ function formatCurrency(value: number): string {
 
         <div class="text-right shrink-0 ml-4">
           <p class="text-sm font-semibold">
-            {{ formatCurrency(item.cost) }}
+            {{ isTokens ? formatTokens(item.tokens) : formatCurrency(item.cost) }}
           </p>
           <p class="text-xs text-muted">
             {{ item.calls }} {{ item.calls === 1 ? 'call' : 'calls' }}

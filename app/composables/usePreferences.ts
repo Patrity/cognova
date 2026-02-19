@@ -1,4 +1,4 @@
-import type { TaskStatus } from '~~/shared/types'
+import type { TaskStatus, UsageDisplayMode } from '~~/shared/types'
 
 interface Preferences {
   // Editor preferences
@@ -24,6 +24,7 @@ interface Preferences {
 
   // Usage stats
   usageStatsPeriod: '24h' | '7d' | '30d'
+  usageDisplayMode: UsageDisplayMode
 
   // Onboarding
   onboardingDismissed: boolean
@@ -45,6 +46,7 @@ const defaults: Preferences = {
   taskProjectFilter: null,
   agentStatsPeriod: '7d',
   usageStatsPeriod: '7d',
+  usageDisplayMode: 'tokens',
   onboardingDismissed: false
 }
 
@@ -123,6 +125,11 @@ export function usePreferences() {
     set: v => set('usageStatsPeriod', v)
   })
 
+  const usageDisplayMode = computed({
+    get: () => get('usageDisplayMode'),
+    set: v => set('usageDisplayMode', v)
+  })
+
   const onboardingDismissed = computed({
     get: () => get('onboardingDismissed'),
     set: v => set('onboardingDismissed', v)
@@ -146,6 +153,7 @@ export function usePreferences() {
     taskProjectFilter,
     agentStatsPeriod,
     usageStatsPeriod,
+    usageDisplayMode,
     onboardingDismissed
   }
 }

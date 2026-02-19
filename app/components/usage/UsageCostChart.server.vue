@@ -3,6 +3,7 @@ defineProps<{
   data?: unknown[]
   title?: string
   granularity?: string
+  displayMode?: string
 }>()
 </script>
 

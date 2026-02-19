@@ -345,6 +345,7 @@ export interface UserSettings {
 // === Agent Stats ===
 
 export type StatsPeriod = '24h' | '7d' | '30d'
+export type UsageDisplayMode = 'cost' | 'tokens'
 
 export interface DailyRunData {
   date: string
@@ -412,7 +413,7 @@ export interface UsageStats {
   avgCostPerCall: number
   dailyUsage: DailyUsageData[]
   bySource: { source: TokenUsageSource, cost: number, calls: number, tokens: number }[]
-  topConsumers: { name: string, source: TokenUsageSource, cost: number, calls: number }[]
+  topConsumers: { name: string, source: TokenUsageSource, cost: number, calls: number, tokens: number }[]
 }
 
 // === Dashboard ===

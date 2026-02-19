@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
   const sourceMap = new Map<TokenUsageSource, { cost: number, calls: number, tokens: number }>()
 
   // Top consumers
-  const consumerMap = new Map<string, { name: string, source: TokenUsageSource, cost: number, calls: number }>()
+  const consumerMap = new Map<string, { name: string, source: TokenUsageSource, cost: number, calls: number, tokens: number }>()
 
   for (const r of records) {
     totalCostUsd += r.costUsd
@@ -99,10 +99,12 @@ export default defineEventHandler(async (event) => {
       name: r.sourceName || 'Unknown',
       source,
       cost: 0,
-      calls: 0
+      calls: 0,
+      tokens: 0
     }
     consumer.cost += r.costUsd
     consumer.calls++
+    consumer.tokens += r.inputTokens + r.outputTokens
     consumerMap.set(consumerKey, consumer)
   }
 

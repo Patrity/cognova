@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VisSingleContainer, VisDonut } from '@unovis/vue'
-import type { TokenUsageSource } from '~~/shared/types'
+import type { TokenUsageSource, UsageDisplayMode } from '~~/shared/types'
 
 interface SourceData {
   source: TokenUsageSource
@@ -12,6 +12,7 @@ interface SourceData {
 const props = defineProps<{
   data: SourceData[]
   title?: string
+  displayMode?: UsageDisplayMode
 }>()
 
 const sourceLabels: Record<TokenUsageSource, string> = {
@@ -26,10 +27,19 @@ const sourceColors: Record<TokenUsageSource, string> = {
   memory_extraction: 'var(--ui-info)'
 }
 
-const value = (d: SourceData) => d.cost
+const isTokens = computed(() => props.displayMode === 'tokens')
+const value = (d: SourceData) => isTokens.value ? d.tokens : d.cost
 const color = (d: SourceData) => sourceColors[d.source] || 'var(--ui-neutral)'
 
-const totalCost = computed(() => props.data.reduce((sum, d) => sum + d.cost, 0))
+const total = computed(() =>
+  props.data.reduce((sum, d) => sum + (isTokens.value ? d.tokens : d.cost), 0)
+)
+
+function formatTokens(v: number): string {
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`
+  return String(v)
+}
 </script>
 
 <template>
@@ -81,9 +91,11 @@ const totalCost = computed(() => props.data.reduce((sum, d) => sum + d.cost, 0))
             <span class="text-sm font-medium">{{ sourceLabels[item.source] }}</span>
           </div>
           <div class="text-right">
-            <span class="text-sm font-semibold">${{ item.cost.toFixed(2) }}</span>
+            <span class="text-sm font-semibold">
+              {{ isTokens ? formatTokens(item.tokens) : `$${item.cost.toFixed(2)}` }}
+            </span>
             <span class="text-xs text-muted ml-2">
-              {{ totalCost > 0 ? Math.round((item.cost / totalCost) * 100) : 0 }}%
+              {{ total > 0 ? Math.round(((isTokens ? item.tokens : item.cost) / total) * 100) : 0 }}%
             </span>
           </div>
         </div>
