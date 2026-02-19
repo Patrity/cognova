@@ -2,6 +2,12 @@
 name: task
 description: Manage Cognova tasks - create, list, update, complete tasks. Use when the user wants to track work items, todos, or action items. Can search for and associate tasks with projects.
 allowed-tools: Bash, Read
+metadata:
+  version: "1.0.0"
+  requires-secrets: []
+  author: Cognova
+  repository: ""
+  installed-from: ""
 ---
 
 # Task Management Skill

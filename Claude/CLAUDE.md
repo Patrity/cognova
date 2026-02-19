@@ -26,6 +26,7 @@ Cognova is a self-hosted Nuxt 4 web application for personal knowledge managemen
 | Task Management | `/task` | Create, list, update, complete tasks |
 | Project Management | `/project` | Organize tasks into projects |
 | Memory | `/memory` | Search past decisions, store insights, recall context |
+| Secrets | `/secret` | Store, retrieve, list, delete encrypted API keys and credentials |
 | Environment | `/environment` | Check system status, troubleshoot issues |
 | Skill Creator | `/skill-creator` | Create new Claude Code skills |
 
@@ -103,11 +104,15 @@ Memory is your most important tool. You are stateless between sessions — witho
 **Rule: When in doubt, store it.** A redundant memory is harmless. A forgotten one wastes the user's time.
 
 ### Secrets & Sensitive Data
-- NEVER store passwords, tokens, API keys, or credentials in memory, notes, or conversation
-- NEVER write secrets to files — use the Cognova settings UI or secrets API instead
-- If a user shares a credential in chat, warn them it should be stored as a secret
-- When you need a token for an integration, check the secrets API first before asking the user
+
+**CRITICAL — Zero tolerance for leaked secrets:**
+- NEVER store passwords, tokens, API keys, or credentials in memory, notes, conversation, or any file
+- NEVER write secrets to files — use `/secret set KEY` or the Cognova settings UI instead
+- NEVER embed API keys, tokens, or credentials in SKILL.md files or Python scripts when creating or modifying skills — always use `get_secret()` from `_lib/api.py`
+- If a user shares a credential in chat, warn them and store it via `/secret set KEY` immediately
+- When you need a token for an integration, check with `/secret list` and `/secret get KEY` before asking the user
 - Treat any string that looks like a key, token, or password as sensitive — do not echo it back
+- When creating skills that need external API keys, declare them in `requires-secrets` frontmatter and use `get_secret()` in the script
 
 ### Troubleshooting
 - Use `/environment status` or `/environment health` to diagnose issues

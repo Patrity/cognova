@@ -2,6 +2,12 @@
 name: memory
 description: Access persistent memory across Claude sessions. Search past conversations, recall decisions, store key insights. Use when needing context from previous work or to save important information for future sessions.
 allowed-tools: Bash, Read
+metadata:
+  version: "1.0.0"
+  requires-secrets: []
+  author: Cognova
+  repository: ""
+  installed-from: ""
 ---
 
 # Memory Skill

@@ -2,6 +2,12 @@
 name: environment
 description: Check system status, view configuration, troubleshoot issues with the Cognova installation. Use when diagnosing problems, checking health, or understanding the current setup.
 allowed-tools: Bash, Read
+metadata:
+  version: "1.0.0"
+  requires-secrets: []
+  author: Cognova
+  repository: ""
+  installed-from: ""
 ---
 
 # Environment Skill

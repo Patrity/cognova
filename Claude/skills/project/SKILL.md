@@ -2,6 +2,12 @@
 name: project
 description: Manage Cognova projects - create, list, update projects. ALWAYS searches for existing projects before creating new ones. ALWAYS confirms with user before creating, showing potential matches.
 allowed-tools: Bash, Read
+metadata:
+  version: "1.0.0"
+  requires-secrets: []
+  author: Cognova
+  repository: ""
+  installed-from: ""
 ---
 
 # Project Management Skill

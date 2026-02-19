@@ -3,6 +3,12 @@ name: skill-creator
 description: Assists users in creating new Claude Code skills. Uses web search to find latest conventions and suggests alternative approaches (existing MCPs, plugins) when appropriate.
 allowed-tools: Bash, Read, Write, WebSearch, WebFetch
 disable-model-invocation: true
+metadata:
+  version: "1.0.0"
+  requires-secrets: []
+  author: Cognova
+  repository: ""
+  installed-from: ""
 ---
 
 # Skill Creator
@@ -10,6 +16,8 @@ disable-model-invocation: true
 Assists in creating new Claude Code skills for Cognova or personal use.
 
 ## Process
+
+> **CRITICAL: Skills must NEVER contain hardcoded secrets.** Always use `get_secret()` from `_lib/api.py` for API keys, tokens, and credentials. If the user provides a key/token during skill creation, store it via `/secret set KEY` first, then reference it by key name in the script. Declare required secrets in `metadata.requires-secrets` frontmatter.
 
 When a user asks to create a new skill:
 
@@ -193,6 +201,28 @@ my_var = os.environ.get('MY_CUSTOM_VAR', 'default')
 | `user-invocable` | false | Claude-only, hidden from user menu |
 | `context` | fork | Run in subagent |
 | `agent` | Explore, Plan, general-purpose | Agent type for subagent |
+| `metadata` | object | Custom metadata (version, author, etc.) |
+
+#### Metadata Fields
+
+Nest under `metadata:` in frontmatter:
+
+```yaml
+metadata:
+  version: "1.0.0"
+  requires-secrets: ["API_KEY_NAME"]
+  author: Your Name
+  repository: ""
+  installed-from: ""
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | string | Semantic version |
+| `requires-secrets` | string[] | Secret keys the skill needs (fetched via `get_secret()`) |
+| `author` | string | Skill author name |
+| `repository` | string | Source repository URL |
+| `installed-from` | string | Library name if installed from community |
 
 ### 7. Skill Locations
 
