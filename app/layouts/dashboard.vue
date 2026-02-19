@@ -50,6 +50,13 @@ const links = [[{
     open.value = false
   }
 }, {
+  label: 'Skills',
+  icon: 'i-lucide-puzzle',
+  to: '/skills',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
   label: 'Memories',
   icon: 'i-lucide-brain',
   to: '/memories',
