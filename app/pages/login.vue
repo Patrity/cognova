@@ -49,12 +49,22 @@ async function handleSubmit(event: { data: { email: string, password: string } }
 </script>
 
 <template>
-  <UAuthForm
-    title="Sign In"
-    description="Enter your credentials to access your account"
-    icon="i-lucide-brain"
-    :fields="fields"
-    :submit="{ label: 'Sign In', loading }"
-    @submit="handleSubmit"
-  />
+  <div>
+    <div class="flex flex-col items-center gap-6 mb-8">
+      <div class="flex items-center gap-3">
+        <UIcon
+          name="i-lucide-brain"
+          class="size-10 text-primary"
+        />
+        <span class="font-bold text-2xl">Cognova</span>
+      </div>
+    </div>
+    <UAuthForm
+      title="Sign In"
+      description="Enter your credentials to access your account"
+      :fields="fields"
+      :submit="{ label: 'Sign In', loading }"
+      @submit="handleSubmit"
+    />
+  </div>
 </template>
