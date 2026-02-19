@@ -79,9 +79,11 @@ export async function update() {
 
   if (latestVersion === metadata.version) {
     s.stop(`Already on latest version (${metadata.version})`)
-  } else {
-    s.stop(`Update available: ${metadata.version} → ${pc.green(latestVersion)}`)
+    p.outro('Nothing to update.')
+    return
   }
+
+  s.stop(`Update available: ${metadata.version} → ${pc.green(latestVersion)}`)
 
   // Create backup before making any changes
   s.start('Creating backup')
@@ -91,18 +93,16 @@ export async function update() {
   let updateFailed = false
 
   try {
-    if (latestVersion !== metadata.version) {
-      // Download and extract latest
-      s.start('Downloading latest version')
-      const tmpDir = execSync('mktemp -d', { encoding: 'utf-8' }).trim()
-      try {
-        execSync(`npm pack cognova@${latestVersion} --pack-destination ${tmpDir}`, { stdio: 'pipe' })
-        execSync(`tar -xzf ${tmpDir}/cognova-${latestVersion}.tgz -C ${tmpDir}`, { stdio: 'pipe' })
-        copyAppSource(`${tmpDir}/package`, installDir)
-        s.stop('Source files updated')
-      } finally {
-        rmSync(tmpDir, { recursive: true, force: true })
-      }
+    // Download and extract latest
+    s.start('Downloading latest version')
+    const tmpDir = execSync('mktemp -d', { encoding: 'utf-8' }).trim()
+    try {
+      execSync(`npm pack cognova@${latestVersion} --pack-destination ${tmpDir}`, { stdio: 'pipe' })
+      execSync(`tar -xzf ${tmpDir}/cognova-${latestVersion}.tgz -C ${tmpDir}`, { stdio: 'pipe' })
+      copyAppSource(`${tmpDir}/package`, installDir)
+      s.stop('Source files updated')
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true })
     }
 
     // Sync bundled Claude config (skills, hooks, rules) to ~/.claude/
