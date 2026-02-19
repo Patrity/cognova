@@ -497,6 +497,26 @@ export interface SkillFile {
   children?: SkillFile[]
 }
 
+// === Skills Library ===
+
+// First tag must be 'community' or 'official'. Up to 4 additional free-form tags.
+export type SkillSourceTag = 'community' | 'official'
+
+export interface SkillCatalogItem {
+  id: string
+  name: string
+  description: string
+  version: string
+  author: string
+  tags: string[]
+  requiresSecrets: string[]
+  files: string[]
+  updatedAt: string
+  installed?: boolean
+  installedVersion?: string
+  hasUpdate?: boolean
+}
+
 // === Hook Events ===
 
 export type HookEventType

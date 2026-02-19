@@ -361,6 +361,23 @@ export const userSettingsRelations = relations(userSettings, ({ one }) => ({
 }))
 
 // =============================================================================
+// Skills Catalog - Cache of community skills registry
+// =============================================================================
+
+export const skillsCatalog = pgTable('skills_catalog', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(),
+  description: text('description').notNull(),
+  version: text('version').notNull(),
+  author: text('author').notNull(),
+  tags: text('tags').array().default([]),
+  requiresSecrets: text('requires_secrets').array().default([]),
+  files: text('files').array().default([]),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+  syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow().notNull()
+})
+
+// =============================================================================
 // Token Usage - Unified AI cost & token tracking
 // =============================================================================
 
