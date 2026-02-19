@@ -87,24 +87,36 @@ const emit = defineEmits<{
       </span>
       <span v-else />
 
-      <UButton
-        v-if="!skill.installed"
-        size="xs"
-        icon="i-lucide-download"
-        @click="emit('install', skill.name)"
-      >
-        Install
-      </UButton>
-      <UButton
-        v-else-if="skill.hasUpdate"
-        size="xs"
-        color="warning"
-        variant="soft"
-        icon="i-lucide-refresh-cw"
-        @click="emit('update', skill.name)"
-      >
-        Update
-      </UButton>
+      <div class="flex items-center gap-1.5">
+        <UButton
+          size="xs"
+          variant="ghost"
+          color="neutral"
+          icon="i-lucide-external-link"
+          :to="`https://github.com/Patrity/cognova-skills/tree/main/${skill.name}`"
+          target="_blank"
+        >
+          View
+        </UButton>
+        <UButton
+          v-if="!skill.installed"
+          size="xs"
+          icon="i-lucide-download"
+          @click="emit('install', skill.name)"
+        >
+          Install
+        </UButton>
+        <UButton
+          v-else-if="skill.hasUpdate"
+          size="xs"
+          color="warning"
+          variant="soft"
+          icon="i-lucide-refresh-cw"
+          @click="emit('update', skill.name)"
+        >
+          Update
+        </UButton>
+      </div>
     </div>
   </div>
 </template>
