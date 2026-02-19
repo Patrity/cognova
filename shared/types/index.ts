@@ -454,6 +454,49 @@ export interface DashboardOverview {
   }
 }
 
+// === Skills ===
+
+export interface SkillMeta {
+  name: string
+  description: string
+  version: string
+  author: string
+  tags: string[]
+  allowedTools: string[]
+  requiresSecrets: string[]
+  repository: string
+  installedFrom: string
+  disableModelInvocation: boolean
+  userInvocable: boolean
+  context: string
+  agent: string
+}
+
+export interface SkillListItem {
+  name: string
+  description: string
+  version: string
+  author: string
+  active: boolean
+  core: boolean
+  allowedTools: string[]
+  requiresSecrets: string[]
+  installedFrom: string
+  fileCount: number
+}
+
+export interface SkillDetail extends SkillListItem {
+  meta: SkillMeta
+  files: SkillFile[]
+}
+
+export interface SkillFile {
+  name: string
+  path: string
+  type: 'file' | 'directory'
+  children?: SkillFile[]
+}
+
 // === Hook Events ===
 
 export type HookEventType

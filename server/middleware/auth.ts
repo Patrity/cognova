@@ -33,7 +33,6 @@ async function checkApiToken(event: H3Event): Promise<boolean> {
 
 export default defineEventHandler(async (event) => {
   const path = getRequestURL(event).pathname
-
   // Skip auth for root path (public home page)
   if (path === '/') return
 
