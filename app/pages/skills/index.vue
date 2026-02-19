@@ -11,6 +11,8 @@ const skills = ref<SkillListItem[]>([])
 const loading = ref(true)
 const search = ref('')
 const createOpen = ref(false)
+const importing = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const filteredSkills = computed(() => {
   if (!search.value.trim()) return skills.value
@@ -30,6 +32,34 @@ async function loadSkills() {
     toast.add({ title: 'Failed to load skills', color: 'error' })
   } finally {
     loading.value = false
+  }
+}
+
+async function handleImport(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  importing.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await $fetch<{ data: { name: string, fileCount: number } }>('/api/skills/import', {
+      method: 'POST',
+      body: formData
+    })
+    toast.add({
+      title: `Imported ${res.data.name}`,
+      description: `${res.data.fileCount} file${res.data.fileCount === 1 ? '' : 's'}`,
+      color: 'success'
+    })
+    navigateTo(`/skills/${res.data.name}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Import failed'
+    toast.add({ title: 'Import failed', description: message, color: 'error' })
+  } finally {
+    importing.value = false
+    input.value = ''
   }
 }
 
@@ -78,6 +108,23 @@ onMounted(() => loadSkills())
                 Library
               </UButton>
             </NuxtLink>
+            <UButton
+              icon="i-lucide-upload"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              :loading="importing"
+              @click="fileInput?.click()"
+            >
+              Import
+            </UButton>
+            <input
+              ref="fileInput"
+              type="file"
+              accept=".zip"
+              class="hidden"
+              @change="handleImport"
+            >
             <UButton
               icon="i-lucide-plus"
               size="sm"

@@ -55,6 +55,10 @@ function handleRenamed(newName: string) {
   router.replace(`/skills/${newName}`)
 }
 
+function handleExport() {
+  window.open(`/api/skills/${skillName.value}/export`, '_blank')
+}
+
 onMounted(() => loadSkill())
 </script>
 
@@ -150,6 +154,14 @@ onMounted(() => loadSkill())
               color="neutral"
               size="sm"
               @click="renameOpen = true"
+            />
+            <UButton
+              v-if="skill"
+              icon="i-lucide-download"
+              variant="ghost"
+              color="neutral"
+              size="sm"
+              @click="handleExport"
             />
           </template>
         </UDashboardNavbar>
