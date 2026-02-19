@@ -19,49 +19,66 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Feature | Status | Plan |
 |---------|--------|------|
 | Task Skill | Done | (included in Skills System) |
+| Project Management | Done | Full CRUD, soft delete, color coding, task/doc association |
 | Cron Agents | Done | [cron-agents.md](./complete/cron-agents.md) |
 | Interactive Chat | Done | WebSocket + Claude Agent SDK streaming chat UI |
-| CLI Installer | Done | `cli/` — init, update, start/stop, reset |
-| Memory Dashboard | Done | Memory context viewer + skill |
-| Search | Planned | [search.md](./todo/search.md) |
-| Secrets Skill & Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) |
+| CLI Installer | Done | `cli/` — init, update, start/stop, restart, reset, doctor |
+| Memory System | Done | Extraction, session injection, access tracking, search + skill |
 | Document Metadata | Done | [document-metadata.md](./complete/document-metadata.md) |
+| Document Sharing | Done | Public/private sharing with UUID, SEO control |
+| Terminal | Done | Full PTY via node-pty, WebSocket, session persistence |
+| File System API | Done | Vault CRUD with path security validation |
+| Dashboard | Done | Stat cards, upcoming tasks, recent chats/docs, usage summary |
+| Secrets API | Done | Encrypted key-value store with AES encryption |
+| Settings Page | Done | Profile, password, secrets management, notification prefs |
+| Notifications | Done | Real-time WebSocket event bus across 9 resource types with per-action preferences |
+| Hook Analytics | Done | Event tracking, stats, filtering by type/session/tool |
+| Token Usage Tracking | Done | Per-source cost breakdown, daily/hourly granularity |
+| Docker Deployment | Done | Dockerfile, docker-compose, health checks, volume support |
 
-## Priority 3: Advanced
+## Priority 3: Planned
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| AI History | Partial | [ai-history.md](./todo/ai-history.md) — chat conversations stored, JSONL parsing not yet done |
+| Search | Planned | [search.md](./todo/search.md) — unified full-text search across resources |
+| Secrets Skill | Planned | [env skill.md](./todo/env%20skill.md) — Claude skill for secrets management |
+| Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
+| AI History Export | Planned | [ai-history.md](./todo/ai-history.md) — JSONL parsing for conversation export |
 
 ## Priority 4: Polish
 
 | Feature | Status | Plan |
 |---------|--------|------|
 | Editor UX | Planned | [editor-ux.md](./todo/editor-ux.md) |
+| Keyboard Shortcuts | Planned | Global shortcuts via Nuxt UI `defineShortcuts` |
+| Mobile Responsive | Planned | `sm:`/`md:` breakpoint coverage (currently `lg:` only) |
+
+## Priority 5: Future
+
+| Feature | Status | Plan |
+|---------|--------|------|
+| Obsidian Integration | Planned | Plugin to upload and share documents directly into the vault |
+| Semantic Search | Exploring | pgvector embeddings for meaning-based search across vault and memory |
+| Table Support | Exploring | TipTap table extensions for markdown editing |
+| Image Uploads | Exploring | Drag-and-drop image handling in the editor |
 
 ## Status Key
 
-- **Planned** - Design documented, not started
-- **In Progress** - Actively being implemented
-- **Done** - Implemented and working
-- **Blocked** - Waiting on dependency
+- **Planned** — Design documented, not started
+- **In Progress** — Actively being implemented
+- **Done** — Implemented and working
 
 ## Dependencies
 
 ```
 database-init ─┬─► auth
                ├─► task-skill
-               ├─► ai-history
-               └─► search
+               ├─► project-management
+               ├─► search
+               └─► secrets-api
 
-skills-system ─► task-skill
-              └─► cron-agents
+skills-system ─┬─► task-skill
+               └─► cron-agents
+
+secrets-api ───► secrets-skill
 ```
-
-## Quick Wins (No Plan Needed)
-
-Minor improvements that can be done inline:
-
-- [ ] Add loading states to file tree operations
-- [ ] Keyboard shortcuts for common actions (NuxtUI Shortcut Composable)
-- [ ] Mobile responsive improvements
