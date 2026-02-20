@@ -171,6 +171,44 @@ def extract_memories(
         return False
 
 
+def get_bridge_context() -> Optional[str]:
+    """
+    Get formatted bridge/integration context for session start.
+
+    Returns formatted context string describing enabled integrations,
+    or None if no bridges are configured or the request fails.
+    """
+    api_base = _get_api_base()
+    api_token = _get_api_token()
+
+    if not api_token:
+        return None
+
+    url = f"{api_base}/api/bridges/context"
+
+    cmd = [
+        "curl", "-sL",
+        "-H", f"X-API-Token: {api_token}",
+        "--connect-timeout", "2",
+        "--max-time", "5",
+        url
+    ]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+        if result.returncode == 0 and result.stdout:
+            data = json.loads(result.stdout)
+            if 'data' in data and 'formatted' in data['data']:
+                formatted = data['data']['formatted']
+                if formatted:
+                    return formatted
+    except Exception as e:
+        if os.environ.get('DEBUG'):
+            print(f"[hook_client] Bridge context failed: {e}", file=sys.stderr)
+
+    return None
+
+
 def get_memory_context(project_path: Optional[str] = None, limit: int = 5) -> Optional[str]:
     """
     Get formatted memory context for session start.

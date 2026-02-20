@@ -13,7 +13,7 @@ from pathlib import Path
 # Add lib to path
 sys.path.insert(0, str(Path(__file__).parent / 'lib'))
 
-from hook_client import log_event, read_stdin_json, get_memory_context
+from hook_client import log_event, read_stdin_json, get_memory_context, get_bridge_context
 
 
 def main():
@@ -24,6 +24,13 @@ def main():
         event_data=hook_input,
         hook_script='session-start.py'
     )
+
+    # Inject bridge/integration context (printed to stdout goes to Claude)
+    bridge_context = get_bridge_context()
+    if bridge_context:
+        print("")
+        print(bridge_context)
+        print("")
 
     # Inject memory context (printed to stdout goes to Claude)
     context = get_memory_context()
