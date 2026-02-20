@@ -12,9 +12,7 @@ scripts/
 .gitignore
 .eslintrc*
 .cognova
-Dockerfile
 docker-compose.yml
-docker-entrypoint.sh
 *.log
 logs/
 node_modules/

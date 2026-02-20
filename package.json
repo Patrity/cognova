@@ -36,10 +36,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:up": "docker compose --profile local up -d db",
-    "db:down": "docker compose --profile local down",
-    "docker:up": "./scripts/docker-up.sh -d",
-    "docker:down": "docker compose --profile local down",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
     "auth:create-admin": "tsx scripts/create-admin.ts",
     "auth:reset-pw": "tsx scripts/reset-password.ts"
   },
