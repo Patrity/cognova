@@ -6,6 +6,8 @@ definePageMeta({
   middleware: 'auth'
 })
 
+const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const skills = ref<SkillCatalogItem[]>([])
 const loading = ref(true)
@@ -96,7 +98,24 @@ async function handleUpdate(name: string) {
   }
 }
 
-onMounted(() => loadLibrary())
+onMounted(async () => {
+  await loadLibrary()
+
+  // Handle ?install= query param from docs site redirect
+  const installName = route.query.install as string | undefined
+  if (installName) {
+    router.replace({ query: {} })
+    const found = skills.value.find(s => s.name === installName)
+    if (found && !found.installed) {
+      toast.add({ title: `Installing ${installName} from docs...`, color: 'info' })
+      await handleInstall(installName)
+    } else if (found?.installed) {
+      toast.add({ title: `${installName} is already installed`, color: 'neutral' })
+    } else {
+      toast.add({ title: `Skill "${installName}" not found in library`, color: 'warning' })
+    }
+  }
+})
 </script>
 
 <template>
