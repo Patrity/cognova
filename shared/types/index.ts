@@ -484,6 +484,7 @@ export interface SkillListItem {
   requiresSecrets: string[]
   installedFrom: string
   fileCount: number
+  hasUpdate?: boolean
 }
 
 export interface SkillDetail extends SkillListItem {

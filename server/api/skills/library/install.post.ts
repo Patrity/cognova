@@ -1,4 +1,4 @@
-import { mkdir, writeFile, stat } from 'fs/promises'
+import { mkdir, writeFile, stat, rm } from 'fs/promises'
 import { join } from 'path'
 import { eq } from 'drizzle-orm'
 import { getDb } from '~~/server/db'
@@ -8,7 +8,7 @@ import { getSkillsDir } from '~~/server/utils/skills-path'
 const REPO_RAW_BASE = 'https://raw.githubusercontent.com/Patrity/cognova-skills/main'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ name: string }>(event)
+  const body = await readBody<{ name: string, force?: boolean }>(event)
   if (!body?.name)
     throw createError({ statusCode: 400, message: 'Skill name is required' })
 
@@ -24,8 +24,12 @@ export default defineEventHandler(async (event) => {
 
   // Check if already installed
   const existing = await stat(skillDir).catch(() => null)
-  if (existing)
+  if (existing && !body.force)
     throw createError({ statusCode: 409, message: `Skill '${body.name}' is already installed` })
+
+  // Force update: remove existing directory first
+  if (existing && body.force)
+    await rm(skillDir, { recursive: true, force: true })
 
   await mkdir(skillDir, { recursive: true })
 

@@ -46,6 +46,9 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Search | Planned | [search.md](./todo/search.md) — unified full-text search across resources |
 | Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
 | AI History Export | Planned | [ai-history.md](./todo/ai-history.md) — JSONL parsing for conversation export |
+| Multimodal Chat Input | Planned | File upload, image paste, drag-and-drop attachments in chat input |
+| Workspace Context | Planned | Agent awareness of vault dir for placing/reading files as needed |
+| Environment Awareness | Planned | Reinforce agent autonomy — install packages, use OS freely, suggest solutions, ask permission |
 
 ## Priority 4: Polish
 

@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   toggle: [name: string]
+  delete: [name: string]
+  update: [name: string]
 }>()
 
 const toggling = ref(false)
@@ -77,6 +79,22 @@ async function handleToggle() {
         {{ skill.author }}
       </UBadge>
       <span class="text-xs text-dimmed ml-auto">{{ skill.fileCount }} file{{ skill.fileCount !== 1 ? 's' : '' }}</span>
+      <UButton
+        v-if="skill.hasUpdate"
+        icon="i-lucide-refresh-cw"
+        color="primary"
+        variant="soft"
+        size="xs"
+        @click.prevent.stop="emit('update', skill.name)"
+      />
+      <UButton
+        v-if="!skill.core"
+        icon="i-lucide-trash"
+        color="error"
+        variant="soft"
+        size="xs"
+        @click.prevent.stop="emit('delete', skill.name)"
+      />
     </div>
   </NuxtLink>
 </template>

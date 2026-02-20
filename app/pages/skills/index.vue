@@ -13,6 +13,10 @@ const search = ref('')
 const createOpen = ref(false)
 const importing = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const deleteTarget = ref('')
+const updateTarget = ref('')
+const deleting = ref(false)
+const updating = ref(false)
 
 const filteredSkills = computed(() => {
   if (!search.value.trim()) return skills.value
@@ -76,6 +80,39 @@ async function handleToggle(name: string) {
     })
   } catch {
     toast.add({ title: `Failed to toggle ${name}`, color: 'error' })
+  }
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  try {
+    await $fetch(`/api/skills/${deleteTarget.value}/delete`, { method: 'POST' })
+    skills.value = skills.value.filter(s => s.name !== deleteTarget.value)
+    toast.add({ title: `Deleted ${deleteTarget.value}`, color: 'success' })
+    deleteTarget.value = ''
+  } catch {
+    toast.add({ title: `Failed to delete ${deleteTarget.value}`, color: 'error' })
+  } finally {
+    deleting.value = false
+  }
+}
+
+async function confirmUpdate() {
+  if (!updateTarget.value) return
+  updating.value = true
+  try {
+    await $fetch('/api/skills/library/install', {
+      method: 'POST',
+      body: { name: updateTarget.value, force: true }
+    })
+    toast.add({ title: `Updated ${updateTarget.value}`, color: 'success' })
+    updateTarget.value = ''
+    await loadSkills()
+  } catch {
+    toast.add({ title: `Failed to update ${updateTarget.value}`, color: 'error' })
+  } finally {
+    updating.value = false
   }
 }
 
@@ -189,6 +226,8 @@ onMounted(() => loadSkills())
               :key="skill.name"
               :skill="skill"
               @toggle="handleToggle"
+              @delete="deleteTarget = $event"
+              @update="updateTarget = $event"
             />
           </div>
         </div>
@@ -200,5 +239,72 @@ onMounted(() => loadSkills())
       @update:open="createOpen = $event"
       @created="loadSkills"
     />
+
+    <!-- Delete confirmation modal -->
+    <UModal
+      :open="!!deleteTarget"
+      @update:open="!$event && (deleteTarget = '')"
+    >
+      <template #header>
+        <span class="font-semibold">Delete Skill</span>
+      </template>
+      <template #body>
+        <p class="text-sm text-muted">
+          This will permanently delete <strong class="text-default">{{ deleteTarget }}</strong> and all its files. Any modifications you've made will be lost. This cannot be undone.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            :disabled="deleting"
+            @click="deleteTarget = ''"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            color="error"
+            :loading="deleting"
+            @click="confirmDelete"
+          >
+            Delete
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Update confirmation modal -->
+    <UModal
+      :open="!!updateTarget"
+      @update:open="!$event && (updateTarget = '')"
+    >
+      <template #header>
+        <span class="font-semibold">Update Skill</span>
+      </template>
+      <template #body>
+        <p class="text-sm text-muted">
+          This will re-download <strong class="text-default">{{ updateTarget }}</strong> from the community library, overwriting any local changes you've made to its files.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            :disabled="updating"
+            @click="updateTarget = ''"
+          >
+            Cancel
+          </UButton>
+          <UButton
+            :loading="updating"
+            @click="confirmUpdate"
+          >
+            Update
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

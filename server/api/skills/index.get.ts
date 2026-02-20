@@ -1,6 +1,9 @@
 import { readdir, readFile, stat } from 'fs/promises'
 import { join } from 'path'
+import { inArray } from 'drizzle-orm'
 import { getSkillsDir, getInactiveSkillsDir, parseSkillFrontmatter, isCoreSkill } from '~~/server/utils/skills-path'
+import { getDb } from '~~/server/db'
+import * as schema from '~~/server/db/schema'
 import type { SkillListItem } from '~~/shared/types'
 
 export default defineEventHandler(async () => {
@@ -11,6 +14,27 @@ export default defineEventHandler(async () => {
 
   // Scan inactive skills
   await scanDir(getInactiveSkillsDir(), false, skills)
+
+  // Check for updates on library-installed skills
+  const librarySkills = skills.filter(s => s.installedFrom === 'cognova-skills')
+  if (librarySkills.length > 0) {
+    try {
+      const db = getDb()
+      const catalogItems = await db
+        .select({ name: schema.skillsCatalog.name, version: schema.skillsCatalog.version })
+        .from(schema.skillsCatalog)
+        .where(inArray(schema.skillsCatalog.name, librarySkills.map(s => s.name)))
+
+      const catalogVersions = new Map(catalogItems.map(c => [c.name, c.version]))
+      for (const skill of librarySkills) {
+        const latest = catalogVersions.get(skill.name)
+        if (latest && skill.version && latest !== skill.version)
+          skill.hasUpdate = true
+      }
+    } catch {
+      // DB not available — skip update checks
+    }
+  }
 
   // Sort: core first, then alphabetical
   skills.sort((a, b) => {
