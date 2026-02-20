@@ -34,7 +34,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Notifications | Done | Real-time WebSocket event bus across 9 resource types with per-action preferences |
 | Hook Analytics | Done | Event tracking, stats, filtering by type/session/tool |
 | Token Usage Tracking | Done | Per-source cost breakdown, daily/hourly granularity |
-| Docker Deployment | Done | Dockerfile, docker-compose, health checks, volume support |
+| Docker Deployment | Removed | Deprecated — Cognova requires OS-level access incompatible with containers |
 | Secrets Skill | Done | `/secret` slash command for list, get, set, delete |
 | Skills Management | Done | [skill-expansion.md](./skill-expansion.md) — browse, toggle, edit, create, agent-generate skills |
 | Community Skills Library | Done | [skill-expansion.md](./skill-expansion.md) — GitHub registry sync, install/update, tag filtering |
@@ -46,6 +46,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Search | Planned | [search.md](./todo/search.md) — unified full-text search across resources |
 | Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
 | AI History Export | Planned | [ai-history.md](./todo/ai-history.md) — JSONL parsing for conversation export |
+| Chat Commands | Planned | Slash commands in chat input for inline actions (e.g. /task, /project, /memory) |
 | Multimodal Chat Input | Planned | File upload, image paste, drag-and-drop attachments in chat input |
 | Workspace Context | Planned | Agent awareness of vault dir for placing/reading files as needed |
 | Environment Awareness | Planned | Reinforce agent autonomy — install packages, use OS freely, suggest solutions, ask permission |
@@ -62,6 +63,7 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 | Feature | Status | Plan |
 |---------|--------|------|
+| Message Bridge | Planned | [message-bridge.md](./todo/message-bridge.md) — Telegram, Discord, iMessage, Email adapters |
 | Obsidian Integration | Planned | Plugin to upload and share documents directly into the vault |
 | Semantic Search | Exploring | pgvector embeddings for meaning-based search across vault and memory |
 | Table Support | Exploring | TipTap table extensions for markdown editing |
