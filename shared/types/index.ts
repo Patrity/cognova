@@ -303,6 +303,7 @@ export type NotificationResource
     | 'project'
     | 'conversation'
     | 'secret'
+    | 'bridge'
 
 export type NotificationAction
   = 'create'
@@ -338,8 +339,15 @@ export interface NotificationResourcePreference {
 
 export type NotificationPreferences = Record<NotificationResource, NotificationResourcePreference>
 
+export interface BridgePreferences {
+  globalEnabled: boolean
+  respondToUnknown: boolean
+  autoReplyMessage?: string
+}
+
 export interface UserSettings {
   notifications: NotificationPreferences
+  bridges?: BridgePreferences
 }
 
 // === Agent Stats ===
@@ -779,3 +787,107 @@ export type ChatServerMessage
     | ChatStreamEnd
     | ChatError
     | ChatInterrupted
+
+// === Message Bridge ===
+
+export type BridgePlatform
+  = 'telegram'
+    | 'discord'
+    | 'imessage'
+    | 'google'
+    | 'email'
+
+export type BridgeHealthStatus
+  = 'connected'
+    | 'disconnected'
+    | 'error'
+    | 'unconfigured'
+
+export type BridgeMessageDirection = 'inbound' | 'outbound'
+
+export type BridgeMessageStatus
+  = 'pending'
+    | 'sent'
+    | 'delivered'
+    | 'failed'
+
+export interface Bridge {
+  id: string
+  platform: BridgePlatform
+  name: string
+  enabled: boolean
+  config?: string // JSON string
+  secretKeys: string[]
+  healthStatus: BridgeHealthStatus
+  healthMessage?: string
+  lastHealthCheck?: Date
+  createdAt: Date
+  updatedAt: Date
+  createdBy?: string
+}
+
+export interface BridgeMessage {
+  id: string
+  bridgeId: string
+  direction: BridgeMessageDirection
+  platform: string
+  sender?: string
+  senderName?: string
+  content: string
+  attachments?: string // JSON string
+  platformMessageId?: string
+  conversationId?: string
+  status: BridgeMessageStatus
+  attempts: number
+  lastError?: string
+  createdAt: Date
+  sentAt?: Date
+}
+
+export interface CreateBridgeInput {
+  platform: BridgePlatform
+  name: string
+  enabled?: boolean
+  config?: Record<string, unknown>
+  secretKeys?: string[]
+}
+
+export interface UpdateBridgeInput {
+  name?: string
+  enabled?: boolean
+  config?: Record<string, unknown>
+  secretKeys?: string[]
+}
+
+// Platform-specific config shapes (stored as JSON in config column)
+
+export interface TelegramBridgeConfig {
+  botUsername?: string
+  allowedChatIds?: string[]
+}
+
+export interface DiscordBridgeConfig {
+  guildId?: string
+  channelId?: string
+  listenMode: 'mentions' | 'dm' | 'all'
+}
+
+export interface IMessageBridgeConfig {
+  strategy: 'imsg' | 'bluebubbles'
+  allowedNumbers?: string[]
+  // BlueBubbles-specific
+  blueBubblesUrl?: string
+}
+
+export interface GoogleBridgeConfig {
+  enabledServices: string[] // ['gmail', 'calendar', 'drive', 'contacts', 'tasks']
+  account?: string // Google account email
+}
+
+export interface EmailBridgeConfig {
+  imapHost?: string
+  imapPort?: number
+  smtpHost?: string
+  smtpPort?: number
+  emailAddress?: string
+}

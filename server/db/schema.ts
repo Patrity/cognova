@@ -393,3 +393,56 @@ export const tokenUsage = pgTable('token_usage', {
   numTurns: integer('num_turns'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 })
+
+// =============================================================================
+// Message Bridge - External platform integrations
+// =============================================================================
+
+export const bridges = pgTable('bridges', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  platform: text('platform', {
+    enum: ['telegram', 'discord', 'imessage', 'google', 'email']
+  }).notNull(),
+  name: text('name').notNull(),
+  enabled: boolean('enabled').default(false).notNull(),
+  config: text('config'), // JSON: platform-specific config (channel mappings, filters, strategy)
+  secretKeys: text('secret_keys').array().default([]), // References to secrets table key names
+  healthStatus: text('health_status', {
+    enum: ['connected', 'disconnected', 'error', 'unconfigured']
+  }).default('unconfigured').notNull(),
+  healthMessage: text('health_message'),
+  lastHealthCheck: timestamp('last_health_check', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' })
+})
+
+export const bridgeMessages = pgTable('bridge_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  bridgeId: uuid('bridge_id').notNull().references(() => bridges.id, { onDelete: 'cascade' }),
+  direction: text('direction', { enum: ['inbound', 'outbound'] }).notNull(),
+  platform: text('platform').notNull(),
+  sender: text('sender'),
+  senderName: text('sender_name'),
+  content: text('content').notNull(),
+  attachments: text('attachments'), // JSON array of attachment metadata
+  platformMessageId: text('platform_message_id'),
+  conversationId: uuid('conversation_id').references(() => conversations.id, { onDelete: 'set null' }),
+  status: text('status', {
+    enum: ['pending', 'sent', 'delivered', 'failed']
+  }).default('pending').notNull(),
+  attempts: integer('attempts').default(0).notNull(),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  sentAt: timestamp('sent_at', { withTimezone: true })
+})
+
+export const bridgesRelations = relations(bridges, ({ one, many }) => ({
+  creator: one(user, { fields: [bridges.createdBy], references: [user.id] }),
+  messages: many(bridgeMessages)
+}))
+
+export const bridgeMessagesRelations = relations(bridgeMessages, ({ one }) => ({
+  bridge: one(bridges, { fields: [bridgeMessages.bridgeId], references: [bridges.id] }),
+  conversation: one(conversations, { fields: [bridgeMessages.conversationId], references: [conversations.id] })
+}))

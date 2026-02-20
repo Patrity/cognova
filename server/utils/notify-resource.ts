@@ -41,7 +41,8 @@ const resourceLabels: Record<NotificationResource, string> = {
   document: 'Document',
   project: 'Project',
   conversation: 'Conversation',
-  secret: 'Secret'
+  secret: 'Secret',
+  bridge: 'Bridge'
 }
 
 export function notifyResourceChange(options: NotifyOptions) {

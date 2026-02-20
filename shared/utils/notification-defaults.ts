@@ -9,5 +9,6 @@ export const defaultNotificationPreferences: NotificationPreferences = {
   secret: { enabled: true },
   document: { enabled: false },
   hook: { enabled: false },
-  conversation: { enabled: false }
+  conversation: { enabled: false },
+  bridge: { enabled: true }
 }
