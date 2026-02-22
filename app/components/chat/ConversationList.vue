@@ -55,10 +55,16 @@ function formatDate(date: Date | string) {
         @click="emit('select', conv.id)"
       >
         <div class="flex items-start justify-between gap-2">
-          <div class="truncate text-sm font-medium">
+          <div class="flex items-center gap-1.5 truncate text-sm font-medium">
+            <UIcon
+              v-if="conv.isMain"
+              name="i-lucide-pin"
+              class="size-3.5 text-primary shrink-0"
+            />
             {{ conv.title || 'Untitled' }}
           </div>
           <UButton
+            v-if="!conv.isMain"
             icon="i-lucide-trash-2"
             variant="ghost"
             color="error"

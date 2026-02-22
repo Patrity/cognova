@@ -2,7 +2,7 @@ import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 
 interface TokenUsageEntry {
-  source: 'chat' | 'agent' | 'memory_extraction'
+  source: 'chat' | 'agent' | 'memory_extraction' | 'bridge'
   sourceId?: string
   sourceName?: string
   inputTokens: number

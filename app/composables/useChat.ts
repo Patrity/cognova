@@ -263,6 +263,9 @@ export function useChat() {
   }
 
   async function deleteConversation(conversationId: string) {
+    const conv = conversations.value.find(c => c.id === conversationId)
+    if (conv?.isMain) return
+
     try {
       await $fetch(`/api/conversations/${conversationId}`, { method: 'DELETE' })
       conversations.value = conversations.value.filter(c => c.id !== conversationId)

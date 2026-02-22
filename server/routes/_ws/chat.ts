@@ -97,7 +97,8 @@ async function handleSend(peer: any, message: string, conversationId?: string) {
   await db.insert(schema.conversationMessages).values({
     conversationId: convId,
     role: 'user',
-    content: JSON.stringify([{ type: 'text', text: message }])
+    content: JSON.stringify([{ type: 'text', text: message }]),
+    source: 'web'
   })
 
   // Start SDK streaming (fire-and-forget so WS stays responsive for interrupts)

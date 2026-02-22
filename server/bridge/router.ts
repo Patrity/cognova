@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { notifyResourceChange } from '~~/server/utils/notify-resource'
+import { generateBridgeResponse } from './responder'
 import { getAdapter } from './registry'
 import type { NormalizedMessage, OutboundMessage, DeliveryResult } from './types'
 
@@ -38,10 +39,11 @@ export async function handleInboundMessage(
     meta: { platform: message.platform, sender: message.sender, direction: 'inbound' }
   })
 
-  // TODO Phase 2+: Route to Claude agent for processing
-  // This will create/resume a conversation and stream the agent response,
-  // then send the response back through the originating adapter.
-  console.log(`[bridge] Inbound message from ${message.sender} via ${message.platform}: ${message.text.substring(0, 100)}`)
+  // Route to Claude agent for response (fire-and-forget)
+  console.log(`[bridge] Inbound from ${message.sender} via ${message.platform}: ${message.text.substring(0, 100)}`)
+  void generateBridgeResponse(bridgeId, message, stored!.id).catch((error) => {
+    console.error('[bridge] Failed to generate response:', error)
+  })
 }
 
 /**

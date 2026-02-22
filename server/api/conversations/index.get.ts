@@ -8,9 +8,10 @@ export default defineEventHandler(async (event) => {
 
   const db = getDb()
 
+  // Main Chat always first, then by most recent
   const conversations = await db.select()
     .from(schema.conversations)
-    .orderBy(desc(schema.conversations.startedAt))
+    .orderBy(desc(schema.conversations.isMain), desc(schema.conversations.startedAt))
     .limit(50)
 
   return { data: conversations }

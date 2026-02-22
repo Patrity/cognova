@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage, ChatContentBlock } from '~~/shared/types'
+import type { ChatMessage, ChatContentBlock, MessageSource } from '~~/shared/types'
 
 defineProps<{
   message: ChatMessage
@@ -27,6 +27,34 @@ function getToolPairs(blocks: ChatContentBlock[]) {
   }
   return tools
 }
+
+const sourceIconMap: Record<string, string> = {
+  telegram: 'i-simple-icons-telegram',
+  discord: 'i-simple-icons-discord',
+  imessage: 'i-lucide-message-circle',
+  email: 'i-lucide-mail',
+  google: 'i-simple-icons-google'
+}
+
+function getSourceIcon(source?: MessageSource): string | null {
+  if (!source || source === 'web') return null
+  return sourceIconMap[source] || null
+}
+
+function formatTime(date: Date | string | undefined): string {
+  if (!date) return ''
+  const d = date instanceof Date ? date : new Date(date)
+  const now = new Date()
+  const diffMs = now.getTime() - d.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHr = Math.floor(diffMs / 3600000)
+
+  if (diffMin < 1) return 'just now'
+  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffHr < 24) return `${diffHr}h ago`
+
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
 </script>
 
 <template>
@@ -34,6 +62,13 @@ function getToolPairs(blocks: ChatContentBlock[]) {
     class="flex"
     :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
   >
+    <!-- Platform icon for bridge user messages (left of bubble) -->
+    <UIcon
+      v-if="message.role === 'user' && getSourceIcon(message.source)"
+      :name="getSourceIcon(message.source)!"
+      class="size-4 text-dimmed self-end mb-1 mr-1.5 shrink-0"
+    />
+
     <div
       class="max-w-[85%] rounded-xl px-4 py-3"
       :class="message.role === 'user'
@@ -76,6 +111,15 @@ function getToolPairs(blocks: ChatContentBlock[]) {
           <span v-if="message.durationMs">{{ (message.durationMs / 1000).toFixed(1) }}s</span>
         </div>
       </template>
+
+      <!-- Timestamp -->
+      <div
+        v-if="message.createdAt"
+        class="mt-1 text-xs text-dimmed"
+        :class="message.role === 'user' ? 'text-right' : ''"
+      >
+        {{ formatTime(message.createdAt) }}
+      </div>
     </div>
   </div>
 </template>

@@ -131,6 +131,7 @@ export const conversations = pgTable('conversations', {
     enum: ['idle', 'streaming', 'interrupted', 'error']
   }).default('idle').notNull(),
   totalCostUsd: real('total_cost_usd').default(0).notNull(),
+  isMain: boolean('is_main').default(false).notNull(),
   startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
   endedAt: timestamp('ended_at', { withTimezone: true }),
   messageCount: integer('message_count').default(0).notNull()
@@ -143,6 +144,7 @@ export const conversationMessages = pgTable('conversation_messages', {
     .references(() => conversations.id, { onDelete: 'cascade' }),
   role: text('role', { enum: ['user', 'assistant'] }).notNull(),
   content: text('content').notNull(), // JSON string of ChatContentBlock[]
+  source: text('source', { enum: ['web', 'telegram', 'discord', 'imessage', 'email', 'google'] }),
   costUsd: real('cost_usd'),
   durationMs: integer('duration_ms'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
@@ -383,7 +385,7 @@ export const skillsCatalog = pgTable('skills_catalog', {
 
 export const tokenUsage = pgTable('token_usage', {
   id: uuid('id').primaryKey().defaultRandom(),
-  source: text('source', { enum: ['chat', 'agent', 'memory_extraction'] }).notNull(),
+  source: text('source', { enum: ['chat', 'agent', 'memory_extraction', 'bridge'] }).notNull(),
   sourceId: text('source_id'),
   sourceName: text('source_name'),
   inputTokens: integer('input_tokens').default(0).notNull(),

@@ -71,6 +71,7 @@ export default defineEventHandler(async (event) => {
       chat: 0,
       agent: 0,
       memory: 0,
+      bridge: 0,
       totalCost: 0,
       inputTokens: 0,
       outputTokens: 0,
@@ -83,6 +84,7 @@ export default defineEventHandler(async (event) => {
     if (r.source === 'chat') existing.chat += r.costUsd
     else if (r.source === 'agent') existing.agent += r.costUsd
     else if (r.source === 'memory_extraction') existing.memory += r.costUsd
+    else if (r.source === 'bridge') existing.bridge += r.costUsd
     bucketMap.set(bucket, existing)
 
     // By source

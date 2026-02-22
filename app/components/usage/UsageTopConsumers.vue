@@ -18,13 +18,15 @@ const props = defineProps<{
 const sourceLabels: Record<TokenUsageSource, string> = {
   chat: 'Chat',
   agent: 'Agent',
-  memory_extraction: 'Memory'
+  memory_extraction: 'Memory',
+  bridge: 'Bridge'
 }
 
 const sourceColors = {
   chat: 'primary',
   agent: 'warning',
-  memory_extraction: 'info'
+  memory_extraction: 'info',
+  bridge: 'success'
 } as const
 
 const isTokens = computed(() => props.displayMode === 'tokens')

@@ -388,6 +388,7 @@ export type TokenUsageSource
   = | 'chat'
     | 'agent'
     | 'memory_extraction'
+    | 'bridge'
 
 export interface TokenUsageRecord {
   id: string
@@ -407,6 +408,7 @@ export interface DailyUsageData {
   chat: number
   agent: number
   memory: number
+  bridge: number
   totalCost: number
   inputTokens: number
   outputTokens: number
@@ -689,12 +691,15 @@ export interface ChatToolResultBlock {
 
 export type ChatContentBlock = ChatTextBlock | ChatToolUseBlock | ChatToolResultBlock
 
+export type MessageSource = 'web' | 'telegram' | 'discord' | 'imessage' | 'email' | 'google'
+
 // Persisted message
 export interface ChatMessage {
   id: string
   conversationId: string
   role: 'user' | 'assistant'
   content: ChatContentBlock[]
+  source?: MessageSource
   costUsd?: number
   durationMs?: number
   createdAt: Date
@@ -709,6 +714,7 @@ export interface ChatConversation {
   summary?: string
   status: ChatSessionStatus
   totalCostUsd: number
+  isMain: boolean
   messageCount: number
   startedAt: Date
   endedAt?: Date
