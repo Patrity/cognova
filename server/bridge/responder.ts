@@ -111,12 +111,12 @@ export async function generateBridgeResponse(
     source: message.platform
   })
 
-  // Build the prompt with memory context + platform context
+  // Build the prompt — frame as direct conversation, not a notification
   const memoryContext = await loadMemoryContext()
-  const senderLabel = message.senderName || message.sender
   const parts: string[] = []
   if (memoryContext) parts.push(memoryContext)
-  parts.push(`[${message.platform} message from ${senderLabel}]: ${message.text}`)
+  parts.push(`The user is messaging you via ${message.platform}. Respond directly to them. Keep responses concise (suitable for chat/messaging). Do not ask what to reply — you ARE the one replying.`)
+  parts.push(message.text)
   const prompt = parts.join('\n\n')
 
   // Update status
