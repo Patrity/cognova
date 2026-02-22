@@ -1,6 +1,6 @@
 ---
 name: bridge
-description: Manage message bridge integrations (Telegram, Discord, iMessage, Google Suite, Email). List, enable, disable, and configure platform connections.
+description: Manage message bridge integrations (Telegram, Discord, iMessage, Google Suite, Email). List, enable, disable, configure, send messages, and look up contacts.
 allowed-tools: Bash, Read
 metadata:
   version: "1.0.0"
@@ -63,6 +63,27 @@ python3 ~/.claude/skills/bridge/bridge.py delete <BRIDGE_ID>
 
 Permanently removes a bridge and all its message history.
 
+### List contacts for a bridge
+
+```bash
+python3 ~/.claude/skills/bridge/bridge.py contacts <BRIDGE_ID> [--query "search"] [--limit 50]
+```
+
+Lists people who have messaged through this bridge. Returns name, platform ID (needed for sending), message count, and last message time. Use `--query` to filter by name or ID.
+
+### Send a message through a bridge
+
+```bash
+python3 ~/.claude/skills/bridge/bridge.py send <BRIDGE_ID> --recipient <RECIPIENT_ID> --text "Hello!"
+```
+
+Sends a message to a specific recipient. The `--recipient` is the platform-specific ID (e.g., Telegram chat_id, Discord user_id). Use `contacts` to look up recipient IDs first.
+
+**Workflow for sending a message to someone:**
+1. `list` → find the bridge ID for the platform
+2. `contacts <BRIDGE_ID> --query "name"` → find the recipient's platform ID
+3. `send <BRIDGE_ID> --recipient <ID> --text "message"` → send the message
+
 ### Show integration context
 
 ```bash
@@ -80,6 +101,9 @@ Shows the current integration context that gets injected into sessions.
 - "What integrations do I have?" → Use `list`
 - "Disable Discord" → Use `disable`
 - "Check bridge status" → Use `list` (shows health)
+- "Send a message to X on Telegram" → `list` → `contacts` → `send`
+- "Who has messaged me on Telegram?" → `list` → `contacts`
+- "Message @username on Discord" → `list` → `contacts --query username` → `send`
 
 ## Setup Guides
 

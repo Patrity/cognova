@@ -19,20 +19,22 @@ const platformLabels: Record<BridgePlatform, string> = {
 
 const allPlatforms: BridgePlatform[] = ['telegram', 'discord', 'imessage', 'google', 'email']
 
-function formatTelegramContext(config: TelegramBridgeConfig | null): string {
+function formatTelegramContext(config: TelegramBridgeConfig | null, bridgeId: string): string {
   const lines = [
     'You can send and receive Telegram messages.',
-    '- Incoming messages from Telegram users are routed to you as conversations.',
-    '- To send a message, use the bridge API or /bridge skill.'
+    '- Incoming messages are routed to you automatically.',
+    `- To send a message: use \`/bridge\` skill → \`contacts ${bridgeId}\` to find the recipient, then \`send ${bridgeId} -r <ID> -t "message"\``,
+    `- To list contacts: \`/bridge\` skill → \`contacts ${bridgeId}\``
   ]
   if (config?.botUsername)
     lines.push(`- Bot username: @${config.botUsername}`)
   return lines.join('\n')
 }
 
-function formatDiscordContext(config: DiscordBridgeConfig | null): string {
+function formatDiscordContext(config: DiscordBridgeConfig | null, bridgeId: string): string {
   const lines = [
-    'You can send and receive Discord messages.'
+    'You can send and receive Discord messages.',
+    `- To send: \`/bridge\` skill → \`contacts ${bridgeId}\` to find recipient, then \`send ${bridgeId} -r <ID> -t "message"\``
   ]
   const mode = config?.listenMode || 'mentions'
   if (mode === 'dm')
@@ -44,17 +46,16 @@ function formatDiscordContext(config: DiscordBridgeConfig | null): string {
   return lines.join('\n')
 }
 
-function formatIMessageContext(config: IMessageBridgeConfig | null): string {
+function formatIMessageContext(config: IMessageBridgeConfig | null, bridgeId: string): string {
   const strategy = config?.strategy || 'imsg'
   const lines = [
     `You can send and receive iMessages (via ${strategy === 'imsg' ? 'local imsg CLI' : 'remote BlueBubbles'}).`,
-    '- Incoming iMessages are routed to you as conversations.'
+    '- Incoming iMessages are routed to you automatically.'
   ]
-  if (strategy === 'imsg') {
+  if (strategy === 'imsg')
     lines.push('- Send via: `imsg send "<number>" "<message>"`')
-  } else {
-    lines.push('- Send via the bridge API (BlueBubbles REST).')
-  }
+  else
+    lines.push(`- To send: \`/bridge\` skill → \`contacts ${bridgeId}\` to find recipient, then \`send ${bridgeId} -r <ID> -t "message"\``)
   return lines.join('\n')
 }
 
@@ -84,11 +85,11 @@ function formatGoogleContext(config: GoogleBridgeConfig | null): string {
   return lines.join('\n')
 }
 
-function formatEmailContext(): string {
+function formatEmailContext(bridgeId: string): string {
   return [
     'You can send and receive email via IMAP/SMTP.',
-    '- Incoming emails are routed to you as conversations.',
-    '- Send via the bridge API.'
+    '- Incoming emails are routed to you automatically.',
+    `- To send: \`/bridge\` skill → \`contacts ${bridgeId}\` to find recipient, then \`send ${bridgeId} -r <ID> -t "message"\``
   ].join('\n')
 }
 
@@ -114,19 +115,19 @@ export default defineEventHandler(async (event) => {
 
     switch (bridge.platform) {
       case 'telegram':
-        details = formatTelegramContext(config)
+        details = formatTelegramContext(config, bridge.id)
         break
       case 'discord':
-        details = formatDiscordContext(config)
+        details = formatDiscordContext(config, bridge.id)
         break
       case 'imessage':
-        details = formatIMessageContext(config)
+        details = formatIMessageContext(config, bridge.id)
         break
       case 'google':
         details = formatGoogleContext(config)
         break
       case 'email':
-        details = formatEmailContext()
+        details = formatEmailContext(bridge.id)
         break
     }
 

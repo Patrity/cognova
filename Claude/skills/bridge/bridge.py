@@ -160,6 +160,56 @@ def cmd_delete(args):
     print(f"Bridge '{data.get('name')}' deleted.")
 
 
+def cmd_contacts(args):
+    """List known contacts for a bridge."""
+    params = {}
+    if args.query:
+        params["q"] = args.query
+    if args.limit:
+        params["limit"] = str(args.limit)
+
+    success, data = get(f"/bridges/{args.id}/contacts", params=params if params else None)
+    if not success:
+        print(f"Error: {data}")
+        sys.exit(1)
+
+    contacts = data if isinstance(data, list) else []
+    if not contacts:
+        print("No contacts found for this bridge.")
+        return
+
+    name_width = max(len(c.get("senderName") or c.get("sender") or "") for c in contacts)
+    name_width = max(name_width, 4)
+
+    print(f"{'Name':<{name_width}}  {'ID':<20}  {'Messages':<9}  {'Last message'}")
+    print(f"{'-' * name_width}  {'-' * 20}  {'-' * 9}  {'-' * 20}")
+
+    for c in contacts:
+        name = c.get("senderName") or "(unknown)"
+        sender = c.get("sender") or ""
+        count = c.get("messageCount", 0)
+        last = (c.get("lastMessageAt") or "")[:19]
+        print(f"{name:<{name_width}}  {sender:<20}  {count:<9}  {last}")
+
+    print(f"\n{len(contacts)} contact(s).")
+
+
+def cmd_send(args):
+    """Send a message through a bridge."""
+    body = {
+        "recipient": args.recipient,
+        "text": args.text
+    }
+
+    success, data = post(f"/bridges/{args.id}/send", body)
+    if not success:
+        print(f"Error: {data}")
+        sys.exit(1)
+
+    msg_id = data.get("platformMessageId", "")
+    print(f"Message sent successfully." + (f" (ID: {msg_id})" if msg_id else ""))
+
+
 def cmd_context(args):
     """Show current bridge context."""
     success, data = get("/bridges/context")
@@ -208,6 +258,18 @@ def main():
     p_delete = sub.add_parser("delete", help="Delete a bridge")
     p_delete.add_argument("id", help="Bridge ID")
 
+    # contacts
+    p_contacts = sub.add_parser("contacts", help="List known contacts for a bridge")
+    p_contacts.add_argument("id", help="Bridge ID")
+    p_contacts.add_argument("--query", "-q", help="Search filter on name or ID")
+    p_contacts.add_argument("--limit", type=int, help="Max results (default 50)")
+
+    # send
+    p_send = sub.add_parser("send", help="Send a message through a bridge")
+    p_send.add_argument("id", help="Bridge ID")
+    p_send.add_argument("--recipient", "-r", required=True, help="Recipient ID (chat_id, user_id, etc.)")
+    p_send.add_argument("--text", "-t", required=True, help="Message text")
+
     # context
     sub.add_parser("context", help="Show integration context")
 
@@ -221,6 +283,8 @@ def main():
         "disable": cmd_disable,
         "configure": cmd_configure,
         "delete": cmd_delete,
+        "contacts": cmd_contacts,
+        "send": cmd_send,
         "context": cmd_context
     }
 
