@@ -56,10 +56,11 @@ interface TelegramDocument {
 }
 
 /**
- * Telegram adapter using the Bot API webhook mode.
+ * Telegram adapter supporting both webhook and long-polling modes.
  *
- * When started, registers a webhook with Telegram so they push updates to us.
- * When stopped, removes the webhook.
+ * - If a public APP_URL is configured, registers a webhook with Telegram.
+ * - Otherwise, falls back to long-polling via getUpdates.
+ *
  * Messages are sent via the Bot API sendMessage endpoint.
  */
 export class TelegramAdapter implements BridgeAdapter {
@@ -70,6 +71,9 @@ export class TelegramAdapter implements BridgeAdapter {
   private botToken: string | null = null
   private webhookSecret: string
   private healthy = false
+  private polling = false
+  private pollAbort: AbortController | null = null
+  private pollOffset = 0
 
   constructor(
     bridgeId: string,
@@ -92,6 +96,11 @@ export class TelegramAdapter implements BridgeAdapter {
       throw new Error('TELEGRAM_BOT_TOKEN secret not found. Add it in Settings → Secrets.')
     }
 
+    // Also check for APP_URL in secrets store (set via Settings → App)
+    const appUrlSecret = await getSecretValue('APP_URL')
+    if (appUrlSecret && !process.env.APP_URL)
+      process.env.APP_URL = appUrlSecret
+
     // Validate token by calling getMe
     const me = await this.apiCall('getMe')
     if (!me.ok) {
@@ -105,7 +114,7 @@ export class TelegramAdapter implements BridgeAdapter {
 
     console.log(`[telegram] Bot @${me.result?.username} authenticated`)
 
-    // Register webhook
+    // Register webhook or start polling
     const webhookUrl = this.getWebhookUrl()
     if (webhookUrl) {
       const setResult = await this.apiCall('setWebhook', {
@@ -120,13 +129,19 @@ export class TelegramAdapter implements BridgeAdapter {
 
       console.log(`[telegram] Webhook registered: ${webhookUrl}`)
     } else {
-      console.log('[telegram] No webhook URL configured — using polling or manual webhook setup')
+      // Delete any existing webhook before polling (Telegram requires this)
+      await this.apiCall('deleteWebhook')
+      console.log('[telegram] No public URL configured — starting long-polling')
+      this.startPolling()
     }
 
     this.healthy = true
   }
 
   async stop(): Promise<void> {
+    // Stop polling loop if running
+    this.stopPolling()
+
     if (this.botToken) {
       try {
         await this.apiCall('deleteWebhook')
@@ -238,6 +253,54 @@ export class TelegramAdapter implements BridgeAdapter {
     return headerValue === this.webhookSecret
   }
 
+  // ─── Polling ─────────────────────────────────────
+
+  private startPolling(): void {
+    this.polling = true
+    this.pollAbort = new AbortController()
+    void this.pollLoop()
+  }
+
+  private stopPolling(): void {
+    this.polling = false
+    if (this.pollAbort) {
+      this.pollAbort.abort()
+      this.pollAbort = null
+    }
+  }
+
+  private async pollLoop(): Promise<void> {
+    while (this.polling && this.botToken) {
+      try {
+        const result = await this.apiCall('getUpdates', {
+          offset: this.pollOffset,
+          timeout: 30,
+          allowed_updates: ['message', 'edited_message']
+        }, this.pollAbort?.signal)
+
+        if (!this.polling) break
+
+        if (result.ok && Array.isArray(result.result)) {
+          for (const update of result.result as TelegramUpdate[]) {
+            this.pollOffset = update.update_id + 1
+            await this.handleUpdate(update).catch((error: unknown) => {
+              console.error('[telegram] Error handling polled update:', error)
+            })
+          }
+        } else if (!result.ok) {
+          console.error('[telegram] Polling error:', result.description)
+          // Back off on error to avoid hammering the API
+          await sleep(5000)
+        }
+      } catch (error) {
+        if (!this.polling) break
+        // Network error — back off and retry
+        console.error('[telegram] Poll network error:', error instanceof Error ? error.message : error)
+        await sleep(5000)
+      }
+    }
+  }
+
   // ─── Private helpers ───────────────────────────
 
   private getWebhookUrl(): string | null {
@@ -253,18 +316,25 @@ export class TelegramAdapter implements BridgeAdapter {
     return null
   }
 
-  private async apiCall(method: string, body?: Record<string, unknown>): Promise<TelegramApiResponse> {
+  private async apiCall(
+    method: string,
+    body?: Record<string, unknown>,
+    signal?: AbortSignal
+  ): Promise<TelegramApiResponse> {
     const url = `${TELEGRAM_API}/bot${this.botToken}/${method}`
 
     try {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: body ? JSON.stringify(body) : undefined
+        body: body ? JSON.stringify(body) : undefined,
+        signal
       })
 
       return await response.json() as TelegramApiResponse
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError')
+        return { ok: false, description: 'Request aborted' }
       return {
         ok: false,
         description: error instanceof Error ? error.message : 'Network error'
@@ -283,7 +353,8 @@ export class TelegramAdapter implements BridgeAdapter {
 interface TelegramApiResponse {
   ok: boolean
   description?: string
-  result?: Record<string, unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  result?: any
 }
 
 function formatTelegramName(from?: TelegramMessage['from']): string {
@@ -291,4 +362,8 @@ function formatTelegramName(from?: TelegramMessage['from']): string {
   const parts = [from.first_name]
   if (from.last_name) parts.push(from.last_name)
   return parts.join(' ')
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }

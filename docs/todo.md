@@ -63,7 +63,8 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Message Bridge | Planned | [message-bridge.md](./todo/message-bridge.md) — Telegram, Discord, iMessage, Email adapters |
+| Message Bridge | In Progress | [message-bridge.md](./todo/message-bridge.md) — Telegram, Discord, iMessage, Email adapters |
+| CLI App URL Setup | Planned | Prompt for public URL during `cli init`, store as APP_URL secret + BETTER_AUTH_URL in .env |
 | Obsidian Integration | Planned | Plugin to upload and share documents directly into the vault |
 | Semantic Search | Exploring | pgvector embeddings for meaning-based search across vault and memory |
 | Table Support | Exploring | TipTap table extensions for markdown editing |

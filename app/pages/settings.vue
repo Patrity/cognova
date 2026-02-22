@@ -195,6 +195,50 @@ function formatDate(dateStr: string) {
   })
 }
 
+// === App URL ===
+const appUrl = ref('')
+const appUrlSaving = ref(false)
+
+async function loadAppUrl() {
+  try {
+    const { data } = await $fetch<{ data: { key: string, value: string } }>('/api/secrets/APP_URL')
+    appUrl.value = data.value || ''
+  } catch {
+    appUrl.value = ''
+  }
+}
+
+async function saveAppUrl() {
+  appUrlSaving.value = true
+  try {
+    if (appUrl.value) {
+      // Upsert the APP_URL secret
+      const exists = secretsData.value.some(s => s.key === 'APP_URL')
+      if (exists) {
+        await $fetch('/api/secrets/APP_URL', {
+          method: 'PUT',
+          body: { value: appUrl.value, description: 'Public URL for webhooks and auth callbacks' }
+        })
+      } else {
+        await $fetch('/api/secrets', {
+          method: 'POST',
+          body: { key: 'APP_URL', value: appUrl.value, description: 'Public URL for webhooks and auth callbacks' }
+        })
+      }
+    } else {
+      // Remove the secret if cleared
+      const exists = secretsData.value.some(s => s.key === 'APP_URL')
+      if (exists)
+        await $fetch('/api/secrets/APP_URL', { method: 'DELETE' })
+    }
+    toast.add({ title: 'Public URL saved', description: 'Restart running integrations for changes to take effect.', color: 'success' })
+    await fetchSecrets()
+  } catch {
+    toast.add({ title: 'Failed to save URL', color: 'error' })
+  }
+  appUrlSaving.value = false
+}
+
 // === Notification Preferences ===
 const notifPrefs = ref<NotificationPreferences>({ ...defaultNotificationPreferences })
 const notifLoading = ref(false)
@@ -328,12 +372,13 @@ const platformNamePlaceholders: Record<BridgePlatform, string> = {
   email: 'Work Email'
 }
 
-const platformSecretHints: Record<BridgePlatform, string | null> = {
-  telegram: 'TELEGRAM_BOT_TOKEN',
-  discord: 'DISCORD_BOT_TOKEN',
-  imessage: null,
-  google: null,
-  email: null
+// Secrets required to create a bridge (blocks creation if missing)
+const platformRequiredSecrets: Record<BridgePlatform, string[]> = {
+  telegram: ['TELEGRAM_BOT_TOKEN'],
+  discord: ['DISCORD_BOT_TOKEN'],
+  imessage: [],
+  google: [],
+  email: []
 }
 
 const platformOptions: { value: BridgePlatform, label: string, icon: string }[] = [
@@ -343,6 +388,13 @@ const platformOptions: { value: BridgePlatform, label: string, icon: string }[] 
   { value: 'google', label: 'Google Suite', icon: 'i-lucide-mail' },
   { value: 'email', label: 'Email (IMAP)', icon: 'i-lucide-at-sign' }
 ]
+
+function getMissingSecrets(platform: BridgePlatform): string[] {
+  const required = platformRequiredSecrets[platform]
+  if (!required.length) return []
+  const existing = new Set(secretsData.value.map(s => s.key))
+  return required.filter(k => !existing.has(k))
+}
 
 const healthColors: Record<string, string> = {
   connected: 'text-success',
@@ -486,6 +538,15 @@ async function handleBridgeCreate() {
     toast.add({ title: 'Name is required', color: 'error' })
     return
   }
+  const missing = getMissingSecrets(bridgeForm.platform)
+  if (missing.length) {
+    toast.add({
+      title: 'Missing required secrets',
+      description: `Add ${missing.join(', ')} in the Secrets tab first.`,
+      color: 'error'
+    })
+    return
+  }
   bridgeSaving.value = true
   try {
     await $fetch('/api/bridges', {
@@ -532,11 +593,12 @@ async function handleDeleteBridge() {
   }
 }
 
-// Load secrets + notification prefs + bridges when component mounts
+// Load secrets + notification prefs + bridges + app url when component mounts
 onMounted(() => {
   fetchSecrets()
   loadNotificationPrefs()
   fetchBridges()
+  loadAppUrl()
 })
 
 // Form handlers
@@ -943,6 +1005,35 @@ async function handlePasswordSubmit() {
           <!-- App Tab -->
           <template #app>
             <div class="max-w-2xl mx-auto py-6">
+              <!-- Public URL -->
+              <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-1">
+                  Public URL
+                </h3>
+                <p class="text-sm text-dimmed mb-4">
+                  The publicly accessible URL for this instance. Used for Telegram webhooks, auth callbacks, and other integrations that need to reach your server.
+                </p>
+                <div class="flex gap-2">
+                  <UInput
+                    v-model="appUrl"
+                    placeholder="https://example.com"
+                    class="flex-1"
+                  />
+                  <UButton
+                    :loading="appUrlSaving"
+                    @click="saveAppUrl"
+                  >
+                    Save
+                  </UButton>
+                </div>
+                <p class="text-xs text-dimmed mt-2">
+                  Leave empty to use long-polling for Telegram instead of webhooks. Changes require restarting running integrations.
+                </p>
+              </div>
+
+              <USeparator class="mb-8" />
+
+              <!-- Notification Preferences -->
               <div class="mb-6">
                 <h3 class="text-lg font-semibold mb-1">
                   Notification Preferences
@@ -1153,6 +1244,34 @@ async function handlePasswordSubmit() {
               class="w-full"
             />
           </UFormField>
+
+          <!-- Missing secrets warning -->
+          <div
+            v-if="getMissingSecrets(bridgeForm.platform).length"
+            class="flex items-start gap-2 rounded-lg bg-error/10 border border-error/20 p-3 text-sm"
+          >
+            <UIcon
+              name="i-lucide-alert-triangle"
+              class="size-4 mt-0.5 text-error shrink-0"
+            />
+            <div>
+              <p class="font-medium text-error">
+                Missing required secrets
+              </p>
+              <p class="text-dimmed mt-1">
+                Add the following in Settings &rarr; Secrets before creating:
+              </p>
+              <ul class="mt-1 space-y-0.5">
+                <li
+                  v-for="key in getMissingSecrets(bridgeForm.platform)"
+                  :key="key"
+                >
+                  <code class="text-xs bg-elevated px-1.5 py-0.5 rounded">{{ key }}</code>
+                </li>
+              </ul>
+            </div>
+          </div>
+
           <UFormField
             label="Name"
             name="name"
@@ -1172,6 +1291,7 @@ async function handlePasswordSubmit() {
             </UButton>
             <UButton
               :loading="bridgeSaving"
+              :disabled="getMissingSecrets(bridgeForm.platform).length > 0"
               @click="handleBridgeCreate"
             >
               Create
@@ -1229,7 +1349,7 @@ async function handlePasswordSubmit() {
         <div class="space-y-4">
           <!-- Secret hint -->
           <div
-            v-if="editingBridge && platformSecretHints[editingBridge.platform]"
+            v-if="editingBridge && platformRequiredSecrets[editingBridge.platform].length"
             class="flex items-start gap-2 rounded-lg bg-elevated p-3 text-sm"
           >
             <UIcon
@@ -1237,7 +1357,14 @@ async function handlePasswordSubmit() {
               class="size-4 mt-0.5 text-dimmed shrink-0"
             />
             <span class="text-dimmed">
-              Requires secret <code class="bg-elevated px-1 py-0.5 rounded text-xs">{{ platformSecretHints[editingBridge.platform] }}</code> in the Secrets tab.
+              Requires
+              <template
+                v-for="(key, i) in platformRequiredSecrets[editingBridge.platform]"
+                :key="key"
+              >
+                <code class="bg-elevated px-1 py-0.5 rounded text-xs">{{ key }}</code><template v-if="i < platformRequiredSecrets[editingBridge.platform].length - 1">, </template>
+              </template>
+              in the Secrets tab.
             </span>
           </div>
 
@@ -1329,6 +1456,18 @@ async function handlePasswordSubmit() {
                 class="w-full"
               />
             </UFormField>
+            <div
+              v-if="bridgeConfigForm.strategy === 'bluebubbles' && !secretsData.some(s => s.key === 'BLUEBUBBLES_PASSWORD')"
+              class="flex items-start gap-2 rounded-lg bg-error/10 border border-error/20 p-3 text-sm"
+            >
+              <UIcon
+                name="i-lucide-alert-triangle"
+                class="size-4 mt-0.5 text-error shrink-0"
+              />
+              <span class="text-dimmed">
+                BlueBubbles requires secret <code class="text-xs bg-elevated px-1.5 py-0.5 rounded">BLUEBUBBLES_PASSWORD</code> in the Secrets tab.
+              </span>
+            </div>
             <UFormField
               v-if="bridgeConfigForm.strategy === 'bluebubbles'"
               label="BlueBubbles URL"
