@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Zip file is empty' })
 
   // Determine skill name from root folder or filename
-  const firstEntry = entries[0].entryName
+  const firstEntry = entries[0]!.entryName
   const rootFolder = firstEntry.includes('/') ? firstEntry.split('/')[0] : null
   const fileName = fileField.filename?.replace(/\.zip$/i, '') || ''
   const skillName = rootFolder || fileName

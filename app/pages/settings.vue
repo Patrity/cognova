@@ -272,6 +272,70 @@ const bridgeForm = reactive({
   name: ''
 })
 
+// Bridge config modal state
+const bridgeConfigModal = ref(false)
+const editingBridge = ref<Bridge | null>(null)
+const bridgeConfigSaving = ref(false)
+
+const bridgeConfigForm = reactive({
+  name: '',
+  // Telegram
+  botUsername: '',
+  allowedChatIds: '',
+  // Discord
+  listenMode: 'mentions' as 'mentions' | 'dm' | 'all',
+  guildId: '',
+  channelId: '',
+  // iMessage
+  strategy: 'imsg' as 'imsg' | 'bluebubbles',
+  allowedNumbers: '',
+  blueBubblesUrl: '',
+  // Google
+  enabledServices: [] as string[],
+  account: '',
+  // Email
+  imapHost: '',
+  imapPort: '',
+  smtpHost: '',
+  smtpPort: '',
+  emailAddress: ''
+})
+
+const discordListenModeOptions = [
+  { value: 'mentions', label: 'Mentions & DMs' },
+  { value: 'dm', label: 'DMs only' },
+  { value: 'all', label: 'All messages' }
+]
+
+const imessageStrategyOptions = [
+  { value: 'imsg', label: 'Local (imsg CLI)' },
+  { value: 'bluebubbles', label: 'BlueBubbles' }
+]
+
+const googleServiceOptions = [
+  { value: 'gmail', label: 'Gmail' },
+  { value: 'calendar', label: 'Calendar' },
+  { value: 'drive', label: 'Drive' },
+  { value: 'contacts', label: 'Contacts' },
+  { value: 'tasks', label: 'Tasks' }
+]
+
+const platformNamePlaceholders: Record<BridgePlatform, string> = {
+  telegram: 'My Telegram Bot',
+  discord: 'My Discord Bot',
+  imessage: 'iMessage Bridge',
+  google: 'Google Suite',
+  email: 'Work Email'
+}
+
+const platformSecretHints: Record<BridgePlatform, string | null> = {
+  telegram: 'TELEGRAM_BOT_TOKEN',
+  discord: 'DISCORD_BOT_TOKEN',
+  imessage: null,
+  google: null,
+  email: null
+}
+
 const platformOptions: { value: BridgePlatform, label: string, icon: string }[] = [
   { value: 'telegram', label: 'Telegram', icon: 'i-lucide-send' },
   { value: 'discord', label: 'Discord', icon: 'i-lucide-message-circle' },
@@ -296,6 +360,119 @@ async function fetchBridges() {
     toast.add({ title: 'Failed to load integrations', color: 'error' })
   }
   bridgesLoading.value = false
+}
+
+function openBridgeConfig(bridge: Bridge) {
+  editingBridge.value = bridge
+  bridgeConfigForm.name = bridge.name
+
+  const config = bridge.config ? JSON.parse(bridge.config) : {}
+
+  // Reset all fields
+  bridgeConfigForm.botUsername = ''
+  bridgeConfigForm.allowedChatIds = ''
+  bridgeConfigForm.listenMode = 'mentions'
+  bridgeConfigForm.guildId = ''
+  bridgeConfigForm.channelId = ''
+  bridgeConfigForm.strategy = 'imsg'
+  bridgeConfigForm.allowedNumbers = ''
+  bridgeConfigForm.blueBubblesUrl = ''
+  bridgeConfigForm.enabledServices = []
+  bridgeConfigForm.account = ''
+  bridgeConfigForm.imapHost = ''
+  bridgeConfigForm.imapPort = ''
+  bridgeConfigForm.smtpHost = ''
+  bridgeConfigForm.smtpPort = ''
+  bridgeConfigForm.emailAddress = ''
+
+  // Populate platform-specific fields from config
+  switch (bridge.platform) {
+    case 'telegram':
+      bridgeConfigForm.botUsername = config.botUsername || ''
+      bridgeConfigForm.allowedChatIds = (config.allowedChatIds || []).join(', ')
+      break
+    case 'discord':
+      bridgeConfigForm.listenMode = config.listenMode || 'mentions'
+      bridgeConfigForm.guildId = config.guildId || ''
+      bridgeConfigForm.channelId = config.channelId || ''
+      break
+    case 'imessage':
+      bridgeConfigForm.strategy = config.strategy || 'imsg'
+      bridgeConfigForm.allowedNumbers = (config.allowedNumbers || []).join(', ')
+      bridgeConfigForm.blueBubblesUrl = config.blueBubblesUrl || ''
+      break
+    case 'google':
+      bridgeConfigForm.enabledServices = config.enabledServices || []
+      bridgeConfigForm.account = config.account || ''
+      break
+    case 'email':
+      bridgeConfigForm.imapHost = config.imapHost || ''
+      bridgeConfigForm.imapPort = config.imapPort?.toString() || ''
+      bridgeConfigForm.smtpHost = config.smtpHost || ''
+      bridgeConfigForm.smtpPort = config.smtpPort?.toString() || ''
+      bridgeConfigForm.emailAddress = config.emailAddress || ''
+      break
+  }
+
+  bridgeConfigModal.value = true
+}
+
+async function handleBridgeConfigSave() {
+  if (!editingBridge.value) return
+
+  const platform = editingBridge.value.platform
+  let config: Record<string, unknown> = {}
+
+  // Preserve existing config (like webhookSecret) and merge new fields
+  if (editingBridge.value.config)
+    config = JSON.parse(editingBridge.value.config)
+
+  switch (platform) {
+    case 'telegram':
+      config.botUsername = bridgeConfigForm.botUsername || undefined
+      config.allowedChatIds = bridgeConfigForm.allowedChatIds
+        ? bridgeConfigForm.allowedChatIds.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined
+      break
+    case 'discord':
+      config.listenMode = bridgeConfigForm.listenMode
+      config.guildId = bridgeConfigForm.guildId || undefined
+      config.channelId = bridgeConfigForm.channelId || undefined
+      break
+    case 'imessage':
+      config.strategy = bridgeConfigForm.strategy
+      config.allowedNumbers = bridgeConfigForm.allowedNumbers
+        ? bridgeConfigForm.allowedNumbers.split(',').map(s => s.trim()).filter(Boolean)
+        : undefined
+      config.blueBubblesUrl = bridgeConfigForm.blueBubblesUrl || undefined
+      break
+    case 'google':
+      config.enabledServices = bridgeConfigForm.enabledServices
+      config.account = bridgeConfigForm.account || undefined
+      break
+    case 'email':
+      config.imapHost = bridgeConfigForm.imapHost || undefined
+      config.imapPort = bridgeConfigForm.imapPort ? Number(bridgeConfigForm.imapPort) : undefined
+      config.smtpHost = bridgeConfigForm.smtpHost || undefined
+      config.smtpPort = bridgeConfigForm.smtpPort ? Number(bridgeConfigForm.smtpPort) : undefined
+      config.emailAddress = bridgeConfigForm.emailAddress || undefined
+      break
+  }
+
+  bridgeConfigSaving.value = true
+  try {
+    await $fetch(`/api/bridges/${editingBridge.value.id}` as string, {
+      method: 'PUT',
+      body: { name: bridgeConfigForm.name, config }
+    })
+    toast.add({ title: 'Integration updated', color: 'success' })
+    bridgeConfigModal.value = false
+    await fetchBridges()
+  } catch (err: unknown) {
+    const error = err as { data?: { message?: string } }
+    toast.add({ title: 'Failed to update integration', description: error.data?.message, color: 'error' })
+  }
+  bridgeConfigSaving.value = false
 }
 
 function openCreateBridge() {
@@ -327,7 +504,7 @@ async function handleBridgeCreate() {
 
 async function toggleBridge(bridge: Bridge) {
   try {
-    await $fetch(`/api/bridges/${bridge.id}`, {
+    await $fetch(`/api/bridges/${bridge.id}` as string, {
       method: 'PUT',
       body: { enabled: !bridge.enabled }
     })
@@ -345,7 +522,7 @@ function confirmDeleteBridge(bridge: Bridge) {
 async function handleDeleteBridge() {
   if (!bridgeToDelete.value) return
   try {
-    await $fetch(`/api/bridges/${bridgeToDelete.value.id}`, { method: 'DELETE' })
+    await $fetch(`/api/bridges/${bridgeToDelete.value.id}` as string, { method: 'DELETE' })
     toast.add({ title: 'Integration deleted', color: 'success' })
     bridgeDeleteConfirm.value = false
     bridgeToDelete.value = null
@@ -717,7 +894,8 @@ async function handlePasswordSubmit() {
                 <div
                   v-for="bridge in bridgesData"
                   :key="bridge.id"
-                  class="border border-default rounded-lg px-4 py-3"
+                  class="border border-default rounded-lg px-4 py-3 cursor-pointer hover:bg-elevated/50 transition-colors"
+                  @click="openBridgeConfig(bridge)"
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -739,6 +917,7 @@ async function handlePasswordSubmit() {
                       </span>
                       <USwitch
                         :model-value="bridge.enabled"
+                        @click.stop
                         @update:model-value="toggleBridge(bridge)"
                       />
                       <UButton
@@ -746,7 +925,7 @@ async function handlePasswordSubmit() {
                         color="error"
                         icon="i-lucide-trash-2"
                         size="xs"
-                        @click="confirmDeleteBridge(bridge)"
+                        @click.stop="confirmDeleteBridge(bridge)"
                       />
                     </div>
                   </div>
@@ -980,7 +1159,7 @@ async function handlePasswordSubmit() {
           >
             <UInput
               v-model="bridgeForm.name"
-              placeholder="My Telegram Bot"
+              :placeholder="platformNamePlaceholders[bridgeForm.platform]"
               class="w-full"
             />
           </UFormField>
@@ -1029,6 +1208,263 @@ async function handlePasswordSubmit() {
           >
             Delete
           </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Bridge Config Modal -->
+    <UModal v-model:open="bridgeConfigModal">
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon
+            :name="platformOptions.find(p => p.value === editingBridge?.platform)?.icon || 'i-lucide-plug'"
+            class="size-5"
+          />
+          <h3 class="text-lg font-semibold">
+            Configure {{ editingBridge?.name }}
+          </h3>
+        </div>
+      </template>
+      <template #body>
+        <div class="space-y-4">
+          <!-- Secret hint -->
+          <div
+            v-if="editingBridge && platformSecretHints[editingBridge.platform]"
+            class="flex items-start gap-2 rounded-lg bg-elevated p-3 text-sm"
+          >
+            <UIcon
+              name="i-lucide-info"
+              class="size-4 mt-0.5 text-dimmed shrink-0"
+            />
+            <span class="text-dimmed">
+              Requires secret <code class="bg-elevated px-1 py-0.5 rounded text-xs">{{ platformSecretHints[editingBridge.platform] }}</code> in the Secrets tab.
+            </span>
+          </div>
+
+          <!-- Common: Name -->
+          <UFormField
+            label="Name"
+            name="name"
+          >
+            <UInput
+              v-model="bridgeConfigForm.name"
+              placeholder="Integration name"
+              class="w-full"
+            />
+          </UFormField>
+
+          <!-- Telegram -->
+          <template v-if="editingBridge?.platform === 'telegram'">
+            <UFormField
+              label="Bot Username"
+              name="botUsername"
+              hint="Without the @ prefix"
+            >
+              <UInput
+                v-model="bridgeConfigForm.botUsername"
+                placeholder="my_bot"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              label="Allowed Chat IDs"
+              name="allowedChatIds"
+              hint="Comma-separated. Leave empty for all."
+            >
+              <UInput
+                v-model="bridgeConfigForm.allowedChatIds"
+                placeholder="123456, -100789"
+                class="w-full"
+              />
+            </UFormField>
+          </template>
+
+          <!-- Discord -->
+          <template v-if="editingBridge?.platform === 'discord'">
+            <UFormField
+              label="Listen Mode"
+              name="listenMode"
+            >
+              <USelect
+                v-model="bridgeConfigForm.listenMode"
+                :items="discordListenModeOptions"
+                value-key="value"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              label="Server ID"
+              name="guildId"
+              hint="Optional. Limit to one server."
+            >
+              <UInput
+                v-model="bridgeConfigForm.guildId"
+                placeholder="Discord server ID"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              label="Channel ID"
+              name="channelId"
+              hint="Optional. Limit to one channel (for 'all' mode)."
+            >
+              <UInput
+                v-model="bridgeConfigForm.channelId"
+                placeholder="Discord channel ID"
+                class="w-full"
+              />
+            </UFormField>
+          </template>
+
+          <!-- iMessage -->
+          <template v-if="editingBridge?.platform === 'imessage'">
+            <UFormField
+              label="Strategy"
+              name="strategy"
+            >
+              <USelect
+                v-model="bridgeConfigForm.strategy"
+                :items="imessageStrategyOptions"
+                value-key="value"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              v-if="bridgeConfigForm.strategy === 'bluebubbles'"
+              label="BlueBubbles URL"
+              name="blueBubblesUrl"
+            >
+              <UInput
+                v-model="bridgeConfigForm.blueBubblesUrl"
+                placeholder="http://192.168.1.100:1234"
+                class="w-full"
+              />
+            </UFormField>
+            <UFormField
+              label="Allowed Numbers"
+              name="allowedNumbers"
+              hint="Comma-separated. Leave empty for all."
+            >
+              <UInput
+                v-model="bridgeConfigForm.allowedNumbers"
+                placeholder="+15551234567, +15559876543"
+                class="w-full"
+              />
+            </UFormField>
+          </template>
+
+          <!-- Google Suite -->
+          <template v-if="editingBridge?.platform === 'google'">
+            <UFormField
+              label="Enabled Services"
+              name="enabledServices"
+            >
+              <div class="space-y-2">
+                <label
+                  v-for="svc in googleServiceOptions"
+                  :key="svc.value"
+                  class="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="bridgeConfigForm.enabledServices.includes(svc.value)"
+                    class="rounded"
+                    @change="
+                      bridgeConfigForm.enabledServices.includes(svc.value)
+                        ? bridgeConfigForm.enabledServices = bridgeConfigForm.enabledServices.filter(s => s !== svc.value)
+                        : bridgeConfigForm.enabledServices.push(svc.value)
+                    "
+                  >
+                  <span class="text-sm">{{ svc.label }}</span>
+                </label>
+              </div>
+            </UFormField>
+            <UFormField
+              label="Google Account"
+              name="account"
+              hint="Email used with gogcli"
+            >
+              <UInput
+                v-model="bridgeConfigForm.account"
+                placeholder="user@gmail.com"
+                class="w-full"
+              />
+            </UFormField>
+          </template>
+
+          <!-- Email (IMAP/SMTP) -->
+          <template v-if="editingBridge?.platform === 'email'">
+            <UFormField
+              label="Email Address"
+              name="emailAddress"
+            >
+              <UInput
+                v-model="bridgeConfigForm.emailAddress"
+                placeholder="user@example.com"
+                class="w-full"
+              />
+            </UFormField>
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField
+                label="IMAP Host"
+                name="imapHost"
+              >
+                <UInput
+                  v-model="bridgeConfigForm.imapHost"
+                  placeholder="imap.example.com"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField
+                label="IMAP Port"
+                name="imapPort"
+              >
+                <UInput
+                  v-model="bridgeConfigForm.imapPort"
+                  placeholder="993"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <UFormField
+                label="SMTP Host"
+                name="smtpHost"
+              >
+                <UInput
+                  v-model="bridgeConfigForm.smtpHost"
+                  placeholder="smtp.example.com"
+                  class="w-full"
+                />
+              </UFormField>
+              <UFormField
+                label="SMTP Port"
+                name="smtpPort"
+              >
+                <UInput
+                  v-model="bridgeConfigForm.smtpPort"
+                  placeholder="587"
+                  class="w-full"
+                />
+              </UFormField>
+            </div>
+          </template>
+
+          <!-- Save / Cancel -->
+          <div class="flex justify-end gap-2 pt-4">
+            <UButton
+              variant="ghost"
+              @click="bridgeConfigModal = false"
+            >
+              Cancel
+            </UButton>
+            <UButton
+              :loading="bridgeConfigSaving"
+              @click="handleBridgeConfigSave"
+            >
+              Save
+            </UButton>
+          </div>
         </div>
       </template>
     </UModal>

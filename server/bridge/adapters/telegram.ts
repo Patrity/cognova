@@ -100,7 +100,7 @@ export class TelegramAdapter implements BridgeAdapter {
 
     // Store bot username if not set
     if (!this.config.botUsername && me.result?.username) {
-      this.config.botUsername = me.result.username
+      this.config.botUsername = me.result.username as string
     }
 
     console.log(`[telegram] Bot @${me.result?.username} authenticated`)
