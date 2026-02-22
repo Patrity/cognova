@@ -84,14 +84,15 @@ def api_request(
         cmd.extend(["-H", f"X-API-Token: {API_TOKEN}"])
 
     if params:
+        from urllib.parse import quote
         query_parts = []
         for k, v in params.items():
             if v is not None:
                 if isinstance(v, list):
                     for item in v:
-                        query_parts.append(f"{k}={item}")
+                        query_parts.append(f"{k}={quote(str(item))}")
                 else:
-                    query_parts.append(f"{k}={v}")
+                    query_parts.append(f"{k}={quote(str(v))}")
         if query_parts:
             url = f"{url}?{'&'.join(query_parts)}"
 
