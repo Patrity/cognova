@@ -81,18 +81,9 @@ export default defineNuxtConfig({
     experimental: {
       websocket: true
     },
-    // node-pty and discord.js are native/complex modules that can't be bundled
+    // node-pty is a native module that can't be bundled
     externals: {
-      external: [
-        'node-pty',
-        'discord.js',
-        '@discordjs/builders',
-        '@discordjs/collection',
-        '@discordjs/formatters',
-        '@discordjs/rest',
-        '@discordjs/util',
-        '@discordjs/ws'
-      ]
+      external: ['node-pty']
     }
   },
 
