@@ -7,6 +7,7 @@ Memory context from previous conversations is printed to stdout,
 which Claude receives as additional context.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -14,6 +15,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / 'lib'))
 
 from hook_client import log_event, read_stdin_json, get_memory_context, get_bridge_context
+
+
+def is_onboarded() -> bool:
+    """Check if CLAUDE.md already has a User Profile section (onboarding completed)."""
+    possible_paths = [
+        Path(os.environ.get('COGNOVA_PROJECT_DIR', '')) / 'CLAUDE.md',
+        Path.cwd() / 'CLAUDE.md',
+    ]
+    for p in possible_paths:
+        try:
+            if p.exists() and '## User Profile' in p.read_text():
+                return True
+        except Exception:
+            pass
+    return False
 
 
 def main():
@@ -43,6 +59,13 @@ def main():
         print("If the user tells you something about themselves, store it IMMEDIATELY.")
         print("")
         print(context)
+    elif is_onboarded():
+        # Onboarding already completed but memories couldn't be loaded (API unreachable, etc.)
+        print("## Session Memory")
+        print("")
+        print("No memories were loaded this session (API may be unreachable).")
+        print("User profile is available in CLAUDE.md. Proceed normally.")
+        print("As you work, store new insights with `/memory store` when the API is available.")
     else:
         print("## Session Memory — ONBOARDING REQUIRED")
         print("")

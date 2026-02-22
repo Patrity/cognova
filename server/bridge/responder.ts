@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 import { query } from '@anthropic-ai/claude-agent-sdk'
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { logTokenUsage } from '~~/server/utils/log-token-usage'
 import { sendOutboundMessage } from './router'
@@ -33,6 +33,30 @@ async function getOrCreateMainChat() {
 
   console.log('[bridge] Created Main Chat conversation')
   return created!
+}
+
+/**
+ * Load memory context directly from DB so the bridge prompt
+ * includes user preferences/facts even if the session-start hook
+ * can't reach the API (avoids false onboarding).
+ */
+async function loadMemoryContext(): Promise<string> {
+  try {
+    const db = getDb()
+    const memories = await db.select()
+      .from(schema.memoryChunks)
+      .orderBy(desc(schema.memoryChunks.relevanceScore), desc(schema.memoryChunks.createdAt))
+      .limit(10)
+
+    if (memories.length === 0) return ''
+
+    const lines = ['[Memory context from previous sessions]']
+    for (const m of memories)
+      lines.push(`- ${m.content}`)
+    return lines.join('\n')
+  } catch {
+    return ''
+  }
 }
 
 // SDK result shape (same as agent-executor.ts)
@@ -87,9 +111,13 @@ export async function generateBridgeResponse(
     source: message.platform
   })
 
-  // Build the prompt with platform context
+  // Build the prompt with memory context + platform context
+  const memoryContext = await loadMemoryContext()
   const senderLabel = message.senderName || message.sender
-  const prompt = `[${message.platform} message from ${senderLabel}]: ${message.text}`
+  const parts: string[] = []
+  if (memoryContext) parts.push(memoryContext)
+  parts.push(`[${message.platform} message from ${senderLabel}]: ${message.text}`)
+  const prompt = parts.join('\n\n')
 
   // Update status
   await db.update(schema.conversations)
