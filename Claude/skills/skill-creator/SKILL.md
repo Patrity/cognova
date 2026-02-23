@@ -115,6 +115,7 @@ python3 ~/.claude/skills/<name>/<name>.py <command> [options]
 import argparse
 import sys
 from pathlib import Path
+from typing import Optional  # Use Optional[T] instead of T | None for Python 3.9 compatibility
 
 def main():
     parser = argparse.ArgumentParser(description='Skill Name')
@@ -125,6 +126,12 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+**Python 3.9 Compatibility:**
+- Skills must work with Python 3.9+ (macOS ships with 3.9.6)
+- Use `Optional[T]` instead of `T | None` for type hints
+- Import `Optional` from `typing` module
+- Avoid `match` statements and other Python 3.10+ features
 
 ### 5. Accessing Secrets & API Keys
 

@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 API_BASE = os.environ.get('COGNOVA_API_URL', 'http://localhost:3000')
 
@@ -59,8 +59,8 @@ if not API_TOKEN and os.environ.get('DEBUG'):
 def api_request(
     method: str,
     endpoint: str,
-    data: dict | None = None,
-    params: dict | None = None
+    data: Optional[dict] = None,
+    params: Optional[dict] = None
 ) -> tuple[bool, Any]:
     """
     Make an API request to Cognova.
@@ -123,7 +123,7 @@ def api_request(
         return False, str(e)
 
 
-def get(endpoint: str, params: dict | None = None) -> tuple[bool, Any]:
+def get(endpoint: str, params: Optional[dict] = None) -> tuple[bool, Any]:
     """GET request helper."""
     return api_request("GET", endpoint, params=params)
 

@@ -14,6 +14,7 @@ import argparse
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent / '_lib'))
 
@@ -21,7 +22,7 @@ from api import get, post, put, delete
 from output import success, error, info, format_task
 
 
-def parse_date(date_str: str) -> str | None:
+def parse_date(date_str: str) -> Optional[str]:
     """Parse natural language date to ISO format."""
     if not date_str:
         return None
@@ -53,7 +54,7 @@ def parse_date(date_str: str) -> str | None:
     return date_str
 
 
-def find_project(name: str) -> dict | None:
+def find_project(name: str) -> Optional[dict]:
     """Search for a project by name."""
     ok, projects = get('/projects')
     if not ok:
@@ -77,7 +78,7 @@ def find_project(name: str) -> dict | None:
     return None
 
 
-def find_task_by_id(id_prefix: str) -> str | None:
+def find_task_by_id(id_prefix: str) -> Optional[str]:
     """Find a task by ID prefix."""
     ok, tasks = get('/tasks', {'includeDeleted': 'false'})
     if not ok:

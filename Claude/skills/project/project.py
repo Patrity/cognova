@@ -14,6 +14,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent / '_lib'))
 
@@ -26,7 +27,7 @@ def validate_color(color: str) -> bool:
     return bool(re.match(r'^#[0-9A-Fa-f]{6}$', color))
 
 
-def find_project_by_id(id_prefix: str) -> str | None:
+def find_project_by_id(id_prefix: str) -> Optional[str]:
     """Find a project by ID prefix."""
     ok, projects = get('/projects')
     if not ok:
