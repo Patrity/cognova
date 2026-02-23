@@ -47,8 +47,8 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Search (Full-Text) | Planned | [search.md](./todo/search.md) — PostgreSQL tsvector + GIN indexes, expand Cmd+K to search agents, conversations, memories, hooks |
-| Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
+| Search (Full-Text) | Done | [search.md](./todo/search.md) — PostgreSQL tsvector + GIN indexes, Cmd+K searches tasks, docs, agents, conversations |
+| Memory Reinforcement | Done | [env skill.md](./todo/env%20skill.md) — strong MANDATORY directives in cli template + session-start hook preamble |
 | Chat Commands | Planned | Slash commands in chat input for inline actions (e.g. /task, /project, /memory) |
 | Workspace Context | Planned | Agent awareness of vault dir for placing/reading files as needed |
 | Environment Awareness | Planned | Reinforce agent autonomy — install packages, use OS freely, suggest solutions, ask permission |

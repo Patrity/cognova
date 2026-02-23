@@ -4,7 +4,7 @@ shared: false
 ---
 # Secrets Skill & Memory Reinforcement
 
-> **Status:** Part 1 (Secrets Skill) is **done** — skill, API, and CLAUDE.md updates shipped. Part 2 (Memory Reinforcement) remains **planned**.
+> **Status: Done** — Part 1 (Secrets Skill) shipped: skill, API, and CLAUDE.md updates. Part 2 (Memory Reinforcement) implemented: strong "Memory — MANDATORY" section in cli template (`cli/src/templates/claude-md.ts`) and directive preamble in `session-start.py` hook.
 
 ## Overview
 
@@ -145,9 +145,9 @@ If you learn something new during this session, store it with /memory store.
 3. [x] Add Secrets behavior section in `Claude/CLAUDE.md`
 4. [x] Mirror CLAUDE.md changes in `cli/src/templates/claude-md.ts`
 5. [x] Test secrets skill end-to-end (set, get, list, delete)
-6. [ ] Rewrite Memory section in `Claude/CLAUDE.md` (strengthen directives)
-7. [ ] Update `session-start.py` context injection format (add directive preamble)
-8. [ ] Test memory injection with new directive preamble
+6. [x] Rewrite Memory section in `cli/src/templates/claude-md.ts` (strong "Memory — MANDATORY" directives)
+7. [x] Update `session-start.py` context injection format (directive preamble added)
+8. [x] Test memory injection with new directive preamble
 9. [ ] Run `cognova reset --skills --hooks` to deploy changes
 
 ## Dependencies

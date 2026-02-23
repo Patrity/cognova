@@ -207,10 +207,16 @@ export interface PublicDocumentResponse {
 
 export interface Conversation {
   id: string
+  sessionId: string
+  sdkSessionId?: string
+  title?: string
+  summary?: string
+  status: 'idle' | 'streaming' | 'interrupted' | 'error'
+  totalCostUsd: number
+  isMain: boolean
   startedAt: Date
   endedAt?: Date
   messageCount: number
-  summary?: string
 }
 
 export interface ConversationDetail extends Conversation {

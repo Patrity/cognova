@@ -1,4 +1,4 @@
-import { eq, isNull, ilike, and, or } from 'drizzle-orm'
+import { eq, isNull, inArray, and, sql } from 'drizzle-orm'
 import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { requireDb } from '~~/server/utils/db-guard'
@@ -24,15 +24,17 @@ export default defineEventHandler(async (event) => {
   if (fileType)
     conditions.push(eq(schema.documents.fileType, fileType))
 
+  // Full-text search via tsvector + GIN index
   if (search) {
-    const pattern = `%${search}%`
-    conditions.push(
-      or(
-        ilike(schema.documents.title, pattern),
-        ilike(schema.documents.content, pattern),
-        ilike(schema.documents.path, pattern)
-      )
-    )
+    const ftsResult = await db.execute<{ id: string }>(sql`
+      SELECT id FROM documents
+      WHERE search_vector @@ plainto_tsquery('english', ${search})
+      ORDER BY ts_rank(search_vector, plainto_tsquery('english', ${search})) DESC
+      LIMIT 50
+    `)
+    const ids = ftsResult.map(r => r.id)
+    if (ids.length === 0) return { data: [] }
+    conditions.push(inArray(schema.documents.id, ids))
   }
 
   const documents = await db.query.documents.findMany({

@@ -1,4 +1,4 @@
-import { sql, desc, eq, and, gte, ilike, or } from 'drizzle-orm'
+import { sql, desc, eq, and, gte, inArray } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import type { MemoryChunk, MemoryChunkType } from '~~/shared/types'
@@ -29,12 +29,17 @@ export default defineEventHandler(async (event) => {
   if (minRelevance !== undefined)
     conditions.push(gte(schema.memoryChunks.relevanceScore, minRelevance))
 
-  // Text search (simple ILIKE for now, will upgrade to tsvector)
+  // Full-text search via tsvector + GIN index
   if (searchQuery) {
-    conditions.push(or(
-      ilike(schema.memoryChunks.content, `%${searchQuery}%`),
-      ilike(schema.memoryChunks.sourceExcerpt, `%${searchQuery}%`)
-    ))
+    const ftsResult = await db.execute<{ id: string }>(sql`
+      SELECT id FROM memory_chunks
+      WHERE search_vector @@ plainto_tsquery('english', ${searchQuery})
+      ORDER BY ts_rank(search_vector, plainto_tsquery('english', ${searchQuery})) DESC
+      LIMIT ${limit}
+    `)
+    const ids = ftsResult.map(r => r.id)
+    if (ids.length === 0) return { data: [] as MemoryChunk[] }
+    conditions.push(inArray(schema.memoryChunks.id, ids))
   }
 
   let dbQuery = db.select()

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CommandPaletteGroup, CommandPaletteItem } from '@nuxt/ui'
+import { formatRelativeTime } from '~~/shared/utils/formatting'
 
 const router = useRouter()
 const toast = useToast()
@@ -88,6 +89,42 @@ const groups = computed<CommandPaletteGroup[]>(() => {
     })
   }
 
+  // Agents group (only show if we have results)
+  if (results.value.agents.length) {
+    g.push({
+      id: 'agents',
+      label: 'Agents',
+      ignoreFilter: true,
+      items: results.value.agents.map(a => ({
+        label: a.name,
+        icon: a.enabled ? 'i-lucide-bot' : 'i-lucide-bot-off',
+        suffix: a.schedule,
+        onSelect: () => {
+          router.push(`/agents/${a.id}`)
+          reset()
+        }
+      }))
+    })
+  }
+
+  // Conversations group (only show if we have results)
+  if (results.value.conversations.length) {
+    g.push({
+      id: 'conversations',
+      label: 'Conversations',
+      ignoreFilter: true,
+      items: results.value.conversations.map(c => ({
+        label: c.title || 'Untitled chat',
+        icon: 'i-lucide-message-square',
+        suffix: formatRelativeTime(c.startedAt),
+        onSelect: () => {
+          router.push({ path: '/chat', query: { conversation: c.id } })
+          reset()
+        }
+      }))
+    })
+  }
+
   // Navigation group (always visible)
   g.push({
     id: 'navigation',
@@ -116,7 +153,7 @@ const groups = computed<CommandPaletteGroup[]>(() => {
     v-model:search-term="searchTerm"
     :groups="groups"
     :loading="loading"
-    placeholder="Search tasks, docs, or type a command..."
+    placeholder="Search tasks, docs, agents, chats..."
     :fuse="{ resultLimit: 10 }"
   />
 </template>

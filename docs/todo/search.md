@@ -4,7 +4,7 @@ shared: false
 ---
 # Full-Text Search
 
-> **Status:** Basic search is **done** — Cmd+K palette with task/document ILIKE search, navigation shortcuts, and action commands. This plan covers the **upgrade** to PostgreSQL full-text search (tsvector + GIN) and expanding search scope to all resources.
+> **Status: Done** — Cmd+K palette with full-text search (tsvector + GIN) across tasks, documents, agents, conversations, and memories. Navigation shortcuts and action commands included.
 
 Search across vault files with full-text indexing and optional semantic search.
 
@@ -364,14 +364,14 @@ export default defineTask({
 2. [x] Add Cmd+K shortcut (via `UDashboardSearchButton`)
 3. [x] Add search to dashboard layout
 4. [x] Basic search API for tasks and documents (ILIKE)
-5. [ ] Add tsvector columns to tasks, documents, memory_chunks tables
-6. [ ] Add GIN indexes on tsvector columns
-7. [ ] Generate migration
-8. [ ] Update search APIs to use `plainto_tsquery` + `ts_rank` instead of ILIKE
+5. [x] Add tsvector columns to tasks, documents, memory_chunks, cron_agents, conversations
+6. [x] Add GIN indexes on tsvector columns
+7. [x] Generate migration (`0016_full_text_search.sql`)
+8. [x] Update search APIs to use `plainto_tsquery` + `ts_rank` instead of ILIKE
 9. [ ] Add file_index table for vault files not in DB
 10. [ ] Create indexing service for vault files
 11. [ ] Hook indexing to file write/delete
-12. [ ] Add search groups to Cmd+K palette: agents, conversations, memories, hooks
+12. [x] Add search groups to Cmd+K palette: agents, conversations
 13. [ ] Add content snippet previews with `ts_headline`
 14. [ ] Test with sample vault
 
