@@ -80,15 +80,39 @@ export async function checkPrerequisites(): Promise<PrereqResult> {
   }
 
   // Docker (optional)
+  let hasDocker = !!dockerOut
   if (dockerOut) {
     p.log.success(`Docker available ${pc.dim('(for local PostgreSQL)')}`)
   } else {
-    p.log.info(`Docker not found ${pc.dim('(needed only for local PostgreSQL)')}`)
+    const installDocker = await p.confirm({
+      message: 'Docker not found. Install it? (needed only for local PostgreSQL)',
+      initialValue: false
+    })
+    if (!p.isCancel(installDocker) && installDocker) {
+      const s = p.spinner()
+      s.start('Installing Docker')
+      try {
+        if (process.platform === 'darwin') {
+          execSync('brew install --cask docker', { stdio: 'inherit' })
+          s.stop('Docker Desktop installed — open it from Applications to finish setup')
+        } else {
+          const cmd = process.platform === 'linux' ? 'sudo apt-get update -qq && sudo apt-get install -y -qq docker.io docker-compose-plugin' : 'apt-get update -qq && apt-get install -y -qq docker.io docker-compose-plugin'
+          execSync(cmd, { stdio: 'inherit' })
+          s.stop('Docker installed')
+        }
+        hasDocker = !!checkCommand('docker --version')
+      } catch {
+        s.stop('Docker installation failed')
+        p.log.warn('Install Docker manually: https://docs.docker.com/get-docker/')
+      }
+    } else {
+      p.log.info(`Skipped — you can use a remote PostgreSQL instead`)
+    }
   }
 
   return {
     ok: true,
-    hasDocker: !!dockerOut,
+    hasDocker,
     nodeVersion: nodeOut || '',
     pythonVersion: pythonOut || '',
     pnpmVersion: pnpmOut || '',
