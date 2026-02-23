@@ -4,6 +4,8 @@ shared: false
 ---
 # Message Bridge
 
+> **Status: Done** — 4 of 5 adapters fully implemented (Telegram, Discord, iMessage, Google/Gmail). Generic IMAP/SMTP email is a stub. Full bidirectional messaging with Claude Agent SDK responder, webhook receivers, health monitoring, settings UI, and conversation linking.
+
 Unified system for connecting the agent to external messaging platforms (Discord, Telegram, iMessage, Email, etc). All integrations are **disabled by default** and toggled via UI settings or agent conversation.
 
 ## Architecture

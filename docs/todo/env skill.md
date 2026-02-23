@@ -4,11 +4,13 @@ shared: false
 ---
 # Secrets Skill & Memory Reinforcement
 
+> **Status:** Part 1 (Secrets Skill) is **done** — skill, API, and CLAUDE.md updates shipped. Part 2 (Memory Reinforcement) remains **planned**.
+
 ## Overview
 
 Two related improvements to make the agent safer and smarter:
 
-1. **Secrets Skill** — Give agents a way to securely access stored secrets at runtime without ever seeing or storing plain-text values
+1. ~~**Secrets Skill**~~ ✅ — Agents can securely access stored secrets via `/secret` skill
 2. **Memory Reinforcement** — Strengthen system prompts and hooks so agents use the memory system aggressively, not as an afterthought
 
 ## Problem
@@ -138,13 +140,13 @@ If you learn something new during this session, store it with /memory store.
 
 ## Implementation Steps
 
-1. [ ] Create secrets skill (`secrets.py` + `SKILL.md`)
-2. [ ] Add decrypted value API endpoint (`[key].value.get.ts`)
-3. [ ] Rewrite Memory section in `Claude/CLAUDE.md`
-4. [ ] Add Secrets behavior section in `Claude/CLAUDE.md`
-5. [ ] Mirror CLAUDE.md changes in `cli/src/templates/claude-md.ts`
-6. [ ] Update `session-start.py` context injection format
-7. [ ] Test secrets skill end-to-end (set, get, list, delete)
+1. [x] Create secrets skill (`secret.py` + `SKILL.md`) — `Claude/skills/secret/`
+2. [x] Add decrypted value API endpoint
+3. [x] Add Secrets behavior section in `Claude/CLAUDE.md`
+4. [x] Mirror CLAUDE.md changes in `cli/src/templates/claude-md.ts`
+5. [x] Test secrets skill end-to-end (set, get, list, delete)
+6. [ ] Rewrite Memory section in `Claude/CLAUDE.md` (strengthen directives)
+7. [ ] Update `session-start.py` context injection format (add directive preamble)
 8. [ ] Test memory injection with new directive preamble
 9. [ ] Run `cognova reset --skills --hooks` to deploy changes
 

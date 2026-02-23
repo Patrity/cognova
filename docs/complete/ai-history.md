@@ -7,6 +7,8 @@ shareType: private
 ---
 # AI Conversation History
 
+> **Status: Done** — Conversations table, messages table, WebSocket chat with streaming, conversation list/detail/delete API, chat sidebar with conversation management.
+
 Persist Claude Code conversation history to the database for browsing, searching, and continuity.
 
 ## Overview

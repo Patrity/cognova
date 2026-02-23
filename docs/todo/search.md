@@ -4,13 +4,32 @@ shared: false
 ---
 # Full-Text Search
 
+> **Status:** Basic search is **done** — Cmd+K palette with task/document ILIKE search, navigation shortcuts, and action commands. This plan covers the **upgrade** to PostgreSQL full-text search (tsvector + GIN) and expanding search scope to all resources.
+
 Search across vault files with full-text indexing and optional semantic search.
+
+## What's Already Built
+
+- `app/components/search/DashboardSearch.vue` — Cmd+K palette using Nuxt UI's `UDashboardSearch`
+- `app/composables/useSearch.ts` — Debounced search across tasks and documents via ILIKE
+- Tasks API (`/api/tasks?search=`) — ILIKE on title + description
+- Documents API (`/api/documents?search=`) — ILIKE on title + content + path
+- Memory API (`/api/memory/search?query=`) — ILIKE on content + sourceExcerpt with relevance scoring
+- Navigation shortcuts (G D, G T, G O, G S) and action commands (create doc/task)
+
+## What's Missing
+
+- PostgreSQL tsvector columns + GIN indexes (currently uses ILIKE, which is slow on large datasets)
+- Search across agents, conversations, memories, hooks, skills, bridges in the Cmd+K palette
+- Content snippet previews in search results
+- Vault file indexing (file_index table for non-DB files)
 
 ## Overview
 
-Implement search functionality for the vault:
-- Fast full-text search across markdown files
-- File name and path matching
+Upgrade search to use PostgreSQL full-text indexing:
+- Fast full-text search across all resources
+- Relevance ranking with ts_rank
+- Content snippets with ts_headline
 - Optional: Semantic search with embeddings (future)
 
 ## Approaches
@@ -341,15 +360,20 @@ export default defineTask({
 
 ## Implementation Steps
 
-1. [ ] Add file_index table to schema
-2. [ ] Generate migration
-3. [ ] Create indexing service
-4. [ ] Add search API endpoint
-5. [ ] Hook indexing to file write/delete
-6. [ ] Create SearchModal component
-7. [ ] Add Cmd+K shortcut
-8. [ ] Add search to dashboard
-9. [ ] Test with sample vault
+1. [x] Create SearchModal component (`search/DashboardSearch.vue`)
+2. [x] Add Cmd+K shortcut (via `UDashboardSearchButton`)
+3. [x] Add search to dashboard layout
+4. [x] Basic search API for tasks and documents (ILIKE)
+5. [ ] Add tsvector columns to tasks, documents, memory_chunks tables
+6. [ ] Add GIN indexes on tsvector columns
+7. [ ] Generate migration
+8. [ ] Update search APIs to use `plainto_tsquery` + `ts_rank` instead of ILIKE
+9. [ ] Add file_index table for vault files not in DB
+10. [ ] Create indexing service for vault files
+11. [ ] Hook indexing to file write/delete
+12. [ ] Add search groups to Cmd+K palette: agents, conversations, memories, hooks
+13. [ ] Add content snippet previews with `ts_headline`
+14. [ ] Test with sample vault
 
 ## Future: Semantic Search
 

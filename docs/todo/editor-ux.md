@@ -4,6 +4,8 @@ shared: false
 ---
 # Editor UX Improvements
 
+> **Status: Partially done** — Basic editor with `<UEditor>` + `<UEditorToolbar>` (headings, marks, lists, links). Uses Nuxt UI's editor abstraction over TipTap. Advanced features below remain planned.
+
 Future enhancements for the markdown editor.
 
 ## High Priority

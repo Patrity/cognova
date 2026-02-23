@@ -38,16 +38,18 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 | Secrets Skill | Done | `/secret` slash command for list, get, set, delete |
 | Skills Management | Done | [skill-expansion.md](./skill-expansion.md) — browse, toggle, edit, create, agent-generate skills |
 | Community Skills Library | Done | [skill-expansion.md](./skill-expansion.md) — GitHub registry sync, install/update, tag filtering |
+| AI Conversations | Done | [ai-history.md](./complete/ai-history.md) — DB persistence, list/detail/delete API, chat sidebar integration |
+| Multimodal Chat Input | Done | File upload, image paste, drag-and-drop (images, PDFs, code), attachment previews |
+| Message Bridge | Done | [message-bridge.md](./complete/message-bridge.md) — Telegram, Discord, iMessage (local + BlueBubbles), Google (Gmail via gogcli). Full bidirectional messaging with Claude Agent SDK responder, webhook receivers, health monitoring, settings UI |
+| Search (Basic) | Done | Cmd+K palette with task/document search (ILIKE), navigation shortcuts, action commands |
 
 ## Priority 3: Planned
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Search | Planned | [search.md](./todo/search.md) — unified full-text search across resources |
+| Search (Full-Text) | Planned | [search.md](./todo/search.md) — PostgreSQL tsvector + GIN indexes, expand Cmd+K to search agents, conversations, memories, hooks |
 | Memory Reinforcement | Planned | [env skill.md](./todo/env%20skill.md) — relevance decay, access-based scoring, expiration cleanup |
-| AI History Export | Planned | [ai-history.md](./todo/ai-history.md) — JSONL parsing for conversation export |
 | Chat Commands | Planned | Slash commands in chat input for inline actions (e.g. /task, /project, /memory) |
-| Multimodal Chat Input | Planned | File upload, image paste, drag-and-drop attachments in chat input |
 | Workspace Context | Planned | Agent awareness of vault dir for placing/reading files as needed |
 | Environment Awareness | Planned | Reinforce agent autonomy — install packages, use OS freely, suggest solutions, ask permission |
 
@@ -55,20 +57,22 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Editor UX | Planned | [editor-ux.md](./todo/editor-ux.md) |
-| Keyboard Shortcuts | Planned | Global shortcuts via Nuxt UI `defineShortcuts` |
+| Editor UX | Planned | [editor-ux.md](./todo/editor-ux.md) — slash commands, bubble toolbar, code highlighting, task lists |
+| Keyboard Shortcuts | Planned | Global shortcuts via Nuxt UI `defineShortcuts` (basic nav shortcuts done via Cmd+K) |
 | Mobile Responsive | Planned | `sm:`/`md:` breakpoint coverage (currently `lg:` only) |
+| Generic Email Adapter | Planned | IMAP/SMTP adapter for non-Gmail providers (bridge infrastructure ready) |
+| Bridge Polish | Planned | Retry logic, delivery analytics, auto-reply, `/bridge` skill |
 
 ## Priority 5: Future
 
 | Feature | Status | Plan |
 |---------|--------|------|
-| Message Bridge | In Progress | [message-bridge.md](./todo/message-bridge.md) — Telegram, Discord, iMessage, Email adapters |
 | CLI App URL Setup | Planned | Prompt for public URL during `cli init`, store as APP_URL secret + BETTER_AUTH_URL in .env |
 | Obsidian Integration | Planned | Plugin to upload and share documents directly into the vault |
 | Semantic Search | Exploring | pgvector embeddings for meaning-based search across vault and memory |
 | Table Support | Exploring | TipTap table extensions for markdown editing |
 | Image Uploads | Exploring | Drag-and-drop image handling in the editor |
+| Google Agent Tools | Exploring | Expose Google services (Calendar, Drive, Contacts, Tasks) as agent tools beyond Gmail bridge |
 
 ## Status Key
 
@@ -82,15 +86,18 @@ Priority-ordered list of planned features. Each major item links to a detailed p
 database-init ─┬─► auth
                ├─► task-skill
                ├─► project-management
-               ├─► search
-               └─► secrets-api
+               ├─► search (basic) ──► search (full-text)
+               ├─► secrets-api ──► secrets-skill
+               └─► message-bridge
 
 skills-system ─┬─► task-skill
                ├─► cron-agents
-               ├─► skills-management
-               └─► community-library
+               ├─► skills-management ──► community-library
+               └─► secrets-skill
 
-secrets-api ───► secrets-skill
+message-bridge ─► generic-email-adapter
+               ─► bridge-polish
+               ─► google-agent-tools
 
-skills-management ──► community-library
+search (full-text) ──► semantic-search
 ```
