@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '~~/shared/types'
+import { formatDateLong } from '~~/shared/utils/formatting'
 
 const props = defineProps<{
   task: Task
@@ -27,12 +28,6 @@ const statusConfig = {
 const priority = computed(() => priorityConfig[props.task.priority as 1 | 2 | 3] || priorityConfig[2])
 const status = computed(() => statusConfig[props.task.status])
 const isComplete = computed(() => props.task.status === 'done')
-
-function formatDate(date: Date | string | undefined) {
-  if (!date) return null
-  const d = new Date(date)
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
-}
 </script>
 
 <template>
@@ -87,7 +82,7 @@ function formatDate(date: Date | string | undefined) {
             name="i-lucide-calendar"
             class="size-4 text-dimmed"
           />
-          <span class="text-dimmed">{{ formatDate(task.dueDate) }}</span>
+          <span class="text-dimmed">{{ formatDateLong(task.dueDate) }}</span>
         </div>
       </div>
 
@@ -120,11 +115,11 @@ function formatDate(date: Date | string | undefined) {
       <!-- Timestamps & Audit -->
       <div class="pt-2 border-t border-default text-xs text-dimmed space-y-1">
         <p>
-          Created: {{ formatDate(task.createdAt) }}
+          Created: {{ formatDateLong(task.createdAt) }}
           <span v-if="task.creator"> by {{ task.creator.name }}</span>
         </p>
         <p v-if="task.completedAt">
-          Completed: {{ formatDate(task.completedAt) }}
+          Completed: {{ formatDateLong(task.completedAt) }}
         </p>
       </div>
     </div>

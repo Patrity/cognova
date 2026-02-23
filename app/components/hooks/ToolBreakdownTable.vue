@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { HookToolBreakdown } from '~~/shared/types'
+import { formatDuration } from '~~/shared/utils/formatting'
 
 defineProps<{
   data: HookToolBreakdown[]
   loading?: boolean
 }>()
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-  return `${(ms / 60000).toFixed(1)}m`
-}
 
 function getBlockRateColor(blocked: number, total: number): string {
   const rate = total > 0 ? (blocked / total) * 100 : 0

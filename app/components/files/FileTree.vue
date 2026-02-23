@@ -68,40 +68,29 @@ const showNewFileModal = ref(false)
 const showNewFolderModal = ref(false)
 const showRenameModal = ref(false)
 const showDeleteConfirm = ref(false)
-const newItemName = ref('')
 
 const contextMenuItems = computed(() => [
   [{
     label: 'New File',
     icon: 'i-lucide-file-plus',
-    onSelect: () => {
-      newItemName.value = ''
-      showNewFileModal.value = true
-    }
+    onSelect: () => { showNewFileModal.value = true }
   }, {
     label: 'New Folder',
     icon: 'i-lucide-folder-plus',
-    onSelect: () => {
-      newItemName.value = ''
-      showNewFolderModal.value = true
-    }
+    onSelect: () => { showNewFolderModal.value = true }
   }],
   [{
     label: 'Rename',
     icon: 'i-lucide-pencil',
     onSelect: () => {
-      if (contextMenuTarget.value) {
-        newItemName.value = contextMenuTarget.value.label
+      if (contextMenuTarget.value)
         showRenameModal.value = true
-      }
     }
   }, {
     label: 'Delete',
     icon: 'i-lucide-trash-2',
     color: 'error' as const,
-    onSelect: () => {
-      showDeleteConfirm.value = true
-    }
+    onSelect: () => { showDeleteConfirm.value = true }
   }]
 ])
 
@@ -112,18 +101,14 @@ function handleSelect(item: TreeItem) {
   }
 }
 
-async function handleCreateFile() {
-  if (!newItemName.value.trim()) return
-
+async function handleCreateFile(name: string) {
   const parentPath = contextMenuTarget.value?.type === 'directory'
     ? contextMenuTarget.value.path
     : '/'
 
-  // Add .md extension if not present
-  let filename = newItemName.value.trim()
-  if (!filename.includes('.')) {
+  let filename = name
+  if (!filename.includes('.'))
     filename += '.md'
-  }
 
   try {
     const path = await createFile(parentPath, filename)
@@ -132,39 +117,28 @@ async function handleCreateFile() {
   } catch {
     // Error handled in composable
   }
-
-  showNewFileModal.value = false
-  newItemName.value = ''
 }
 
-async function handleCreateFolder() {
-  if (!newItemName.value.trim()) return
-
+async function handleCreateFolder(name: string) {
   const parentPath = contextMenuTarget.value?.type === 'directory'
     ? contextMenuTarget.value.path
     : '/'
 
   try {
-    await createFolder(parentPath, newItemName.value.trim())
+    await createFolder(parentPath, name)
   } catch {
     // Error handled in composable
   }
-
-  showNewFolderModal.value = false
-  newItemName.value = ''
 }
 
-async function handleRename() {
-  if (!contextMenuTarget.value || !newItemName.value.trim()) return
+async function handleRename(name: string) {
+  if (!contextMenuTarget.value) return
 
   try {
-    await renameItem(contextMenuTarget.value.path, newItemName.value.trim())
+    await renameItem(contextMenuTarget.value.path, name)
   } catch {
     // Error handled in composable
   }
-
-  showRenameModal.value = false
-  newItemName.value = ''
 }
 
 async function handleDelete() {
@@ -175,8 +149,6 @@ async function handleDelete() {
   } catch {
     // Error handled in composable
   }
-
-  showDeleteConfirm.value = false
 }
 
 onMounted(() => {
@@ -270,167 +242,16 @@ onMounted(() => {
       </UTree>
     </UContextMenu>
 
-    <!-- New File Modal -->
-    <UModal v-model:open="showNewFileModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2">
-              <UIcon
-                name="i-lucide-file-plus"
-                class="size-5"
-              />
-              <span class="font-semibold">New File</span>
-            </div>
-          </template>
-
-          <UInput
-            v-model="newItemName"
-            placeholder="filename.md"
-            autofocus
-            @keyup.enter="handleCreateFile"
-          />
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                @click="showNewFileModal = false"
-              >
-                Cancel
-              </UButton>
-              <UButton @click="handleCreateFile">
-                Create
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
-    </UModal>
-
-    <!-- New Folder Modal -->
-    <UModal v-model:open="showNewFolderModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2">
-              <UIcon
-                name="i-lucide-folder-plus"
-                class="size-5"
-              />
-              <span class="font-semibold">New Folder</span>
-            </div>
-          </template>
-
-          <UInput
-            v-model="newItemName"
-            placeholder="folder-name"
-            autofocus
-            @keyup.enter="handleCreateFolder"
-          />
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                @click="showNewFolderModal = false"
-              >
-                Cancel
-              </UButton>
-              <UButton @click="handleCreateFolder">
-                Create
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
-    </UModal>
-
-    <!-- Rename Modal -->
-    <UModal v-model:open="showRenameModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2">
-              <UIcon
-                name="i-lucide-pencil"
-                class="size-5"
-              />
-              <span class="font-semibold">Rename</span>
-            </div>
-          </template>
-
-          <UInput
-            v-model="newItemName"
-            placeholder="new-name"
-            autofocus
-            @keyup.enter="handleRename"
-          />
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                @click="showRenameModal = false"
-              >
-                Cancel
-              </UButton>
-              <UButton @click="handleRename">
-                Rename
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
-    </UModal>
-
-    <!-- Delete Confirmation -->
-    <UModal v-model:open="showDeleteConfirm">
-      <template #content>
-        <UCard>
-          <template #header>
-            <div class="flex items-center gap-2 text-error">
-              <UIcon
-                name="i-lucide-trash-2"
-                class="size-5"
-              />
-              <span class="font-semibold">Delete</span>
-            </div>
-          </template>
-
-          <p>
-            Are you sure you want to delete
-            <strong>{{ contextMenuTarget?.label }}</strong>?
-          </p>
-          <p
-            v-if="contextMenuTarget?.type === 'directory'"
-            class="text-sm text-dimmed mt-1"
-          >
-            This will delete all files and folders inside.
-          </p>
-
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton
-                color="neutral"
-                variant="ghost"
-                @click="showDeleteConfirm = false"
-              >
-                Cancel
-              </UButton>
-              <UButton
-                color="error"
-                @click="handleDelete"
-              >
-                Delete
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
-    </UModal>
+    <FilesFileTreeModals
+      v-model:show-new-file="showNewFileModal"
+      v-model:show-new-folder="showNewFolderModal"
+      v-model:show-rename="showRenameModal"
+      v-model:show-delete="showDeleteConfirm"
+      :context-target="contextMenuTarget"
+      @create-file="handleCreateFile"
+      @create-folder="handleCreateFolder"
+      @rename="handleRename"
+      @delete="handleDelete"
+    />
   </div>
 </template>

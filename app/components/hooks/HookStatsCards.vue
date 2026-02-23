@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { HookEventStats } from '~~/shared/types'
+import { formatDuration } from '~~/shared/utils/formatting'
 
 const props = defineProps<{
   stats: HookEventStats | null
   loading?: boolean
 }>()
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-  return `${(ms / 60000).toFixed(1)}m`
-}
 
 const displayStats = computed(() => {
   if (!props.stats) return []

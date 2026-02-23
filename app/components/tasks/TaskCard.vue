@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Task } from '~~/shared/types'
+import { formatDateShort } from '~~/shared/utils/formatting'
 
 const props = defineProps<{
   task: Task
@@ -34,12 +35,6 @@ const isOverdue = computed(() => {
   if (!props.task.dueDate || isDone.value) return false
   return new Date(props.task.dueDate) < new Date()
 })
-
-function formatDate(date: Date | string | undefined) {
-  if (!date) return null
-  const d = new Date(date)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
 
 const menuItems = computed(() => [[
   {
@@ -146,7 +141,7 @@ const menuItems = computed(() => [[
             name="i-lucide-calendar"
             class="size-3"
           />
-          {{ formatDate(task.dueDate) }}
+          {{ formatDateShort(task.dueDate) }}
         </span>
 
         <!-- Tags -->

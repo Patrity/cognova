@@ -80,7 +80,7 @@ const links = [[{
 }, {
   label: 'Settings',
   icon: 'i-lucide-settings',
-  to: '/settings',
+  to: '/settings/account',
   onSelect: () => {
     open.value = false
   }

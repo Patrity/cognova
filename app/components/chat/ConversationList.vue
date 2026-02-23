@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChatConversation } from '~~/shared/types'
+import { formatRelativeTime } from '~~/shared/utils/formatting'
 
 defineProps<{
   conversations: ChatConversation[]
@@ -11,17 +12,6 @@ const emit = defineEmits<{
   delete: [id: string]
   new: []
 }>()
-
-function formatDate(date: Date | string) {
-  const d = new Date(date)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-
-  if (diff < 60000) return 'just now'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  return d.toLocaleDateString()
-}
 </script>
 
 <template>
@@ -74,7 +64,7 @@ function formatDate(date: Date | string) {
           />
         </div>
         <div class="flex items-center gap-2 mt-1 text-xs text-dimmed">
-          <span>{{ formatDate(conv.startedAt) }}</span>
+          <span>{{ formatRelativeTime(conv.startedAt) }}</span>
           <span v-if="conv.messageCount">{{ conv.messageCount }} msgs</span>
           <span v-if="conv.totalCostUsd > 0">${{ conv.totalCostUsd.toFixed(4) }}</span>
         </div>

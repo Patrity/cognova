@@ -1,35 +1,12 @@
 <script setup lang="ts">
 import type { CronAgentRun } from '~~/shared/types'
+import { formatDuration, formatDateTime, getStatusColor } from '~~/shared/utils/formatting'
 
 defineProps<{
   run: CronAgentRun | null
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
-
-function formatDuration(ms?: number) {
-  if (!ms) return '-'
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-  return `${(ms / 60000).toFixed(1)}m`
-}
-
-function formatDateTime(date?: Date | string) {
-  if (!date) return '-'
-  const d = new Date(date)
-  return d.toLocaleString()
-}
-
-function getStatusColor(status?: string) {
-  switch (status) {
-    case 'success': return 'success'
-    case 'error': return 'error'
-    case 'budget_exceeded': return 'warning'
-    case 'running': return 'info'
-    case 'cancelled': return 'neutral'
-    default: return 'neutral'
-  }
-}
 </script>
 
 <template>

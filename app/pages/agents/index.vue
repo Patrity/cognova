@@ -36,45 +36,6 @@ const periodOptions = [
   { label: '30d', value: '30d' as StatsPeriod }
 ]
 
-// Format cron expression to human readable
-function formatSchedule(schedule: string) {
-  const parts = schedule.split(' ')
-  if (parts.length !== 5) return schedule
-
-  const min = parts[0]!
-  const hour = parts[1]!
-  const dayOfMonth = parts[2]!
-  const month = parts[3]!
-  const dayOfWeek = parts[4]!
-
-  if (min === '0' && hour === '*' && dayOfMonth === '*' && month === '*' && dayOfWeek === '*')
-    return 'Every hour'
-  if (min === '*/5' && hour === '*' && dayOfMonth === '*' && month === '*' && dayOfWeek === '*')
-    return 'Every 5 minutes'
-  if (dayOfMonth === '*' && month === '*' && dayOfWeek === '*' && hour !== '*')
-    return `Daily at ${hour}:${min.padStart(2, '0')}`
-  if (dayOfWeek === '0' && dayOfMonth === '*' && month === '*')
-    return `Weekly on Sunday at ${hour}:${min.padStart(2, '0')}`
-
-  return schedule
-}
-
-// Format relative time
-function formatRelativeTime(date?: Date | string) {
-  if (!date) return 'Never'
-  const d = new Date(date)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
-
 // Open form for new agent
 function openNewAgentForm() {
   editingAgent.value = null
@@ -168,18 +129,6 @@ async function handleCancel(id: string, event: Event) {
       color: 'error',
       icon: 'i-lucide-alert-circle'
     })
-  }
-}
-
-// Status badge color
-function getStatusColor(status?: string) {
-  switch (status) {
-    case 'success': return 'success'
-    case 'error': return 'error'
-    case 'budget_exceeded': return 'warning'
-    case 'running': return 'info'
-    case 'cancelled': return 'neutral'
-    default: return 'neutral'
   }
 }
 
@@ -296,99 +245,17 @@ onMounted(async () => {
             <h2 class="text-lg font-semibold">
               Agents
             </h2>
-            <UCard
+            <AgentsAgentCard
               v-for="agent in agents"
               :key="agent.id"
-              class="cursor-pointer transition-all hover:ring-2 hover:ring-primary/50"
-              @click="navigateToAgent(agent)"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <h3 class="font-medium truncate">
-                      {{ agent.name }}
-                    </h3>
-                    <UBadge
-                      v-if="checkAgentRunning(agent.id)"
-                      color="info"
-                      variant="subtle"
-                      size="sm"
-                    >
-                      <UIcon
-                        name="i-lucide-loader-2"
-                        class="w-3 h-3 animate-spin mr-1"
-                      />
-                      Running
-                    </UBadge>
-                    <UBadge
-                      v-else-if="agent.lastStatus"
-                      :color="getStatusColor(agent.lastStatus)"
-                      size="sm"
-                    >
-                      {{ agent.lastStatus }}
-                    </UBadge>
-                  </div>
-
-                  <p
-                    v-if="agent.description"
-                    class="text-sm text-muted truncate mt-1"
-                  >
-                    {{ agent.description }}
-                  </p>
-
-                  <div class="flex items-center gap-4 mt-2 text-sm text-muted">
-                    <span class="flex items-center gap-1">
-                      <UIcon name="i-lucide-clock" />
-                      {{ formatSchedule(agent.schedule) }}
-                    </span>
-                    <span
-                      v-if="agent.lastRunAt"
-                      class="flex items-center gap-1"
-                    >
-                      <UIcon name="i-lucide-activity" />
-                      {{ formatRelativeTime(agent.lastRunAt) }}
-                    </span>
-                    <span
-                      v-if="agent.maxBudgetUsd"
-                      class="flex items-center gap-1"
-                    >
-                      <UIcon name="i-lucide-dollar-sign" />
-                      ${{ agent.maxBudgetUsd }} limit
-                    </span>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <USwitch
-                    :model-value="agent.enabled"
-                    @click.stop
-                    @update:model-value="handleToggle(agent.id)"
-                  />
-                  <UButton
-                    v-if="checkAgentRunning(agent.id)"
-                    icon="i-lucide-square"
-                    variant="ghost"
-                    size="sm"
-                    color="error"
-                    @click.stop="handleCancel(agent.id, $event)"
-                  />
-                  <UButton
-                    v-else
-                    icon="i-lucide-play"
-                    variant="ghost"
-                    size="sm"
-                    :disabled="!agent.enabled"
-                    @click.stop="handleRun(agent.id, $event)"
-                  />
-                  <UButton
-                    icon="i-lucide-pencil"
-                    variant="ghost"
-                    size="sm"
-                    @click.stop="openEditForm(agent, $event)"
-                  />
-                </div>
-              </div>
-            </UCard>
+              :agent="agent"
+              :running="checkAgentRunning(agent.id)"
+              @toggle="handleToggle"
+              @run="handleRun"
+              @cancel="handleCancel"
+              @edit="openEditForm"
+              @navigate="navigateToAgent"
+            />
           </div>
         </div>
       </template>
