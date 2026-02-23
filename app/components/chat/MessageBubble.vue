@@ -41,6 +41,12 @@ function getDocIcon(doc: ChatDocumentBlock): string {
   return 'i-lucide-file-code'
 }
 
+const previewImage = ref<ChatImageBlock | null>(null)
+const previewOpen = computed({
+  get: () => previewImage.value !== null,
+  set: (v) => { if (!v) previewImage.value = null }
+})
+
 const sourceIconMap: Record<string, string> = {
   telegram: 'i-simple-icons-telegram',
   discord: 'i-simple-icons-discord',
@@ -99,7 +105,8 @@ function formatTime(date: Date | string | undefined): string {
             v-for="(img, i) in getImageBlocks(message.content)"
             :key="i"
             :src="`data:${img.source.media_type};base64,${img.source.data}`"
-            class="max-w-48 max-h-48 rounded-lg object-contain"
+            class="max-w-48 max-h-48 rounded-lg object-contain cursor-pointer hover:opacity-80 transition-opacity"
+            @click="previewImage = img"
           >
         </div>
 
@@ -168,5 +175,20 @@ function formatTime(date: Date | string | undefined): string {
         {{ formatTime(message.createdAt) }}
       </div>
     </div>
+
+    <!-- Image preview modal -->
+    <UModal
+      v-model:open="previewOpen"
+    >
+      <template #content>
+        <div class="flex items-center justify-center">
+          <img
+            v-if="previewImage"
+            :src="`data:${previewImage.source.media_type};base64,${previewImage.source.data}`"
+            class="max-w-full max-h-[80vh] object-contain rounded-lg"
+          >
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
