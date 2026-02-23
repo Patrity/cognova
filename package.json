@@ -83,6 +83,7 @@
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
+    "entities": "^7.0.1",
     "gray-matter": "^4.0.3",
     "node-pty": "^1.1.0",
     "nuxt": "^4.2.2",
