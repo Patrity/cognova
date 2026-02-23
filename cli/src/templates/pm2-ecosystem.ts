@@ -27,6 +27,8 @@ module.exports = {
     name: 'cognova',
     script: '.output/server/index.mjs',
     cwd: '${config.installDir}',
+    // Use 'node' interpreter when NVM is detected to avoid path parsing issues
+    interpreter: 'node',
     node_args: '--max-old-space-size=4096',
     env: {
       ...dotenv,

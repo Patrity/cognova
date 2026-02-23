@@ -49,6 +49,17 @@ export async function setupAndStart(config: InitConfig) {
     s.stop('Cognova is running')
   } catch (err) {
     s.stop('Failed to start')
-    p.log.error(`PM2 error: ${err}`)
+    const errMsg = String(err)
+
+    // Check for NVM-related issues
+    if (errMsg.includes('nvm') && errMsg.includes('not found')) {
+      p.log.error('PM2 + NVM compatibility issue detected')
+      p.log.info('Try: pm2 delete cognova && pm2 start ecosystem.config.cjs')
+      p.log.info(`Working directory: ${config.installDir}`)
+    } else {
+      p.log.error(`PM2 error: ${err}`)
+    }
+
+    throw err
   }
 }
