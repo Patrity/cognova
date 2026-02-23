@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage, ChatContentBlock, ChatImageBlock, ChatDocumentBlock, MessageSource } from '~~/shared/types'
+import type { ChatMessage, ChatContentBlock, ChatImageBlock, ChatDocumentBlock, MessageSource, CodeLanguage } from '~~/shared/types'
 
 defineProps<{
   message: ChatMessage
@@ -41,11 +41,93 @@ function getDocIcon(doc: ChatDocumentBlock): string {
   return 'i-lucide-file-code'
 }
 
+// Image preview
 const previewImage = ref<ChatImageBlock | null>(null)
 const previewOpen = computed({
   get: () => previewImage.value !== null,
   set: (v) => { if (!v) previewImage.value = null }
 })
+
+// Code/document preview
+const previewDoc = ref<ChatDocumentBlock | null>(null)
+const codePreviewOpen = computed({
+  get: () => previewDoc.value !== null,
+  set: (v) => { if (!v) previewDoc.value = null }
+})
+
+const codePreviewContent = computed(() => previewDoc.value?.source.data || '')
+
+const extToLang: Record<string, CodeLanguage> = {
+  md: 'markdown',
+  js: 'javascript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  mts: 'typescript',
+  json: 'json',
+  html: 'html',
+  htm: 'html',
+  css: 'css',
+  scss: 'css',
+  sass: 'css',
+  less: 'css',
+  vue: 'vue',
+  svelte: 'html',
+  py: 'python',
+  sql: 'sql',
+  yaml: 'yaml',
+  yml: 'yaml',
+  sh: 'bash',
+  bash: 'bash',
+  zsh: 'bash',
+  fish: 'bash',
+  go: 'go',
+  rs: 'rust',
+  dockerfile: 'dockerfile',
+  java: 'java',
+  kt: 'java',
+  c: 'cpp',
+  cpp: 'cpp',
+  h: 'cpp',
+  hpp: 'cpp',
+  cs: 'cpp',
+  xml: 'xml',
+  graphql: 'plaintext',
+  gql: 'plaintext',
+  toml: 'plaintext',
+  ini: 'plaintext',
+  csv: 'plaintext',
+  txt: 'plaintext',
+  log: 'plaintext',
+  env: 'plaintext',
+  prisma: 'plaintext',
+  proto: 'plaintext'
+}
+
+const codePreviewLang = computed<CodeLanguage>(() => {
+  if (!previewDoc.value?.title) return 'plaintext'
+  const ext = previewDoc.value.title.split('.').pop()?.toLowerCase() || ''
+  return extToLang[ext] || 'plaintext'
+})
+
+function handleDocClick(doc: ChatDocumentBlock) {
+  if (doc.source.media_type === 'application/pdf') {
+    // Open PDF in new tab
+    const byteChars = atob(doc.source.data)
+    const bytes = new Uint8Array(byteChars.length)
+    for (let i = 0; i < byteChars.length; i++)
+      bytes[i] = byteChars.charCodeAt(i)
+    const blob = new Blob([bytes], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+  } else {
+    // Open text file in code viewer modal
+    previewDoc.value = doc
+  }
+}
 
 const sourceIconMap: Record<string, string> = {
   telegram: 'i-simple-icons-telegram',
@@ -115,17 +197,23 @@ function formatTime(date: Date | string | undefined): string {
           v-if="getDocumentBlocks(message.content).length"
           class="flex flex-wrap gap-2 mb-2"
         >
-          <div
+          <button
             v-for="(doc, i) in getDocumentBlocks(message.content)"
             :key="i"
-            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated/50 border border-default text-xs"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated/50 border border-default text-xs hover:bg-elevated transition-colors cursor-pointer"
+            @click="handleDocClick(doc)"
           >
             <UIcon
               :name="getDocIcon(doc)"
               class="size-3.5 text-dimmed shrink-0"
             />
             <span class="truncate max-w-32">{{ doc.title || 'Document' }}</span>
-          </div>
+            <UIcon
+              v-if="doc.source.media_type === 'application/pdf'"
+              name="i-lucide-external-link"
+              class="size-3 text-dimmed shrink-0"
+            />
+          </button>
         </div>
 
         <!-- Text content -->
@@ -187,6 +275,31 @@ function formatTime(date: Date | string | undefined): string {
             :src="`data:${previewImage.source.media_type};base64,${previewImage.source.data}`"
             class="max-w-full max-h-[80vh] object-contain rounded-lg"
           >
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Code preview modal -->
+    <UModal
+      v-model:open="codePreviewOpen"
+    >
+      <template #header>
+        <div class="flex items-center gap-2">
+          <UIcon
+            name="i-lucide-file-code"
+            class="size-4 text-dimmed"
+          />
+          <span class="text-sm font-medium truncate">{{ previewDoc?.title || 'File' }}</span>
+        </div>
+      </template>
+      <template #body>
+        <div class="h-[60vh] overflow-hidden rounded-lg border border-default">
+          <EditorCodeEditor
+            v-if="previewDoc"
+            :model-value="codePreviewContent"
+            :language="codePreviewLang"
+            read-only
+          />
         </div>
       </template>
     </UModal>
