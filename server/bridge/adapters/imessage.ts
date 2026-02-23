@@ -263,12 +263,19 @@ export class IMessageAdapter implements BridgeAdapter {
     }
 
     try {
+      // Format chatGuid if recipient is a bare phone number or email
+      const chatGuid = msg.recipient.includes(';')
+        ? msg.recipient
+        : `iMessage;-;${msg.recipient.startsWith('+') ? msg.recipient : `+${msg.recipient}`}`
+
       const resp = await fetch(`${this.bbUrl}/api/v1/message/text?password=${encodeURIComponent(this.bbPassword)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chatGuid: msg.recipient,
-          message: msg.text
+          chatGuid,
+          tempGuid: `temp-${randomBytes(16).toString('hex')}`,
+          message: msg.text,
+          method: 'private-api'
         })
       })
 
