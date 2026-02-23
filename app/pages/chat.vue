@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatImageBlock } from '~~/shared/types'
+import type { ChatImageBlock, ChatDocumentBlock } from '~~/shared/types'
 
 definePageMeta({
   layout: 'dashboard',
@@ -55,8 +55,8 @@ onMounted(() => {
   }
 })
 
-function handleSend(message: string, attachments?: ChatImageBlock[]) {
-  sendMessage(message, attachments)
+function handleSend(message: string, attachments?: ChatImageBlock[], documents?: ChatDocumentBlock[]) {
+  sendMessage(message, attachments, documents)
   nextTick(scrollToBottom)
 }
 

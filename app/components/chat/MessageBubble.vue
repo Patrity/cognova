@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage, ChatContentBlock, ChatImageBlock, MessageSource } from '~~/shared/types'
+import type { ChatMessage, ChatContentBlock, ChatImageBlock, ChatDocumentBlock, MessageSource } from '~~/shared/types'
 
 defineProps<{
   message: ChatMessage
@@ -16,6 +16,10 @@ function getImageBlocks(blocks: ChatContentBlock[]): ChatImageBlock[] {
   return blocks.filter((b): b is ChatImageBlock => b.type === 'image')
 }
 
+function getDocumentBlocks(blocks: ChatContentBlock[]): ChatDocumentBlock[] {
+  return blocks.filter((b): b is ChatDocumentBlock => b.type === 'document')
+}
+
 function getToolPairs(blocks: ChatContentBlock[]) {
   const tools: { name: string, id: string, result?: string, isError?: boolean }[] = []
   for (const block of blocks) {
@@ -30,6 +34,11 @@ function getToolPairs(blocks: ChatContentBlock[]) {
     }
   }
   return tools
+}
+
+function getDocIcon(doc: ChatDocumentBlock): string {
+  if (doc.source.media_type === 'application/pdf') return 'i-lucide-file-text'
+  return 'i-lucide-file-code'
 }
 
 const sourceIconMap: Record<string, string> = {
@@ -92,6 +101,24 @@ function formatTime(date: Date | string | undefined): string {
             :src="`data:${img.source.media_type};base64,${img.source.data}`"
             class="max-w-48 max-h-48 rounded-lg object-contain"
           >
+        </div>
+
+        <!-- Document attachments -->
+        <div
+          v-if="getDocumentBlocks(message.content).length"
+          class="flex flex-wrap gap-2 mb-2"
+        >
+          <div
+            v-for="(doc, i) in getDocumentBlocks(message.content)"
+            :key="i"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-elevated/50 border border-default text-xs"
+          >
+            <UIcon
+              :name="getDocIcon(doc)"
+              class="size-3.5 text-dimmed shrink-0"
+            />
+            <span class="truncate max-w-32">{{ doc.title || 'Document' }}</span>
+          </div>
         </div>
 
         <!-- Text content -->

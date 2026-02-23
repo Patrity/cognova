@@ -700,9 +700,18 @@ export interface ChatImageBlock {
   }
 }
 
+export interface ChatDocumentBlock {
+  type: 'document'
+  source:
+    | { type: 'base64', media_type: 'application/pdf', data: string }
+    | { type: 'text', media_type: 'text/plain', data: string }
+  title?: string
+}
+
 export type ChatContentBlock
   = ChatTextBlock
     | ChatImageBlock
+    | ChatDocumentBlock
     | ChatToolUseBlock
     | ChatToolResultBlock
 
@@ -740,6 +749,7 @@ export interface ChatSendMessage {
   type: 'chat:send'
   message: string
   attachments?: ChatImageBlock[]
+  documents?: ChatDocumentBlock[]
   conversationId?: string
 }
 

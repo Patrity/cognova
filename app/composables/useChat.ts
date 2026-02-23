@@ -3,6 +3,7 @@ import type {
   ChatMessage,
   ChatContentBlock,
   ChatImageBlock,
+  ChatDocumentBlock,
   ChatServerMessage,
   ChatSessionStatus,
   ChatConnectionStatus
@@ -201,13 +202,15 @@ export function useChat() {
     }
   }
 
-  function sendMessage(message: string, attachments?: ChatImageBlock[]) {
+  function sendMessage(message: string, attachments?: ChatImageBlock[], documents?: ChatDocumentBlock[]) {
     if (!ws.value || ws.value.readyState !== WebSocket.OPEN) return
 
     // Build content blocks for local display
     const content: ChatContentBlock[] = []
     if (attachments?.length)
       for (const img of attachments) content.push(img)
+    if (documents?.length)
+      for (const doc of documents) content.push(doc)
     if (message) content.push({ type: 'text', text: message })
 
     // Add user message locally
@@ -222,7 +225,8 @@ export function useChat() {
     ws.value.send(JSON.stringify({
       type: 'chat:send',
       message,
-      attachments,
+      attachments: attachments?.length ? attachments : undefined,
+      documents: documents?.length ? documents : undefined,
       conversationId: activeConversationId.value
     }))
   }

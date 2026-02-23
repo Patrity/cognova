@@ -4,7 +4,7 @@ import { chatSessionManager } from '~~/server/utils/chat-session-manager'
 import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { logTokenUsage } from '~~/server/utils/log-token-usage'
-import type { ChatClientMessage, ChatContentBlock, ChatImageBlock } from '~~/shared/types'
+import type { ChatClientMessage, ChatContentBlock, ChatImageBlock, ChatDocumentBlock } from '~~/shared/types'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages/messages'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,20 +17,38 @@ function send(peer: any, data: object) {
   }
 }
 
-function buildSdkContent(message: string, attachments?: ChatImageBlock[]): string | ContentBlockParam[] {
-  if (!attachments?.length) return message
+function buildSdkContent(
+  message: string,
+  attachments?: ChatImageBlock[],
+  documents?: ChatDocumentBlock[]
+): string | ContentBlockParam[] {
+  if (!attachments?.length && !documents?.length) return message
 
   const blocks: ContentBlockParam[] = []
-  for (const img of attachments) {
-    blocks.push({
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: img.source.media_type,
-        data: img.source.data
-      }
-    })
+
+  if (attachments?.length) {
+    for (const img of attachments) {
+      blocks.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: img.source.media_type,
+          data: img.source.data
+        }
+      })
+    }
   }
+
+  if (documents?.length) {
+    for (const doc of documents) {
+      blocks.push({
+        type: 'document',
+        source: doc.source,
+        title: doc.title
+      })
+    }
+  }
+
   if (message) blocks.push({ type: 'text', text: message })
   return blocks
 }
@@ -47,7 +65,7 @@ export default defineWebSocketHandler({
 
       switch (msg.type) {
         case 'chat:send':
-          handleSend(peer, msg.message, msg.conversationId, msg.attachments)
+          handleSend(peer, msg.message, msg.conversationId, msg.attachments, msg.documents)
           break
         case 'chat:interrupt':
           handleInterrupt(peer, msg.conversationId)
@@ -68,8 +86,14 @@ export default defineWebSocketHandler({
   }
 })
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleSend(peer: any, message: string, conversationId?: string, attachments?: ChatImageBlock[]) {
+async function handleSend(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  peer: any,
+  message: string,
+  conversationId?: string,
+  attachments?: ChatImageBlock[],
+  documents?: ChatDocumentBlock[]
+) {
   const db = getDb()
 
   let convId = conversationId
@@ -80,7 +104,7 @@ async function handleSend(peer: any, message: string, conversationId?: string, a
     const [conv] = await db.insert(schema.conversations)
       .values({
         sessionId: randomUUID(),
-        title: message.slice(0, 100) || 'Image message',
+        title: message.slice(0, 100) || 'File attachment',
         status: 'streaming',
         messageCount: 0,
         totalCostUsd: 0
@@ -116,6 +140,8 @@ async function handleSend(peer: any, message: string, conversationId?: string, a
   const userContent: ChatContentBlock[] = []
   if (attachments?.length)
     for (const img of attachments) userContent.push(img)
+  if (documents?.length)
+    for (const doc of documents) userContent.push(doc)
   if (message) userContent.push({ type: 'text', text: message })
 
   // Persist user message
@@ -127,7 +153,7 @@ async function handleSend(peer: any, message: string, conversationId?: string, a
   })
 
   // Build prompt for SDK (string for text-only, ContentBlockParam[] for multimodal)
-  const prompt = buildSdkContent(message, attachments)
+  const prompt = buildSdkContent(message, attachments, documents)
 
   // Start SDK streaming (fire-and-forget so WS stays responsive for interrupts)
   const session = chatSessionManager.startSession(convId, prompt, resumeSessionId)

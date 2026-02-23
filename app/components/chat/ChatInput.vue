@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatSessionStatus, ChatConnectionStatus, ChatImageBlock } from '~~/shared/types'
+import type { ChatSessionStatus, ChatConnectionStatus, ChatImageBlock, ChatDocumentBlock } from '~~/shared/types'
 
 const props = defineProps<{
   sessionStatus: ChatSessionStatus
@@ -7,11 +7,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  send: [message: string, attachments?: ChatImageBlock[]]
+  send: [message: string, attachments?: ChatImageBlock[], documents?: ChatDocumentBlock[]]
   interrupt: []
 }>()
 
-const { attachments, addFiles, removeAttachment, clearAttachments, toImageBlocks } = useAttachments()
+const { attachments, addFiles, removeAttachment, clearAttachments, toImageBlocks, toDocumentBlocks } = useAttachments()
 
 const inputText = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
@@ -36,7 +36,13 @@ function handleKeydown(e: KeyboardEvent) {
 function handleSend() {
   if (!canSend.value) return
   const images = toImageBlocks()
-  emit('send', inputText.value.trim(), images.length > 0 ? images : undefined)
+  const docs = toDocumentBlocks()
+  emit(
+    'send',
+    inputText.value.trim(),
+    images.length > 0 ? images : undefined,
+    docs.length > 0 ? docs : undefined
+  )
   inputText.value = ''
   clearAttachments()
   nextTick(() => {
@@ -52,10 +58,9 @@ function autoResize(e: Event) {
 
 function handlePaste(e: ClipboardEvent) {
   const files = Array.from(e.clipboardData?.files || [])
-  const imageFiles = files.filter(f => f.type.startsWith('image/'))
-  if (imageFiles.length > 0) {
+  if (files.length > 0) {
     e.preventDefault()
-    addFiles(imageFiles)
+    addFiles(files)
   }
 }
 
@@ -80,6 +85,17 @@ function handleFileSelect(e: Event) {
   if (input.files?.length) addFiles(input.files)
   input.value = ''
 }
+
+const FILE_ACCEPT = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+  'application/pdf',
+  '.txt', '.md', '.js', '.ts', '.jsx', '.tsx', '.py', '.rb', '.rs', '.go',
+  '.java', '.c', '.cpp', '.h', '.cs', '.swift', '.kt',
+  '.json', '.yaml', '.yml', '.toml', '.ini',
+  '.xml', '.html', '.css', '.scss',
+  '.sh', '.sql', '.graphql', '.csv', '.log',
+  '.vue', '.svelte', '.prisma', '.lua', '.dart'
+].join(',')
 </script>
 
 <template>
@@ -94,7 +110,7 @@ function handleFileSelect(e: Event) {
       v-if="isDragging"
       class="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10"
     >
-      <span class="text-sm text-primary font-medium">Drop images here</span>
+      <span class="text-sm text-primary font-medium">Drop files here</span>
     </div>
 
     <!-- Connection status -->
@@ -114,13 +130,25 @@ function handleFileSelect(e: Event) {
       <div
         v-for="att in attachments"
         :key="att.id"
-        class="relative group size-16 rounded-lg overflow-hidden border border-default"
+        class="relative group rounded-lg overflow-hidden border border-default"
+        :class="att.kind === 'image' ? 'size-16' : 'h-10 px-3 flex items-center gap-1.5 bg-elevated/50'"
       >
+        <!-- Image thumbnail -->
         <img
+          v-if="att.kind === 'image'"
           :src="att.previewUrl"
           :alt="att.name"
           class="size-full object-cover"
         >
+        <!-- Document chip -->
+        <template v-else>
+          <UIcon
+            :name="att.name.endsWith('.pdf') ? 'i-lucide-file-text' : 'i-lucide-file-code'"
+            class="size-4 text-dimmed shrink-0"
+          />
+          <span class="text-xs truncate max-w-24">{{ att.name }}</span>
+        </template>
+
         <button
           class="absolute top-0 right-0 p-0.5 bg-error/80 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
           @click="removeAttachment(att.id)"
@@ -149,7 +177,7 @@ function handleFileSelect(e: Event) {
       <input
         ref="fileInputRef"
         type="file"
-        accept="image/jpeg,image/png,image/gif,image/webp"
+        :accept="FILE_ACCEPT"
         multiple
         class="hidden"
         @change="handleFileSelect"
