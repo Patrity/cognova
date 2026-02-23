@@ -13,137 +13,253 @@ import { writeEnvFile } from '../lib/config'
 import { installClaudeConfig } from '../lib/claude-config'
 import { setupAndStart } from '../lib/process-manager'
 import { waitForHealth } from '../lib/health'
-import type { InitConfig } from '../lib/types'
+import { loadProgress, saveProgress, clearProgress } from '../lib/progress'
+import { withRetry, SkipError } from '../lib/retry'
+import type { InitConfig, SetupProgress } from '../lib/types'
 
 export async function init() {
   p.intro(pc.bgCyan(pc.black(' Cognova Setup ')))
 
+  // Check for existing progress
+  const existingProgress = loadProgress()
+  let progress: SetupProgress = existingProgress || {
+    completedSteps: [],
+    partialConfig: {},
+    startedAt: new Date().toISOString()
+  }
+
+  if (existingProgress) {
+    p.log.warn('Previous setup was interrupted')
+    const resume = await p.confirm({
+      message: 'Resume from where you left off?',
+      initialValue: true
+    })
+    if (p.isCancel(resume)) process.exit(0)
+
+    if (!resume) {
+      clearProgress()
+      progress = {
+        completedSteps: [],
+        partialConfig: {},
+        startedAt: new Date().toISOString()
+      }
+    }
+  }
+
   // Step 1: Prerequisites
-  const prereqs = await checkPrerequisites()
+  const prereqs = progress.completedSteps.includes('prerequisites')
+    ? { ok: true, dockerInstalled: true, dockerReady: true, nodeVersion: '', pythonVersion: '', pnpmVersion: '', claudeInstalled: true }
+    : await checkPrerequisites()
+
+  if (!progress.completedSteps.includes('prerequisites')) {
+    progress.completedSteps.push('prerequisites')
+    saveProgress(progress)
+  }
 
   // Step 2: Agent Personality
   p.log.step(pc.bold('Agent Personality'))
-  const personality = await promptPersonality()
+  const personality = progress.partialConfig.personality || await promptPersonality()
+
+  if (!progress.completedSteps.includes('personality')) {
+    progress.partialConfig.personality = personality
+    progress.completedSteps.push('personality')
+    saveProgress(progress)
+  }
 
   // Step 3: Install Location
   p.log.step(pc.bold('Installation'))
   const defaultDir = join(process.env.HOME || '~', 'cognova')
-  const installDir = await p.text({
-    message: 'Where should Cognova be installed?',
-    placeholder: defaultDir,
-    defaultValue: defaultDir
-  })
-  if (p.isCancel(installDir)) process.exit(0)
+  let resolvedInstallDir: string
 
-  const resolvedInstallDir = installDir.replace('~', process.env.HOME || '')
-  await setupInstallDir(resolvedInstallDir)
+  if (progress.partialConfig.installDir) {
+    resolvedInstallDir = progress.partialConfig.installDir
+    p.log.info(`Using install directory: ${resolvedInstallDir}`)
+  } else {
+    const installDir = await p.text({
+      message: 'Where should Cognova be installed?',
+      placeholder: defaultDir,
+      defaultValue: defaultDir
+    })
+    if (p.isCancel(installDir)) process.exit(0)
+
+    resolvedInstallDir = installDir.replace('~', process.env.HOME || '')
+    await setupInstallDir(resolvedInstallDir)
+
+    progress.partialConfig.installDir = resolvedInstallDir
+    progress.completedSteps.push('installDir')
+    saveProgress(progress)
+  }
 
   // Step 4: Vault
   p.log.step(pc.bold('Vault'))
-  const vault = await setupVault()
+  const vault = progress.partialConfig.vault || await setupVault()
+
+  if (!progress.completedSteps.includes('vault')) {
+    progress.partialConfig.vault = vault
+    progress.completedSteps.push('vault')
+    saveProgress(progress)
+  }
 
   // Step 5: Database
   p.log.step(pc.bold('Database'))
-  const database = await setupDatabase(prereqs.hasDocker)
+  let database = progress.partialConfig.database
+
+  if (!database) {
+    try {
+      database = await withRetry(
+        'Database setup',
+        () => setupDatabase(prereqs.dockerReady),
+        { canSkip: false }
+      )
+      progress.partialConfig.database = database
+      progress.completedSteps.push('database')
+      saveProgress(progress)
+    } catch (err) {
+      if (err instanceof SkipError) {
+        p.log.error('Database setup is required and cannot be skipped')
+      }
+      process.exit(1)
+    }
+  }
 
   // Step 6: Network Access
   p.log.step(pc.bold('Network Access'))
-  const accessMode = await p.select({
-    message: 'How will you access Cognova?',
-    options: [
-      { value: 'localhost', label: 'Local only', hint: 'http://localhost:3000' },
-      { value: 'specific', label: 'Specific IP or domain', hint: 'LAN IP, hostname, or domain' },
-      { value: 'any', label: 'Any connection', hint: 'Accepts requests from any origin (0.0.0.0)' }
-    ]
-  })
-  if (p.isCancel(accessMode)) process.exit(0)
+  let accessMode: 'localhost' | 'specific' | 'any'
+  let appUrl: string
 
-  let appUrl = 'http://localhost:3000'
-  if (accessMode === 'specific') {
-    const host = await p.text({
-      message: 'IP address or domain (include port if not 80/443)',
-      placeholder: '192.168.1.100:3000'
-    })
-    if (p.isCancel(host)) process.exit(0)
-    appUrl = host.startsWith('http') ? host : `http://${host}`
+  if (progress.partialConfig.accessMode && progress.partialConfig.appUrl) {
+    accessMode = progress.partialConfig.accessMode
+    appUrl = progress.partialConfig.appUrl
+    p.log.info(`Using access mode: ${accessMode} (${appUrl})`)
+  } else {
+    accessMode = await p.select({
+      message: 'How will you access Cognova?',
+      options: [
+        { value: 'localhost', label: 'Local only', hint: 'http://localhost:3000' },
+        { value: 'specific', label: 'Specific IP or domain', hint: 'LAN IP, hostname, or domain' },
+        { value: 'any', label: 'Any connection', hint: 'Accepts requests from any origin (0.0.0.0)' }
+      ]
+    }) as 'localhost' | 'specific' | 'any'
+    if (p.isCancel(accessMode)) process.exit(0)
+
+    appUrl = 'http://localhost:3000'
+    if (accessMode === 'specific') {
+      const host = await p.text({
+        message: 'IP address or domain (include port if not 80/443)',
+        placeholder: '192.168.1.100:3000'
+      })
+      if (p.isCancel(host)) process.exit(0)
+      appUrl = host.startsWith('http') ? host : `http://${host}`
+    }
+
+    progress.partialConfig.accessMode = accessMode
+    progress.partialConfig.appUrl = appUrl
+    progress.completedSteps.push('network')
+    saveProgress(progress)
   }
 
   // Security warning — always shown, severity depends on access mode
-  p.log.warn(pc.yellow(pc.bold('Security Notice')))
-  p.log.warn([
-    'Cognova gives an AI agent unrestricted access to this machine.',
-    'It can read, write, and execute anything via the embedded terminal',
-    'and Claude Code CLI.',
-    '',
-    `  ${pc.dim('•')} Do not run on a personal machine or alongside sensitive data`,
-    `  ${pc.dim('•')} Use a dedicated VM, container, or isolated environment`,
-    `  ${pc.dim('•')} Put a reverse proxy with TLS in front for remote access`,
-    `  ${pc.dim('•')} Do not store SSH keys, cloud creds, or production secrets here`
-  ].join('\n'))
+  if (!progress.completedSteps.includes('security')) {
+    p.log.warn(pc.yellow(pc.bold('Security Notice')))
+    p.log.warn([
+      'Cognova gives an AI agent unrestricted access to this machine.',
+      'It can read, write, and execute anything via the embedded terminal',
+      'and Claude Code CLI.',
+      '',
+      `  ${pc.dim('•')} Do not run on a personal machine or alongside sensitive data`,
+      `  ${pc.dim('•')} Use a dedicated VM, container, or isolated environment`,
+      `  ${pc.dim('•')} Put a reverse proxy with TLS in front for remote access`,
+      `  ${pc.dim('•')} Do not store SSH keys, cloud creds, or production secrets here`
+    ].join('\n'))
 
-  if (accessMode === 'any') {
-    p.log.warn(pc.red(
-      'Binding to 0.0.0.0 exposes this to your entire network.'
-    ))
+    if (accessMode === 'any') {
+      p.log.warn(pc.red(
+        'Binding to 0.0.0.0 exposes this to your entire network.'
+      ))
+    }
+
+    const proceed = await p.confirm({
+      message: 'I understand the risks. Continue?',
+      initialValue: false
+    })
+    if (p.isCancel(proceed) || !proceed) process.exit(0)
+
+    progress.completedSteps.push('security')
+    saveProgress(progress)
   }
-
-  const proceed = await p.confirm({
-    message: 'I understand the risks. Continue?',
-    initialValue: false
-  })
-  if (p.isCancel(proceed) || !proceed) process.exit(0)
 
   // Step 7: Auth
   p.log.step(pc.bold('Authentication'))
-  const adminEmail = await p.text({
-    message: 'Admin email',
-    placeholder: 'admin@example.com',
-    defaultValue: 'admin@example.com'
-  })
-  if (p.isCancel(adminEmail)) process.exit(0)
-
+  let adminEmail: string
   let adminPassword: string
-  while (true) {
-    const pw = await p.password({
-      message: 'Admin password',
-      validate: (v) => {
-        if (!v || v.length < 8) return 'Minimum 8 characters'
+  let adminName: string
+
+  if (progress.partialConfig.auth) {
+    adminEmail = progress.partialConfig.auth.adminEmail
+    adminPassword = progress.partialConfig.auth.adminPassword
+    adminName = progress.partialConfig.auth.adminName
+    p.log.info(`Using admin: ${adminEmail}`)
+  } else {
+    const emailInput = await p.text({
+      message: 'Admin email',
+      placeholder: 'admin@example.com',
+      defaultValue: 'admin@example.com'
+    })
+    if (p.isCancel(emailInput)) process.exit(0)
+    adminEmail = emailInput as string
+
+    while (true) {
+      const pw = await p.password({
+        message: 'Admin password',
+        validate: (v) => {
+          if (!v || v.length < 8) return 'Minimum 8 characters'
+        }
+      })
+      if (p.isCancel(pw)) process.exit(0)
+
+      const confirm = await p.password({
+        message: 'Confirm password'
+      })
+      if (p.isCancel(confirm)) process.exit(0)
+
+      if (pw === confirm) {
+        adminPassword = pw as string
+        break
       }
-    })
-    if (p.isCancel(pw)) process.exit(0)
-
-    const confirm = await p.password({
-      message: 'Confirm password'
-    })
-    if (p.isCancel(confirm)) process.exit(0)
-
-    if (pw === confirm) {
-      adminPassword = pw
-      break
+      p.log.warn('Passwords do not match. Try again.')
     }
-    p.log.warn('Passwords do not match. Try again.')
-  }
 
-  const adminName = await p.text({
-    message: 'Admin display name',
-    placeholder: personality.userName,
-    defaultValue: personality.userName
-  })
-  if (p.isCancel(adminName)) process.exit(0)
+    const nameInput = await p.text({
+      message: 'Admin display name',
+      placeholder: personality.userName,
+      defaultValue: personality.userName
+    })
+    if (p.isCancel(nameInput)) process.exit(0)
+    adminName = nameInput as string
+
+    progress.partialConfig.auth = {
+      adminEmail,
+      adminPassword,
+      adminName,
+      authSecret: crypto.randomBytes(32).toString('base64')
+    }
+    progress.completedSteps.push('auth')
+    saveProgress(progress)
+  }
 
   // Assemble config
   const config: InitConfig = {
     personality,
     vault,
     database,
-    auth: {
+    auth: progress.partialConfig.auth || {
       adminEmail,
       adminPassword,
       adminName,
       authSecret: crypto.randomBytes(32).toString('base64')
     },
     appUrl,
-    accessMode: accessMode as 'localhost' | 'specific' | 'any',
+    accessMode,
     installDir: resolvedInstallDir
   }
 
@@ -160,20 +276,83 @@ export async function init() {
   await installClaudeConfig(config)
   s.stop('Claude config installed to ~/.claude/')
 
-  writeMetadata(resolvedInstallDir, vault.path, getPackageVersion())
+  writeMetadata(
+    resolvedInstallDir,
+    vault.path,
+    getPackageVersion(),
+    database.password,
+    database.port
+  )
 
   // Step 9: Install & Start
   p.log.step(pc.bold('Setup'))
 
-  s.start('Installing dependencies')
-  execSync('pnpm install', { cwd: resolvedInstallDir, stdio: 'pipe' })
-  s.stop('Dependencies installed')
+  if (!progress.completedSteps.includes('install')) {
+    try {
+      await withRetry(
+        'Dependency installation',
+        async () => {
+          s.start('Installing dependencies')
+          execSync('pnpm install', { cwd: resolvedInstallDir, stdio: 'pipe' })
+          s.stop('Dependencies installed')
+        },
+        { canSkip: false }
+      )
+      progress.completedSteps.push('install')
+      saveProgress(progress)
+    } catch (err) {
+      s.stop('Dependency installation failed')
+      if (err instanceof SkipError) {
+        p.log.error('Dependency installation is required and cannot be skipped')
+      }
+      process.exit(1)
+    }
+  } else {
+    p.log.info('Dependencies already installed')
+  }
 
   p.log.step(pc.bold('Launch'))
-  await setupAndStart(config)
+
+  if (!progress.completedSteps.includes('pm2')) {
+    try {
+      await withRetry(
+        'PM2 setup and start',
+        () => setupAndStart(config),
+        { canSkip: false }
+      )
+      progress.completedSteps.push('pm2')
+      saveProgress(progress)
+    } catch (err) {
+      if (err instanceof SkipError) {
+        p.log.error('PM2 setup is required and cannot be skipped')
+      }
+      process.exit(1)
+    }
+  } else {
+    p.log.info('PM2 already configured')
+  }
 
   // Health check (always use localhost — we're running on the same machine)
-  await waitForHealth('http://localhost:3000')
+  if (!progress.completedSteps.includes('health')) {
+    try {
+      await withRetry(
+        'Health check',
+        () => waitForHealth('http://localhost:3000'),
+        { canSkip: true }
+      )
+      progress.completedSteps.push('health')
+      saveProgress(progress)
+    } catch (err) {
+      if (err instanceof SkipError) {
+        p.log.warn('Health check skipped - app may not be fully started')
+        p.log.info('Check status with: pm2 status')
+      } else {
+        process.exit(1)
+      }
+    }
+  } else {
+    p.log.info('App already healthy')
+  }
 
   // Step 10: Summary
   p.log.step(pc.bold('Summary'))
@@ -199,4 +378,7 @@ export async function init() {
   ].join('\n'))
 
   p.outro(`${personality.agentName} is ready. Open ${pc.underline(config.appUrl)} to get started.`)
+
+  // Clear progress file after successful setup
+  clearProgress()
 }

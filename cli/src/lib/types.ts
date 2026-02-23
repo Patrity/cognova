@@ -15,6 +15,8 @@ export interface VaultConfig {
 export interface DatabaseConfig {
   type: 'local' | 'remote'
   connectionString: string
+  password?: string
+  port?: number
 }
 
 export interface AuthConfig {
@@ -40,4 +42,12 @@ export interface SecondBrainMetadata {
   updatedAt: string
   installDir: string
   vaultPath: string
+  dbPassword?: string
+  dbPort?: number
+}
+
+export interface SetupProgress {
+  completedSteps: string[]
+  partialConfig: Partial<InitConfig>
+  startedAt: string
 }

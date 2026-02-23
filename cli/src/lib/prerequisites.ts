@@ -4,7 +4,8 @@ import pc from 'picocolors'
 
 export interface PrereqResult {
   ok: boolean
-  hasDocker: boolean
+  dockerInstalled: boolean
+  dockerReady: boolean
   nodeVersion: string
   pythonVersion: string
   pnpmVersion: string
@@ -17,6 +18,10 @@ function checkCommand(cmd: string): string | null {
   } catch {
     return null
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 export async function checkPrerequisites(): Promise<PrereqResult> {
@@ -80,10 +85,55 @@ export async function checkPrerequisites(): Promise<PrereqResult> {
   }
 
   // Docker (optional)
-  let hasDocker = !!dockerOut
+  let dockerInstalled = !!dockerOut
+  let dockerReady = false
+
   if (dockerOut) {
-    p.log.success(`Docker available ${pc.dim('(for local PostgreSQL)')}`)
+    // Docker CLI is installed, check if daemon is running
+    const daemonRunning = checkCommand('docker info')
+    if (daemonRunning) {
+      dockerReady = true
+      p.log.success(`Docker available ${pc.dim('(for local PostgreSQL)')}`)
+    } else {
+      p.log.warn('Docker is installed but the daemon is not running')
+      const startDocker = await p.confirm({
+        message: 'Start Docker now?',
+        initialValue: true
+      })
+      if (!p.isCancel(startDocker) && startDocker) {
+        const s = p.spinner()
+        s.start('Starting Docker daemon')
+        try {
+          if (process.platform === 'darwin') {
+            execSync('open -a Docker', { stdio: 'pipe' })
+          } else if (process.platform === 'linux') {
+            execSync('sudo systemctl start docker', { stdio: 'inherit' })
+          }
+
+          // Poll for daemon to be ready (30 second timeout)
+          for (let i = 0; i < 30; i++) {
+            await sleep(1000)
+            if (checkCommand('docker info')) {
+              dockerReady = true
+              s.stop('Docker daemon is running')
+              break
+            }
+          }
+
+          if (!dockerReady) {
+            s.stop('Docker daemon did not start in time')
+            p.log.warn('You can start it manually and continue with local PostgreSQL, or use remote PostgreSQL')
+          }
+        } catch {
+          s.stop('Failed to start Docker daemon')
+          p.log.warn('Start Docker manually: https://docs.docker.com/get-docker/')
+        }
+      } else {
+        p.log.info('You can use a remote PostgreSQL instead')
+      }
+    }
   } else {
+    // Docker not installed
     const installDocker = await p.confirm({
       message: 'Docker not found. Install it? (needed only for local PostgreSQL)',
       initialValue: false
@@ -95,24 +145,27 @@ export async function checkPrerequisites(): Promise<PrereqResult> {
         if (process.platform === 'darwin') {
           execSync('brew install --cask docker', { stdio: 'inherit' })
           s.stop('Docker Desktop installed — open it from Applications to finish setup')
+          p.log.info('Open Docker Desktop from Applications, then re-run this installer')
         } else {
           const cmd = process.platform === 'linux' ? 'sudo apt-get update -qq && sudo apt-get install -y -qq docker.io docker-compose-plugin' : 'apt-get update -qq && apt-get install -y -qq docker.io docker-compose-plugin'
           execSync(cmd, { stdio: 'inherit' })
           s.stop('Docker installed')
         }
-        hasDocker = !!checkCommand('docker --version')
+        dockerInstalled = !!checkCommand('docker --version')
+        dockerReady = !!checkCommand('docker info')
       } catch {
         s.stop('Docker installation failed')
         p.log.warn('Install Docker manually: https://docs.docker.com/get-docker/')
       }
     } else {
-      p.log.info(`Skipped — you can use a remote PostgreSQL instead`)
+      p.log.info('Skipped — you can use a remote PostgreSQL instead')
     }
   }
 
   return {
     ok: true,
-    hasDocker,
+    dockerInstalled,
+    dockerReady,
     nodeVersion: nodeOut || '',
     pythonVersion: pythonOut || '',
     pnpmVersion: pnpmOut || '',

@@ -65,13 +65,21 @@ export async function setupInstallDir(installDir: string): Promise<void> {
 }
 
 /** Write .cognova metadata file */
-export function writeMetadata(installDir: string, vaultPath: string, version: string) {
+export function writeMetadata(
+  installDir: string,
+  vaultPath: string,
+  version: string,
+  dbPassword?: string,
+  dbPort?: number
+) {
   const metadata: SecondBrainMetadata = {
     version,
     installedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     installDir,
-    vaultPath
+    vaultPath,
+    dbPassword,
+    dbPort
   }
 
   // Write to install dir
