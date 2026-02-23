@@ -689,7 +689,22 @@ export interface ChatToolResultBlock {
   is_error?: boolean
 }
 
-export type ChatContentBlock = ChatTextBlock | ChatToolUseBlock | ChatToolResultBlock
+export type ChatImageMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+
+export interface ChatImageBlock {
+  type: 'image'
+  source: {
+    type: 'base64'
+    media_type: ChatImageMediaType
+    data: string
+  }
+}
+
+export type ChatContentBlock
+  = ChatTextBlock
+    | ChatImageBlock
+    | ChatToolUseBlock
+    | ChatToolResultBlock
 
 export type MessageSource = 'web' | 'telegram' | 'discord' | 'imessage' | 'email' | 'google'
 
@@ -724,6 +739,7 @@ export interface ChatConversation {
 export interface ChatSendMessage {
   type: 'chat:send'
   message: string
+  attachments?: ChatImageBlock[]
   conversationId?: string
 }
 

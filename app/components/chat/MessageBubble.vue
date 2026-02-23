@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessage, ChatContentBlock, MessageSource } from '~~/shared/types'
+import type { ChatMessage, ChatContentBlock, ChatImageBlock, MessageSource } from '~~/shared/types'
 
 defineProps<{
   message: ChatMessage
@@ -10,6 +10,10 @@ function getTextContent(blocks: ChatContentBlock[]): string {
     .filter(b => b.type === 'text')
     .map(b => b.text)
     .join('\n')
+}
+
+function getImageBlocks(blocks: ChatContentBlock[]): ChatImageBlock[] {
+  return blocks.filter((b): b is ChatImageBlock => b.type === 'image')
 }
 
 function getToolPairs(blocks: ChatContentBlock[]) {
@@ -76,11 +80,27 @@ function formatTime(date: Date | string | undefined): string {
         : 'bg-muted'"
     >
       <!-- User message -->
-      <div
-        v-if="message.role === 'user'"
-        class="text-sm whitespace-pre-wrap"
-      >
-        {{ getTextContent(message.content) }}
+      <div v-if="message.role === 'user'">
+        <!-- Image attachments -->
+        <div
+          v-if="getImageBlocks(message.content).length"
+          class="flex flex-wrap gap-2 mb-2"
+        >
+          <img
+            v-for="(img, i) in getImageBlocks(message.content)"
+            :key="i"
+            :src="`data:${img.source.media_type};base64,${img.source.data}`"
+            class="max-w-48 max-h-48 rounded-lg object-contain"
+          >
+        </div>
+
+        <!-- Text content -->
+        <div
+          v-if="getTextContent(message.content)"
+          class="text-sm whitespace-pre-wrap"
+        >
+          {{ getTextContent(message.content) }}
+        </div>
       </div>
 
       <!-- Assistant message -->

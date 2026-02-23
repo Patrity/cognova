@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ChatImageBlock } from '~~/shared/types'
+
 definePageMeta({
   layout: 'dashboard',
   middleware: 'auth'
@@ -53,8 +55,8 @@ onMounted(() => {
   }
 })
 
-function handleSend(message: string) {
-  sendMessage(message)
+function handleSend(message: string, attachments?: ChatImageBlock[]) {
+  sendMessage(message, attachments)
   nextTick(scrollToBottom)
 }
 

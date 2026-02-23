@@ -1,4 +1,8 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
+import type { SDKUserMessage } from '@anthropic-ai/claude-agent-sdk'
+import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages/messages'
+
+export type PromptInput = string | ContentBlockParam[]
 
 interface ActiveSession {
   conversationId: string
@@ -8,15 +12,29 @@ interface ActiveSession {
   startedAt: Date
 }
 
+async function* createMultimodalPrompt(content: ContentBlockParam[]): AsyncGenerator<SDKUserMessage> {
+  yield {
+    type: 'user',
+    message: { role: 'user', content },
+    parent_tool_use_id: null,
+    session_id: ''
+  } as SDKUserMessage
+}
+
 class ChatSessionManager {
   private sessions = new Map<string, ActiveSession>()
 
-  startSession(conversationId: string, prompt: string, resumeSessionId?: string): ActiveSession {
+  startSession(conversationId: string, prompt: PromptInput, resumeSessionId?: string): ActiveSession {
     // Use the project directory as CWD so the SDK picks up .claude/ (skills, rules, CLAUDE.md)
     // The vault is accessible via VAULT_PATH env var in tools
     const projectDir = process.env.COGNOVA_PROJECT_DIR || process.cwd()
+
+    const promptArg = typeof prompt === 'string'
+      ? prompt
+      : createMultimodalPrompt(prompt)
+
     const conversation = query({
-      prompt,
+      prompt: promptArg,
       options: {
         cwd: projectDir,
         settingSources: ['user', 'project'],
