@@ -42,7 +42,7 @@
     "auth:reset-pw": "tsx scripts/reset-password.ts"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.23",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.52",
     "@anthropic-ai/sdk": "^0.72.1",
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/lang-css": "^6.3.1",
