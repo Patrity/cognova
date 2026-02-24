@@ -1,5 +1,6 @@
 import { createRequire } from 'module'
-import { resolve } from 'path'
+import { dirname, resolve } from 'path'
+import { existsSync, mkdirSync } from 'fs'
 import type { IPty } from 'node-pty'
 import { getVaultRoot } from './path-validator'
 
@@ -7,6 +8,33 @@ import { getVaultRoot } from './path-validator'
 // For bundled builds, we need to resolve from a known location
 const requireFromCwd = createRequire(resolve(process.cwd(), 'package.json'))
 const pty = requireFromCwd('node-pty')
+
+// Shell candidates in order of preference
+const SHELL_CANDIDATES = [
+  process.env.SHELL,
+  '/bin/zsh',
+  '/bin/bash',
+  '/bin/sh'
+].filter(Boolean) as string[]
+
+function findShell(): string {
+  for (const sh of SHELL_CANDIDATES)
+    if (existsSync(sh)) return sh
+  return '/bin/sh'
+}
+
+function ptyEnv(): Record<string, string | undefined> {
+  const nodeDir = dirname(process.execPath)
+  const currentPath = process.env.PATH || ''
+  return {
+    ...process.env,
+    PATH: currentPath.includes(nodeDir)
+      ? currentPath
+      : `${nodeDir}:${currentPath}`,
+    TERM: 'xterm-256color',
+    COLORTERM: 'truecolor'
+  }
+}
 
 interface PtySession {
   pty: IPty
@@ -20,8 +48,11 @@ const MAX_BUFFER_SIZE = 10000 // Lines to keep in buffer
 const SESSION_TIMEOUT = 30 * 60 * 1000 // 30 minutes
 
 export function createPtySession(sessionId: string, cols = 80, rows = 24): IPty {
-  const shell = process.env.SHELL || '/bin/bash'
+  const shell = findShell()
   const cwd = getVaultRoot()
+
+  // Ensure cwd exists so posix_spawnp doesn't fail
+  if (!existsSync(cwd)) mkdirSync(cwd, { recursive: true })
 
   console.log(`[PTY] Creating session: shell=${shell}, cwd=${cwd}, cols=${cols}, rows=${rows}`)
 
@@ -30,11 +61,7 @@ export function createPtySession(sessionId: string, cols = 80, rows = 24): IPty 
     cols,
     rows,
     cwd,
-    env: {
-      ...process.env,
-      TERM: 'xterm-256color',
-      COLORTERM: 'truecolor'
-    }
+    env: ptyEnv()
   }) as IPty
 
   const session: PtySession = {
