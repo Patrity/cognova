@@ -3,6 +3,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk'
 import { desc, eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { logTokenUsage } from '~~/server/utils/log-token-usage'
+import { sdkEnv } from '~~/server/utils/sdk-env'
 import { sendOutboundMessage } from './router'
 import type { NormalizedMessage } from './types'
 
@@ -237,6 +238,7 @@ async function runQuery(
     prompt,
     options: {
       cwd: projectDir,
+      env: sdkEnv(),
       settingSources: ['user', 'project'],
       permissionMode: 'bypassPermissions',
       allowDangerouslySkipPermissions: true,

@@ -1,6 +1,7 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { SDKUserMessage } from '@anthropic-ai/claude-agent-sdk'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages/messages'
+import { sdkEnv } from '~~/server/utils/sdk-env'
 
 export type PromptInput = string | ContentBlockParam[]
 
@@ -37,6 +38,7 @@ class ChatSessionManager {
       prompt: promptArg,
       options: {
         cwd: projectDir,
+        env: sdkEnv(),
         settingSources: ['user', 'project'],
         permissionMode: 'bypassPermissions',
         allowDangerouslySkipPermissions: true,
