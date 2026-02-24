@@ -160,8 +160,7 @@ export class IMessageAdapter implements BridgeAdapter {
         body: JSON.stringify({
           chatGuid,
           tempGuid: `temp-${randomBytes(16).toString('hex')}`,
-          message: msg.text,
-          method: 'private-api'
+          message: msg.text
         })
       })
 
