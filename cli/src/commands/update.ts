@@ -7,6 +7,7 @@ import { findInstallDir, readMetadata } from '../lib/paths'
 import { copyAppSource, writeMetadata } from '../lib/install'
 import { syncClaudeConfig } from '../lib/claude-config'
 import { loadEnvFile } from '../lib/config'
+import { restartDaemon } from '../lib/daemon'
 
 /** Directories/files that make up the app source (backed up before update) */
 const BACKUP_ITEMS = [
@@ -168,10 +169,10 @@ export async function update() {
   // Restart
   s.start('Restarting application')
   try {
-    execSync('pm2 restart cognova', { stdio: 'pipe' })
+    restartDaemon(installDir)
     s.stop('Application restarted')
   } catch {
-    s.stop('PM2 restart failed — start manually with `cognova start`')
+    s.stop('Restart failed — start manually with `cognova start`')
   }
 
   p.log.info(`Run ${pc.cyan('cognova reset')} to regenerate CLAUDE.md or settings.json.`)

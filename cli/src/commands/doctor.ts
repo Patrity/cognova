@@ -4,6 +4,7 @@ import { join } from 'path'
 import * as p from '@clack/prompts'
 import pc from 'picocolors'
 import { findInstallDir, readMetadata, getClaudeDir } from '../lib/paths'
+import { getDaemonStatus, startDaemon, getDaemonInfo } from '../lib/daemon'
 
 interface Check {
   name: string
@@ -129,30 +130,28 @@ export async function doctor() {
       fixDescription: 'Start Docker daemon'
     },
     {
-      name: 'PM2 process',
+      name: 'Service status',
       check: () => {
         try {
-          const out = execSync('pm2 jlist', { encoding: 'utf-8' })
-          const procs = JSON.parse(out)
-          return procs.some((proc: { name: string, pm2_env?: { status?: string } }) =>
-            proc.name === 'cognova' && proc.pm2_env?.status === 'online'
-          )
+          const status = getDaemonStatus(installDir)
+          return status === 'running'
         } catch {
           return false
         }
       },
       fix: async () => {
+        const info = getDaemonInfo(installDir)
         const s = p.spinner()
-        s.start('Starting PM2 process')
+        s.start(`Starting ${info.platform === 'macos' ? 'launchd' : 'systemd'} service`)
         try {
-          execSync('pm2 start ecosystem.config.cjs', { cwd: installDir, stdio: 'inherit' })
-          s.stop('PM2 process started')
+          startDaemon(installDir)
+          s.stop('Service started')
         } catch (err) {
-          s.stop('Failed to start PM2')
+          s.stop('Failed to start service')
           throw err
         }
       },
-      fixDescription: 'Start the PM2 process'
+      fixDescription: 'Start the service with "cognova start"'
     },
     {
       name: 'App health endpoint',

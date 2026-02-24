@@ -141,12 +141,14 @@ export class IMessageAdapter implements BridgeAdapter {
 
     let buffer = ''
     this.watchProcess.stdout?.on('data', (chunk: Buffer) => {
+      console.log('[imessage] DEBUG: Received stdout data, length:', chunk.length)
       buffer += chunk.toString()
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
 
       for (const line of lines) {
         if (!line.trim()) continue
+        console.log('[imessage] DEBUG: Processing line:', line.substring(0, 200))
         try {
           const msg = JSON.parse(line) as ImsgWatchMessage
           void this.handleImsgMessage(msg).catch((err) => {

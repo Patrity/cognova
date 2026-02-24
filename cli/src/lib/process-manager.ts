@@ -1,63 +1,65 @@
 import { execSync } from 'child_process'
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
-import { join } from 'path'
 import * as p from '@clack/prompts'
-import { generatePm2Ecosystem } from '../templates/pm2-ecosystem'
+import { installDaemon, startDaemon, getDaemonInfo } from './daemon'
 import type { InitConfig } from './types'
 
 export async function setupAndStart(config: InitConfig) {
-  // Check PM2
-  try {
-    execSync('pm2 --version', { stdio: 'pipe' })
-  } catch {
-    const install = await p.confirm({
-      message: 'PM2 not found. Install it globally?',
-      initialValue: true
-    })
-    if (p.isCancel(install)) process.exit(0)
+  const info = getDaemonInfo(config.installDir)
 
-    if (install) {
-      const s = p.spinner()
-      s.start('Installing PM2')
-      // Use sudo on Linux where global installs need root
-      const cmd = process.platform === 'linux' ? 'sudo npm install -g pm2' : 'npm install -g pm2'
-      execSync(cmd, { stdio: 'inherit' })
-      s.stop('PM2 installed')
-    } else {
-      p.log.warn('Skipping PM2. Start manually with: node .output/server/index.mjs')
-      return
-    }
+  if (info.platform === 'unsupported') {
+    p.log.warn('Native daemon management not supported on this platform')
+    p.log.info('Start manually with: node .output/server/index.mjs')
+    return
   }
 
-  // Create logs directory
-  const logsDir = join(config.installDir, 'logs')
-  if (!existsSync(logsDir))
-    mkdirSync(logsDir, { recursive: true })
-
-  // Generate ecosystem file
-  const ecosystem = generatePm2Ecosystem(config)
-  writeFileSync(join(config.installDir, 'ecosystem.config.cjs'), ecosystem)
-
-  // Start
   const s = p.spinner()
-  s.start('Starting Cognova with PM2')
+
+  // Build the application
+  s.start('Building application')
   try {
-    execSync('pm2 start ecosystem.config.cjs', {
-      cwd: config.installDir,
-      stdio: 'pipe'
-    })
+    execSync('pnpm build', { cwd: config.installDir, stdio: 'pipe' })
+    s.stop('Application built')
+  } catch (err) {
+    s.stop('Build failed')
+    p.log.error(`Build error: ${err}`)
+    throw err
+  }
+
+  // Install daemon configuration
+  s.start(`Installing ${info.platform === 'macos' ? 'launchd' : 'systemd'} service`)
+  try {
+    installDaemon(config)
+    s.stop(`Service configuration installed`)
+  } catch (err) {
+    s.stop('Service installation failed')
+    p.log.error(`Installation error: ${err}`)
+    throw err
+  }
+
+  // Start the daemon
+  s.start('Starting Cognova')
+  try {
+    startDaemon(config.installDir)
     s.stop('Cognova is running')
+
+    // Show service info
+    if (info.platform === 'macos') {
+      p.log.info('Service: ~/Library/LaunchAgents/com.cognova.plist')
+      p.log.info('Auto-start: Enabled (will start on login)')
+    } else {
+      p.log.info('Service: ~/.config/systemd/user/cognova.service')
+      p.log.info('Auto-start: Enabled (will start on login)')
+    }
   } catch (err) {
     s.stop('Failed to start')
-    const errMsg = String(err)
+    p.log.error(`Start error: ${err}`)
 
-    // Check for NVM-related issues
-    if (errMsg.includes('nvm') && errMsg.includes('not found')) {
-      p.log.error('PM2 + NVM compatibility issue detected')
-      p.log.info('Try: pm2 delete cognova && pm2 start ecosystem.config.cjs')
-      p.log.info(`Working directory: ${config.installDir}`)
+    if (info.platform === 'macos') {
+      p.log.info('Troubleshoot: launchctl list | grep cognova')
+      p.log.info(`View logs: tail -f ${info.logsDir}/stderr.log`)
     } else {
-      p.log.error(`PM2 error: ${err}`)
+      p.log.info('Troubleshoot: systemctl --user status cognova')
+      p.log.info(`View logs: journalctl --user -u cognova -f`)
     }
 
     throw err

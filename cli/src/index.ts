@@ -1,5 +1,5 @@
 import { init } from './commands/init'
-import { start, stop, restart } from './commands/start'
+import { start, stop, restart, status, logs } from './commands/start'
 import { update } from './commands/update'
 import { doctor } from './commands/doctor'
 import { reset } from './commands/reset'
@@ -12,9 +12,11 @@ const HELP_TEXT = `
 
   Commands:
     init      Interactive setup wizard
-    start     Start Cognova (PM2)
+    start     Start Cognova
     stop      Stop Cognova
     restart   Restart Cognova
+    status    Check service status
+    logs      View application logs
     update    Update to latest version
     doctor    Check health of all components
     reset     Re-generate configuration files
@@ -38,14 +40,14 @@ const COMMAND_HELP: Record<string, string> = {
     5. Configures database (local Docker or remote PostgreSQL)
     6. Sets network access mode
     7. Creates admin credentials
-    8. Installs dependencies, builds, and starts with PM2
+    8. Installs dependencies, builds, and starts as system service
 
   Usage: cognova init
 `,
   start: `
   cognova start — Start Cognova
 
-  Starts the application using PM2 process manager.
+  Starts the application as a system service (launchd on macOS, systemd on Linux).
   Requires a prior 'cognova init' to have been run.
 
   Usage: cognova start
@@ -53,22 +55,37 @@ const COMMAND_HELP: Record<string, string> = {
   stop: `
   cognova stop — Stop Cognova
 
-  Stops the PM2 process. Data and configuration are preserved.
+  Stops the service. Data and configuration are preserved.
 
   Usage: cognova stop
 `,
   restart: `
   cognova restart — Restart Cognova
 
-  Restarts the PM2 process. Useful after manual config changes.
+  Restarts the service. Useful after manual config changes.
 
   Usage: cognova restart
+`,
+  status: `
+  cognova status — Check service status
+
+  Shows whether Cognova is running and service configuration details.
+
+  Usage: cognova status
+`,
+  logs: `
+  cognova logs — View application logs
+
+  Streams application logs in real-time (stderr).
+  Press Ctrl+C to exit.
+
+  Usage: cognova logs
 `,
   update: `
   cognova update — Update to latest version
 
   Checks npm registry for a newer version, downloads and installs it.
-  Preserves: .env, .api-token, ecosystem.config.cjs, logs/
+  Preserves: .env, .api-token, service config, logs/
   Runs database migrations and rebuilds automatically.
   Creates a backup before updating so failed updates can be rolled back.
 
@@ -81,7 +98,7 @@ const COMMAND_HELP: Record<string, string> = {
     - Configuration files (.env, Claude config)
     - Dependencies (Node, Python, Claude Code CLI)
     - Build output
-    - PM2 process status
+    - Service status (launchd/systemd)
     - App health endpoint
     - Database connection
     - Vault directory
@@ -126,6 +143,8 @@ const commands: Record<string, () => Promise<void>> = {
   start,
   stop,
   restart,
+  status,
+  logs,
   update,
   doctor,
   reset

@@ -313,23 +313,23 @@ export async function init() {
 
   p.log.step(pc.bold('Launch'))
 
-  if (!progress.completedSteps.includes('pm2')) {
+  if (!progress.completedSteps.includes('daemon')) {
     try {
       await withRetry(
-        'PM2 setup and start',
+        'Service setup and start',
         () => setupAndStart(config),
         { canSkip: false }
       )
-      progress.completedSteps.push('pm2')
+      progress.completedSteps.push('daemon')
       saveProgress(progress)
     } catch (err) {
       if (err instanceof SkipError) {
-        p.log.error('PM2 setup is required and cannot be skipped')
+        p.log.error('Service setup is required and cannot be skipped')
       }
       process.exit(1)
     }
   } else {
-    p.log.info('PM2 already configured')
+    p.log.info('Service already configured')
   }
 
   // Health check (always use localhost — we're running on the same machine)
@@ -345,7 +345,7 @@ export async function init() {
     } catch (err) {
       if (err instanceof SkipError) {
         p.log.warn('Health check skipped - app may not be fully started')
-        p.log.info('Check status with: pm2 status')
+        p.log.info('Check status with: cognova status')
       } else {
         process.exit(1)
       }
@@ -365,15 +365,14 @@ export async function init() {
     `  ${pc.cyan('Agent:')}          ${personality.agentName}`,
     '',
     `  ${pc.dim('Manage:')}`,
-    `    cognova start     Start the app`,
-    `    cognova stop      Stop the app`,
-    `    cognova restart   Restart the app`,
+    `    cognova start     Start the service`,
+    `    cognova stop      Stop the service`,
+    `    cognova restart   Restart the service`,
+    `    cognova status    Check service status`,
+    `    cognova logs      View logs`,
     `    cognova update    Update to latest version`,
     `    cognova doctor    Check health`,
     `    cognova reset     Re-generate configs`,
-    '',
-    `    pm2 logs cognova  View logs`,
-    `    pm2 monit              Monitor resources`,
     ''
   ].join('\n'))
 
