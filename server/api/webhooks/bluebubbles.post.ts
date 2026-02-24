@@ -12,6 +12,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const adapter = entry.adapter as IMessageAdapter
+
+  // Validate webhook secret
+  const query = getQuery(event)
+  const providedSecret = query.secret as string | undefined
+  if (!providedSecret || providedSecret !== adapter.secret) {
+    throw createError({ statusCode: 403, message: 'Invalid webhook secret' })
+  }
+
   const body = await readBody<BlueBubblesWebhookEvent>(event)
 
   // Process asynchronously — return 200 quickly

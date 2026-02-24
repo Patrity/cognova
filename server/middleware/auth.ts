@@ -8,6 +8,7 @@ const publicPaths = [
   '/api/health', // Health check
   '/api/home', // Public home page content
   '/api/_mdc', // MDC syntax highlighting
+  '/api/webhooks', // External webhooks (BlueBubbles, Telegram, etc.)
   '/_nuxt', // Nuxt assets
   '/login', // Login page
   '/view' // Public document viewer

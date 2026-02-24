@@ -186,7 +186,7 @@ export class IMessageAdapter implements BridgeAdapter {
   private getWebhookUrl(): string | null {
     const baseUrl = process.env.NUXT_PUBLIC_URL || process.env.APP_URL
     if (baseUrl)
-      return `${baseUrl.replace(/\/$/, '')}/api/webhooks/bluebubbles`
+      return `${baseUrl.replace(/\/$/, '')}/api/webhooks/bluebubbles?secret=${this.webhookSecret}`
     return null
   }
 
@@ -194,7 +194,7 @@ export class IMessageAdapter implements BridgeAdapter {
     if (!this.bbUrl || !this.bbPassword) return
 
     try {
-      await fetch(`${this.bbUrl}/api/v1/webhook?password=${encodeURIComponent(this.bbPassword)}`, {
+      const resp = await fetch(`${this.bbUrl}/api/v1/webhook?password=${encodeURIComponent(this.bbPassword)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -202,6 +202,13 @@ export class IMessageAdapter implements BridgeAdapter {
           events: ['new-message']
         })
       })
+
+      if (!resp.ok) {
+        const body = await resp.text()
+        console.warn(`[imessage] Failed to register BlueBubbles webhook: ${resp.status} ${body.substring(0, 200)}`)
+        return
+      }
+
       console.log(`[imessage] BlueBubbles webhook registered: ${url}`)
     } catch (error) {
       console.warn('[imessage] Failed to register BlueBubbles webhook:', error)
