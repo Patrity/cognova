@@ -1,7 +1,7 @@
 {
   "name": "cognova",
   "type": "module",
-  "version": "0.2.25",
+  "version": "0.2.26",
   "description": "Personal knowledge management system with Claude Code integration",
   "repository": {
     "type": "git",
