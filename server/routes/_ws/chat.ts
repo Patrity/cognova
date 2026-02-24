@@ -4,6 +4,7 @@ import { chatSessionManager } from '~~/server/utils/chat-session-manager'
 import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { logTokenUsage } from '~~/server/utils/log-token-usage'
+import { auth } from '~~/server/utils/auth'
 import type { ChatClientMessage, ChatContentBlock, ChatImageBlock, ChatDocumentBlock } from '~~/shared/types'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages/messages'
 
@@ -54,7 +55,25 @@ function buildSdkContent(
 }
 
 export default defineWebSocketHandler({
-  open(peer) {
+  async open(peer) {
+    // Validate auth from upgrade request cookies (middleware is bypassed for /_ws)
+    const headers = peer.request?.headers
+    if (headers) {
+      try {
+        const session = await auth.api.getSession({ headers })
+        if (!session) {
+          send(peer, { type: 'chat:error', message: 'Unauthorized' })
+          peer.close(1008, 'Unauthorized')
+          return
+        }
+      } catch (e) {
+        console.error('[chat] Auth check failed:', e)
+        send(peer, { type: 'chat:error', message: 'Authentication failed' })
+        peer.close(1008, 'Authentication failed')
+        return
+      }
+    }
+
     console.log(`[chat] WebSocket opened: ${peer.id}`)
     send(peer, { type: 'chat:connected' })
   },

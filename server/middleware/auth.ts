@@ -9,6 +9,7 @@ const publicPaths = [
   '/api/home', // Public home page content
   '/api/_mdc', // MDC syntax highlighting
   '/api/webhooks', // External webhooks (BlueBubbles, Telegram, etc.)
+  '/_ws', // WebSocket upgrade (auth handled inside WS handler)
   '/_nuxt', // Nuxt assets
   '/login', // Login page
   '/view' // Public document viewer
