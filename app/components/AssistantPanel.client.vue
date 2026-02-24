@@ -111,13 +111,13 @@ function statusClasses(status: string) {
         </div>
 
         <!-- Chat tab -->
-        <AssistantAssistantChat
+        <AssistantChat
           v-show="activeTab === 'chat'"
           :active="isOpen && activeTab === 'chat'"
         />
 
         <!-- Terminal tab -->
-        <AssistantAssistantTerminal
+        <AssistantTerminal
           v-show="activeTab === 'terminal'"
           ref="terminalRef"
           :active="isOpen && activeTab === 'terminal'"
