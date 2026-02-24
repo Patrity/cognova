@@ -7,7 +7,15 @@ import { getVaultRoot } from './path-validator'
 // Use createRequire for node-pty to avoid ESM issues with native modules
 // For bundled builds, we need to resolve from a known location
 const requireFromCwd = createRequire(resolve(process.cwd(), 'package.json'))
-const pty = requireFromCwd('node-pty')
+let pty: typeof import('node-pty')
+try {
+  pty = requireFromCwd('node-pty')
+  const helperPath = resolve(dirname(requireFromCwd.resolve('node-pty')), '..', 'build', 'Release', 'spawn-helper')
+  console.log(`[PTY] node-pty loaded, spawn-helper exists: ${existsSync(helperPath)} (${helperPath})`)
+} catch (e) {
+  console.error('[PTY] Failed to load node-pty:', e)
+  throw e
+}
 
 // Shell candidates in order of preference
 const SHELL_CANDIDATES = [
@@ -54,14 +62,15 @@ export function createPtySession(sessionId: string, cols = 80, rows = 24): IPty 
   // Ensure cwd exists so posix_spawnp doesn't fail
   if (!existsSync(cwd)) mkdirSync(cwd, { recursive: true })
 
-  console.log(`[PTY] Creating session: shell=${shell}, cwd=${cwd}, cols=${cols}, rows=${rows}`)
+  const env = ptyEnv()
+  console.log(`[PTY] Creating session: shell=${shell}, cwd=${cwd}, cols=${cols}, rows=${rows}, PATH=${(env.PATH || '').slice(0, 200)}`)
 
   const ptyProcess = pty.spawn(shell, [], {
     name: 'xterm-256color',
     cols,
     rows,
     cwd,
-    env: ptyEnv()
+    env
   }) as IPty
 
   const session: PtySession = {

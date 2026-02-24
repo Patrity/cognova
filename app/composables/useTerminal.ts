@@ -17,7 +17,7 @@ export function useTerminal() {
 
   function getWebSocketUrl(): string {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    return `${protocol}//${window.location.host}/terminal`
+    return `${protocol}//${window.location.host}/_ws/terminal`
   }
 
   function connect(term: Terminal) {
