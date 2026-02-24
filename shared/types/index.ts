@@ -911,9 +911,7 @@ export interface DiscordBridgeConfig {
 }
 
 export interface IMessageBridgeConfig {
-  strategy: 'imsg' | 'bluebubbles'
   allowedNumbers?: string[]
-  // BlueBubbles-specific
   blueBubblesUrl?: string
 }
 

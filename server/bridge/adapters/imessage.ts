@@ -1,5 +1,3 @@
-import { spawn, execFile } from 'child_process'
-import type { ChildProcess } from 'child_process'
 import { randomBytes } from 'crypto'
 import type { BridgeAdapter, OutboundMessage, DeliveryResult, NormalizedMessage } from '../types'
 import type { IMessageBridgeConfig } from '~~/shared/types'
@@ -7,14 +5,16 @@ import { getSecretValue } from '~~/server/utils/get-secret'
 import { handleInboundMessage } from '../router'
 
 /**
- * iMessage adapter with two backends:
+ * iMessage adapter using BlueBubbles server.
  *
- * 1. "imsg" — Local macOS only. Spawns `imsg watch --json` as a child process
- *    for receiving, and `imsg send` for sending. Requires Full Disk Access +
- *    Automation permissions on the Mac.
+ * Communicates with a BlueBubbles server running on a Mac via its REST API.
+ * Receives messages via webhook push.
  *
- * 2. "bluebubbles" — Any platform. Communicates with a BlueBubbles server
- *    running on a remote Mac via its REST API. Receives via webhook push.
+ * Setup:
+ * 1. Install BlueBubbles on your Mac
+ * 2. Configure it to allow API access
+ * 3. Add BLUEBUBBLES_PASSWORD secret in Cognova settings
+ * 4. Set blueBubblesUrl in bridge config (or BLUEBUBBLES_URL secret)
  */
 export class IMessageAdapter implements BridgeAdapter {
   readonly platform = 'imessage' as const
@@ -22,11 +22,6 @@ export class IMessageAdapter implements BridgeAdapter {
   private bridgeId: string
   private config: IMessageBridgeConfig
   private healthy = false
-
-  // imsg strategy
-  private watchProcess: ChildProcess | null = null
-
-  // BlueBubbles strategy
   private bbUrl: string | null = null
   private bbPassword: string | null = null
   private webhookSecret: string
@@ -46,26 +41,16 @@ export class IMessageAdapter implements BridgeAdapter {
   }
 
   async start(): Promise<void> {
-    if (this.config.strategy === 'imsg')
-      await this.startImsg()
-    else
-      await this.startBlueBubbles()
+    await this.startBlueBubbles()
   }
 
   async stop(): Promise<void> {
-    if (this.config.strategy === 'imsg')
-      this.stopImsg()
-    else
-      await this.stopBlueBubbles()
-
+    await this.stopBlueBubbles()
     this.healthy = false
   }
 
   async send(msg: OutboundMessage): Promise<DeliveryResult> {
-    if (this.config.strategy === 'imsg')
-      return this.sendImsg(msg)
-    else
-      return this.sendBlueBubbles(msg)
+    return this.sendBlueBubbles(msg)
   }
 
   isHealthy(): boolean {
@@ -119,108 +104,7 @@ export class IMessageAdapter implements BridgeAdapter {
     await handleInboundMessage(this.bridgeId, normalized)
   }
 
-  // ─── imsg strategy ─────────────────────────────
-
-  private async startImsg(): Promise<void> {
-    if (process.platform !== 'darwin') {
-      throw new Error('imsg strategy requires macOS. Use "bluebubbles" on other platforms.')
-    }
-
-    // Verify imsg is installed
-    await new Promise<void>((resolve, reject) => {
-      execFile('which', ['imsg'], (err) => {
-        if (err) reject(new Error('imsg not found. Install with: brew install steipete/tap/imsg'))
-        else resolve()
-      })
-    })
-
-    // Spawn the watcher
-    this.watchProcess = spawn('imsg', ['watch', '--json'], {
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
-
-    let buffer = ''
-    this.watchProcess.stdout?.on('data', (chunk: Buffer) => {
-      console.log('[imessage] DEBUG: Received stdout data, length:', chunk.length)
-      buffer += chunk.toString()
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-
-      for (const line of lines) {
-        if (!line.trim()) continue
-        console.log('[imessage] DEBUG: Processing line:', line.substring(0, 200))
-        try {
-          const msg = JSON.parse(line) as ImsgWatchMessage
-          void this.handleImsgMessage(msg).catch((err) => {
-            console.error('[imessage] Error processing imsg message:', err)
-          })
-        } catch {
-          console.warn('[imessage] Failed to parse imsg JSON line:', line.substring(0, 100))
-        }
-      }
-    })
-
-    this.watchProcess.stderr?.on('data', (chunk: Buffer) => {
-      console.error('[imessage] imsg stderr:', chunk.toString().trim())
-    })
-
-    this.watchProcess.on('exit', (code) => {
-      console.log(`[imessage] imsg watch exited with code ${code}`)
-      this.healthy = false
-      this.watchProcess = null
-    })
-
-    this.healthy = true
-    console.log('[imessage] imsg watcher started')
-  }
-
-  private stopImsg(): void {
-    if (this.watchProcess) {
-      this.watchProcess.kill('SIGTERM')
-      this.watchProcess = null
-    }
-    console.log('[imessage] imsg watcher stopped')
-  }
-
-  private async sendImsg(msg: OutboundMessage): Promise<DeliveryResult> {
-    return new Promise((resolve) => {
-      execFile('imsg', ['send', msg.recipient, msg.text], (err, _stdout, stderr) => {
-        if (err) {
-          resolve({ success: false, error: stderr || err.message })
-        } else {
-          resolve({ success: true })
-        }
-      })
-    })
-  }
-
-  private async handleImsgMessage(msg: ImsgWatchMessage): Promise<void> {
-    // Skip our own sent messages
-    if (msg.is_from_me) return
-
-    const sender = msg.sender || msg.chat_id || 'unknown'
-
-    // Filter by allowed numbers
-    if (this.config.allowedNumbers?.length) {
-      const normalized = sender.replace(/[\s\-()]/g, '')
-      if (!this.config.allowedNumbers.some(n => normalized.includes(n.replace(/[\s\-()]/g, ''))))
-        return
-    }
-
-    const normalizedMsg: NormalizedMessage = {
-      platform: 'imessage',
-      sender,
-      senderName: msg.sender_name || sender,
-      text: msg.text || '',
-      channelId: msg.chat_id,
-      platformMessageId: msg.guid,
-      raw: msg
-    }
-
-    await handleInboundMessage(this.bridgeId, normalizedMsg)
-  }
-
-  // ─── BlueBubbles strategy ──────────────────────
+  // ─── BlueBubbles ──────────────────────
 
   private async startBlueBubbles(): Promise<void> {
     this.bbUrl = this.config.blueBubblesUrl || await getSecretValue('BLUEBUBBLES_URL')
@@ -326,16 +210,6 @@ export class IMessageAdapter implements BridgeAdapter {
 }
 
 // ─── Types ─────────────────────────────────────
-
-interface ImsgWatchMessage {
-  guid?: string
-  text?: string
-  sender?: string
-  sender_name?: string
-  chat_id?: string
-  is_from_me?: boolean
-  date?: string
-}
 
 interface BlueBubblesWebhookEvent {
   type: string

@@ -31,7 +31,6 @@ const bridgeConfigForm = reactive({
   guildId: '',
   channelId: '',
   // iMessage
-  strategy: 'imsg' as 'imsg' | 'bluebubbles',
   allowedNumbers: '',
   blueBubblesUrl: '',
   // Google
@@ -61,11 +60,6 @@ const discordListenModeOptions = [
   { value: 'mentions', label: 'Mentions & DMs' },
   { value: 'dm', label: 'DMs only' },
   { value: 'all', label: 'All messages' }
-]
-
-const imessageStrategyOptions = [
-  { value: 'imsg', label: 'Local (imsg CLI)' },
-  { value: 'bluebubbles', label: 'BlueBubbles' }
 ]
 
 const googleServiceOptions = [
@@ -137,7 +131,6 @@ function openBridgeConfig(bridge: Bridge) {
   bridgeConfigForm.listenMode = 'mentions'
   bridgeConfigForm.guildId = ''
   bridgeConfigForm.channelId = ''
-  bridgeConfigForm.strategy = 'imsg'
   bridgeConfigForm.allowedNumbers = ''
   bridgeConfigForm.blueBubblesUrl = ''
   bridgeConfigForm.enabledServices = []
@@ -160,7 +153,6 @@ function openBridgeConfig(bridge: Bridge) {
       bridgeConfigForm.channelId = config.channelId || ''
       break
     case 'imessage':
-      bridgeConfigForm.strategy = config.strategy || 'imsg'
       bridgeConfigForm.allowedNumbers = (config.allowedNumbers || []).join(', ')
       bridgeConfigForm.blueBubblesUrl = config.blueBubblesUrl || ''
       break
@@ -203,7 +195,6 @@ async function handleBridgeConfigSave() {
       config.channelId = bridgeConfigForm.channelId || undefined
       break
     case 'imessage':
-      config.strategy = bridgeConfigForm.strategy
       config.allowedNumbers = bridgeConfigForm.allowedNumbers
         ? bridgeConfigForm.allowedNumbers.split(',').map(s => s.trim()).filter(Boolean)
         : undefined
@@ -626,21 +617,10 @@ onMounted(() => {
             </UFormField>
           </template>
 
-          <!-- iMessage -->
+          <!-- iMessage (BlueBubbles) -->
           <template v-if="editingBridge?.platform === 'imessage'">
-            <UFormField
-              label="Strategy"
-              name="strategy"
-            >
-              <USelect
-                v-model="bridgeConfigForm.strategy"
-                :items="imessageStrategyOptions"
-                value-key="value"
-                class="w-full"
-              />
-            </UFormField>
             <div
-              v-if="bridgeConfigForm.strategy === 'bluebubbles' && !secretKeys.includes('BLUEBUBBLES_PASSWORD')"
+              v-if="!secretKeys.includes('BLUEBUBBLES_PASSWORD')"
               class="flex items-start gap-2 rounded-lg bg-error/10 border border-error/20 p-3 text-sm"
             >
               <UIcon
@@ -652,7 +632,6 @@ onMounted(() => {
               </span>
             </div>
             <UFormField
-              v-if="bridgeConfigForm.strategy === 'bluebubbles'"
               label="BlueBubbles URL"
               name="blueBubblesUrl"
             >
