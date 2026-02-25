@@ -21,8 +21,7 @@ export default defineEventHandler(async (event) => {
       projectPath: body.projectPath,
       chunkType: body.chunkType,
       content: body.content,
-      sourceExcerpt: body.sourceExcerpt,
-      relevanceScore: body.relevanceScore ?? 1.0
+      sourceExcerpt: body.sourceExcerpt
     })
     .returning()
 

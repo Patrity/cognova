@@ -28,8 +28,7 @@ export default defineEventHandler(async (event) => {
       sessionId: body.sessionId,
       projectPath: body.projectPath,
       chunkType: m.type,
-      content: m.content,
-      relevanceScore: m.relevance
+      content: m.content
     })))
     .returning()
 

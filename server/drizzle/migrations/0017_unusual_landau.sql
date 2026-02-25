@@ -1,0 +1,1 @@
+ALTER TABLE "memory_chunks" DROP COLUMN "relevance_score";

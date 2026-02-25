@@ -629,7 +629,6 @@ export interface MemoryChunk {
   chunkType: MemoryChunkType
   content: string
   sourceExcerpt?: string
-  relevanceScore: number
   accessCount: number
   lastAccessedAt?: Date
   createdAt: Date
@@ -642,14 +641,12 @@ export interface CreateMemoryInput {
   chunkType: MemoryChunkType
   content: string
   sourceExcerpt?: string
-  relevanceScore?: number
 }
 
 export interface MemorySearchFilters {
   query?: string
   projectPath?: string
   chunkType?: MemoryChunkType | MemoryChunkType[]
-  minRelevance?: number
   limit?: number
 }
 
@@ -662,7 +659,6 @@ export interface ExtractMemoryInput {
 export interface ExtractedMemory {
   type: MemoryChunkType
   content: string
-  relevance: number
 }
 
 export interface MemoryContextResponse {

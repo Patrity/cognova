@@ -333,8 +333,7 @@ export const memoryChunks = pgTable('memory_chunks', {
   content: text('content').notNull(), // The extracted memory (concise)
   sourceExcerpt: text('source_excerpt'), // Original context (truncated for reference)
 
-  // Relevance & lifecycle (Mem0-inspired)
-  relevanceScore: real('relevance_score').default(1.0).notNull(), // 0-1, decays over time
+  // Usage tracking (relevance is computed at query time from access + recency)
   accessCount: integer('access_count').default(0).notNull(), // How often retrieved
   lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true }),
 

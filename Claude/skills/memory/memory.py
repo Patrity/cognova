@@ -36,7 +36,6 @@ def format_memory(memory: dict) -> str:
     chunk_type = memory.get('chunkType', 'fact')
     icon = type_icons.get(chunk_type, '[?]')
     content = memory.get('content', '')
-    relevance = memory.get('relevanceScore', 1.0)
 
     # First line: icon and content
     line1 = f"{icon} {content}"
@@ -46,8 +45,6 @@ def format_memory(memory: dict) -> str:
 
     if memory.get('projectPath'):
         parts.append(f"Project: {memory['projectPath']}")
-
-    parts.append(f"Relevance: {relevance:.2f}")
 
     if memory.get('accessCount'):
         parts.append(f"Accessed: {memory['accessCount']}x")
@@ -117,8 +114,7 @@ def cmd_store(args):
     """Store a new memory explicitly."""
     data = {
         'content': args.content,
-        'chunkType': args.type or 'fact',
-        'relevanceScore': args.relevance or 0.9
+        'chunkType': args.type or 'fact'
     }
 
     if args.project:
@@ -234,8 +230,6 @@ def main():
                          default='fact',
                          help='Memory type (default: fact)')
     store_p.add_argument('--project', '-p', help='Associated project path')
-    store_p.add_argument('--relevance', '-r', type=float, default=0.9,
-                         help='Relevance score 0-1 (default: 0.9)')
 
     # Decisions
     decisions_p = subparsers.add_parser('decisions', help='List decision memories')

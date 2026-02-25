@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 import { query } from '@anthropic-ai/claude-agent-sdk'
-import { desc, eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
 import { logTokenUsage } from '~~/server/utils/log-token-usage'
 import { sdkEnv } from '~~/server/utils/sdk-env'
@@ -44,10 +44,15 @@ async function getOrCreateMainChat() {
 async function loadMemoryContext(): Promise<string> {
   try {
     const db = getDb()
-    const memories = await db.select()
-      .from(schema.memoryChunks)
-      .orderBy(desc(schema.memoryChunks.relevanceScore), desc(schema.memoryChunks.createdAt))
-      .limit(10)
+    const memories = await db.execute<{ content: string }>(sql`
+      SELECT content,
+        (1.0 + LN(1 + access_count))
+        * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
+        AS score
+      FROM memory_chunks
+      ORDER BY score DESC
+      LIMIT 10
+    `)
 
     if (memories.length === 0) return ''
 

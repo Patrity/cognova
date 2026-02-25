@@ -1,5 +1,5 @@
-import { desc, eq, sql } from 'drizzle-orm'
-import { getDb, schema } from '~~/server/db'
+import { sql } from 'drizzle-orm'
+import { getDb } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import type { MemoryChunk, MemoryContextResponse } from '~~/shared/types'
 
@@ -12,19 +12,23 @@ export default defineEventHandler(async (event) => {
   const projectPath = query.project as string | undefined
   const limit = Math.min(parseInt(query.limit as string) || 5, 20)
 
-  // Get recent, high-relevance memories for this project
-  let dbQuery = db.select()
-    .from(schema.memoryChunks)
+  // Score memories by access frequency + recency (no static relevance)
+  // access boost: ln(1 + access_count) gives diminishing returns
+  // recency: 30-day half-life decay on last access or creation time
+  const projectFilter = projectPath
+    ? sql`AND project_path = ${projectPath}`
+    : sql``
 
-  if (projectPath)
-    dbQuery = dbQuery.where(eq(schema.memoryChunks.projectPath, projectPath)) as typeof dbQuery
-
-  const memories = await dbQuery
-    .orderBy(
-      desc(schema.memoryChunks.relevanceScore),
-      desc(schema.memoryChunks.createdAt)
-    )
-    .limit(limit)
+  const memories = await db.execute<MemoryChunk>(sql`
+    SELECT *,
+      (1.0 + LN(1 + access_count))
+      * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
+      AS score
+    FROM memory_chunks
+    WHERE 1=1 ${projectFilter}
+    ORDER BY score DESC
+    LIMIT ${limit}
+  `)
 
   // Update access count for retrieved memories
   if (memories.length > 0) {

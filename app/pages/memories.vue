@@ -102,7 +102,6 @@ function formatTime(date: Date | string): string {
 const columns = [
   { accessorKey: 'chunkType', header: 'Type' },
   { accessorKey: 'content', header: 'Content' },
-  { accessorKey: 'relevanceScore', header: 'Relevance' },
   { accessorKey: 'accessCount', header: 'Accessed' },
   { accessorKey: 'createdAt', header: 'Created' },
   { accessorKey: 'actions', header: '' }
@@ -223,20 +222,6 @@ onMounted(() => {
               >
                 {{ row.original.content }}
               </span>
-            </template>
-
-            <template #relevanceScore-cell="{ row }">
-              <div class="flex items-center gap-2">
-                <div class="w-16 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div
-                    class="h-full bg-primary-500 rounded-full"
-                    :style="{ width: `${row.original.relevanceScore * 100}%` }"
-                  />
-                </div>
-                <span class="text-xs text-muted">
-                  {{ (row.original.relevanceScore * 100).toFixed(0) }}%
-                </span>
-              </div>
             </template>
 
             <template #accessCount-cell="{ row }">

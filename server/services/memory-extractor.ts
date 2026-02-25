@@ -5,7 +5,7 @@ import { logTokenUsage } from '../utils/log-token-usage'
 const EXTRACTION_PROMPT = `You are a memory extraction assistant. Analyze this conversation excerpt and extract key memories worth preserving for future reference.
 
 Output ONLY a JSON array with this exact structure (no markdown, no code blocks, no explanation):
-[{"type": "decision|fact|solution|pattern|preference", "content": "concise statement", "relevance": 0.0-1.0}]
+[{"type": "decision|fact|solution|pattern|preference", "content": "concise statement"}]
 
 Memory types:
 - decision: Choices made about implementation, architecture, or approach
@@ -19,7 +19,6 @@ Rules:
 - Skip routine acknowledgments ("I'll do that", "Sure", "Let me...")
 - Skip obvious facts already in code, debugging steps, greetings
 - Content max 100 characters
-- relevance: 1.0 = highly important, 0.5 = moderately useful, 0.1 = minor detail
 - If nothing worth extracting, return []
 
 Conversation to analyze:
@@ -90,15 +89,13 @@ export async function extractMemories(transcript: string): Promise<ExtractedMemo
     const memories = JSON.parse(jsonMatch[0]) as Array<{
       type: string
       content: string
-      relevance: number
     }>
 
     return memories
-      .filter(m => isValidMemoryType(m.type) && m.content && typeof m.relevance === 'number')
+      .filter(m => isValidMemoryType(m.type) && m.content)
       .map(m => ({
         type: m.type as MemoryChunkType,
-        content: m.content.slice(0, 200),
-        relevance: Math.max(0, Math.min(1, m.relevance))
+        content: m.content.slice(0, 200)
       }))
   } catch (error) {
     console.error('[memory-extractor] Failed to extract memories:', error)

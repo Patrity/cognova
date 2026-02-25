@@ -1,5 +1,5 @@
-import { sql, desc, eq, and, gte, inArray } from 'drizzle-orm'
-import { getDb, schema } from '~~/server/db'
+import { sql } from 'drizzle-orm'
+import { getDb } from '~~/server/db'
 import { requireDb } from '~~/server/utils/db-guard'
 import type { MemoryChunk, MemoryChunkType } from '~~/shared/types'
 
@@ -12,48 +12,43 @@ export default defineEventHandler(async (event) => {
   const searchQuery = query.query as string | undefined
   const projectPath = query.projectPath as string | undefined
   const chunkType = query.chunkType as MemoryChunkType | undefined
-  const minRelevance = query.minRelevance ? parseFloat(query.minRelevance as string) : undefined
   const limit = Math.min(parseInt(query.limit as string) || 20, 100)
 
-  const conditions = []
+  // Build WHERE conditions
+  const conditions: ReturnType<typeof sql>[] = []
 
-  // Project filter
   if (projectPath)
-    conditions.push(eq(schema.memoryChunks.projectPath, projectPath))
+    conditions.push(sql`project_path = ${projectPath}`)
 
-  // Type filter
   if (chunkType)
-    conditions.push(eq(schema.memoryChunks.chunkType, chunkType))
+    conditions.push(sql`chunk_type = ${chunkType}`)
 
-  // Relevance filter
-  if (minRelevance !== undefined)
-    conditions.push(gte(schema.memoryChunks.relevanceScore, minRelevance))
+  if (searchQuery)
+    conditions.push(sql`search_vector @@ plainto_tsquery('english', ${searchQuery})`)
 
-  // Full-text search via tsvector + GIN index
-  if (searchQuery) {
-    const ftsResult = await db.execute<{ id: string }>(sql`
-      SELECT id FROM memory_chunks
-      WHERE search_vector @@ plainto_tsquery('english', ${searchQuery})
-      ORDER BY ts_rank(search_vector, plainto_tsquery('english', ${searchQuery})) DESC
-      LIMIT ${limit}
-    `)
-    const ids = ftsResult.map(r => r.id)
-    if (ids.length === 0) return { data: [] as MemoryChunk[] }
-    conditions.push(inArray(schema.memoryChunks.id, ids))
-  }
+  const whereClause = conditions.length > 0
+    ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
+    : sql``
 
-  let dbQuery = db.select()
-    .from(schema.memoryChunks)
+  // Computed score: FTS rank (if searching) * access boost * recency decay
+  const scoreExpr = searchQuery
+    ? sql`
+        ts_rank(search_vector, plainto_tsquery('english', ${searchQuery}))
+        * (1.0 + LN(1 + access_count))
+        * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
+      `
+    : sql`
+        (1.0 + LN(1 + access_count))
+        * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
+      `
 
-  if (conditions.length > 0)
-    dbQuery = dbQuery.where(and(...conditions)) as typeof dbQuery
-
-  const memories = await dbQuery
-    .orderBy(
-      desc(schema.memoryChunks.relevanceScore),
-      desc(schema.memoryChunks.createdAt)
-    )
-    .limit(limit)
+  const memories = await db.execute<MemoryChunk>(sql`
+    SELECT *, ${scoreExpr} AS score
+    FROM memory_chunks
+    ${whereClause}
+    ORDER BY score DESC
+    LIMIT ${limit}
+  `)
 
   // Update access count and timestamp for retrieved memories
   if (memories.length > 0) {
