@@ -23,12 +23,12 @@ Note: This is an opinionated tool for my workflow. Features that don't align wit
 ### Pull Requests
 
 1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/my-feature`)
+2. Branch off `develop` (`git checkout -b feature/my-feature develop`)
 3. Make your changes
 4. Run linting (`pnpm lint`)
 5. Run type checking (`pnpm typecheck`)
 6. Commit with clear messages
-7. Open a PR against `main`
+7. Open a PR against `develop`
 
 ## Development Setup
 
@@ -90,47 +90,59 @@ Keep them concise and descriptive:
 
 Cognova is published to npm. Users install and update via the CLI (`cognova init`, `cognova update`).
 
-### Version Bump + Publish
+### Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `master` | Stable, production-ready. Tagged releases. What `@latest` points to. |
+| `develop` | Active development. Pre-releases publish from here. |
+
+### Pre-release (`@next`)
+
+Use this to test changes on a real server without touching `@latest`.
 
 ```bash
-# 1. Bump version — creates a git commit and tag automatically
-npm version patch   # 0.1.0 → 0.1.1 (bug fixes)
-npm version minor   # 0.1.0 → 0.2.0 (new features)
-npm version major   # 0.1.0 → 1.0.0 (breaking changes)
-
-# 2. Build the app and CLI (app output ships pre-built in the package)
-pnpm build
-pnpm cli:build
-
-# 3. Verify
-npm pack --dry-run
-node dist/cli/index.js --help
-node dist/cli/index.js --version
-
-# 4. Publish to npm
-npm publish
-
-# 5. Push commit + tag
-git push && git push --tags
+# From develop branch
+pnpm release:next
 ```
+
+This bumps the prerelease version (e.g. `0.3.0-next.0` → `0.3.0-next.1`), builds, publishes to the `@next` npm tag, and pushes the git tag. Test servers can pull it with `cognova update --channel next`.
+
+### Stable Release
+
+```bash
+# 1. Merge develop → master
+git checkout master
+git merge develop
+
+# 2. Run the release script
+pnpm release:patch   # 0.2.x → 0.2.x+1 (bug fixes)
+pnpm release:minor   # 0.x.0 → 0.x+1.0 (new features)
+pnpm release:major   # x.0.0 → x+1.0.0 (breaking changes)
+
+# 3. Merge the version bump back to develop
+git checkout develop
+git merge master
+```
+
+The release script bumps the version, builds the app and CLI, publishes to `@latest`, pushes to GitHub, and creates a GitHub Release with auto-generated notes.
 
 ### How Users Get Updates
 
 When a user runs `cognova update`, the CLI:
-1. Checks `npm view cognova version` for the latest published version
-2. Downloads the new package via `npm pack`
+1. Checks npm for the latest version on their channel (`@latest` by default)
+2. Downloads the package via `npm pack` (includes pre-built `.output/`)
 3. Backs up the current install (automatic rollback on failure)
-4. Copies pre-built app + source files, reinstalls deps, runs migrations
-5. Restarts the app via PM2
+4. Copies source files, reinstalls native deps, runs migrations
+5. Restarts the system service (launchd/systemd)
 
 ### Pre-publish Checklist
 
 - [ ] `pnpm lint` passes
 - [ ] `pnpm build` succeeds (app output ships in the package)
 - [ ] `pnpm cli:build` succeeds
-- [ ] `node dist/cli/index.js --help` shows correct output
+- [ ] `node dist/cli/index.js --help` shows correct version and output
 - [ ] `npm pack --dry-run` includes expected files (including `.output/`)
-- [ ] Version in `package.json` matches the intended release
 
 ## Questions?
 
