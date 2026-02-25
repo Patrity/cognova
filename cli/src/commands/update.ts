@@ -118,6 +118,8 @@ export async function update() {
     // Rebuild
     s.start('Installing dependencies')
     execSync('pnpm install', { cwd: installDir, stdio: 'pipe' })
+    // Rebuild native addons (node-pty etc.) for this machine's architecture
+    execSync('pnpm rebuild', { cwd: installDir, stdio: 'pipe' })
     s.stop('Dependencies installed')
 
     // Run database migrations
