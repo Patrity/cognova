@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     ? sql`AND project_path = ${projectPath}`
     : sql``
 
-  const memories = await db.execute<MemoryChunk>(sql`
+  const memories = (await db.execute(sql`
     SELECT *,
       (1.0 + LN(1 + access_count))
       * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     WHERE 1=1 ${projectFilter}
     ORDER BY score DESC
     LIMIT ${limit}
-  `)
+  `)) as unknown as MemoryChunk[]
 
   // Update access count for retrieved memories
   if (memories.length > 0) {
@@ -42,10 +42,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // Format for Claude context injection
-  const formatted = formatForContext(memories as MemoryChunk[])
+  const formatted = formatForContext(memories)
 
   const response: MemoryContextResponse = {
-    memories: memories as MemoryChunk[],
+    memories,
     formatted
   }
 

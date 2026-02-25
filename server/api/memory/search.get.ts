@@ -42,13 +42,13 @@ export default defineEventHandler(async (event) => {
         * (1.0 / (1.0 + EXTRACT(EPOCH FROM NOW() - COALESCE(last_accessed_at, created_at)) / 2592000))
       `
 
-  const memories = await db.execute<MemoryChunk>(sql`
+  const memories = (await db.execute(sql`
     SELECT *, ${scoreExpr} AS score
     FROM memory_chunks
     ${whereClause}
     ORDER BY score DESC
     LIMIT ${limit}
-  `)
+  `)) as unknown as MemoryChunk[]
 
   // Update access count and timestamp for retrieved memories
   if (memories.length > 0) {
@@ -66,5 +66,5 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return { data: memories as MemoryChunk[] }
+  return { data: memories }
 })
