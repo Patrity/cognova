@@ -3,10 +3,14 @@ import { start, stop, restart, status, logs } from './commands/start'
 import { update } from './commands/update'
 import { doctor } from './commands/doctor'
 import { reset } from './commands/reset'
-import { getPackageVersion } from './lib/paths'
+import { getPackageVersion, readMetadata } from './lib/paths'
+
+// Prefer the installed app version (kept current by `cognova update`) over the
+// CLI binary's own package.json, which only changes when npm updates the global install.
+const displayVersion = readMetadata()?.version || getPackageVersion()
 
 const HELP_TEXT = `
-  cognova v${getPackageVersion()} — Personal knowledge management with Claude Code
+  cognova v${displayVersion} — Personal knowledge management with Claude Code
 
   Usage: cognova <command> [options]
 
@@ -89,7 +93,16 @@ const COMMAND_HELP: Record<string, string> = {
   Runs database migrations and rebuilds automatically.
   Creates a backup before updating so failed updates can be rolled back.
 
-  Usage: cognova update
+  Usage: cognova update [--channel <name>]
+
+  Options:
+    --channel <name>   Install from a specific npm dist-tag (e.g. 'next').
+                       Omit or use 'latest' to switch back to stable releases.
+
+  Examples:
+    cognova update                    Update to latest stable
+    cognova update --channel next     Switch to pre-release channel
+    cognova update                    Switch back to stable from any channel
 `,
   doctor: `
   cognova doctor — Check health of all components
@@ -124,7 +137,7 @@ const flags = new Set(args.filter(a => a.startsWith('-')))
 
 // --version / -v
 if (flags.has('--version') || flags.has('-v')) {
-  console.log(getPackageVersion())
+  console.log(displayVersion)
   process.exit(0)
 }
 

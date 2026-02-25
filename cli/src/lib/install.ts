@@ -70,7 +70,8 @@ export function writeMetadata(
   vaultPath: string,
   version: string,
   dbPassword?: string,
-  dbPort?: number
+  dbPort?: number,
+  channel?: string
 ) {
   const metadata: SecondBrainMetadata = {
     version,
@@ -79,7 +80,8 @@ export function writeMetadata(
     installDir,
     vaultPath,
     dbPassword,
-    dbPort
+    dbPort,
+    channel
   }
 
   // Write to install dir

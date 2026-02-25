@@ -44,6 +44,7 @@ export interface SecondBrainMetadata {
   vaultPath: string
   dbPassword?: string
   dbPort?: number
+  channel?: string
 }
 
 export interface SetupProgress {

@@ -55,6 +55,12 @@ function cleanupBackup(backupDir: string) {
 }
 
 export async function update() {
+  // Parse --channel flag: defaults to 'latest' which also acts as "switch back to stable"
+  const args = process.argv.slice(2)
+  const channelIdx = args.indexOf('--channel')
+  const channel = channelIdx !== -1 ? (args[channelIdx + 1] || 'latest') : 'latest'
+  const npmTag = channel === 'latest' ? 'latest' : channel
+
   p.intro(pc.bgCyan(pc.black(' Cognova Update ')))
 
   const installDir = findInstallDir()
@@ -65,26 +71,32 @@ export async function update() {
     process.exit(1)
   }
 
+  const currentChannel = metadata.channel || 'latest'
+  if (channel !== currentChannel)
+    p.log.info(`Switching channel: ${pc.yellow(`@${currentChannel}`)} → ${pc.cyan(`@${channel}`)}`)
+  else
+    p.log.info(`Channel: ${pc.cyan(`@${channel}`)}`)
+
   const s = p.spinner()
 
-  // Check for newer version
-  s.start('Checking for updates')
+  // Check for newer version on the target channel
+  s.start(`Checking for updates on @${channel}`)
   let latestVersion: string
   try {
-    latestVersion = execSync('npm view cognova version', { encoding: 'utf-8' }).trim()
+    latestVersion = execSync(`npm view cognova@${npmTag} version`, { encoding: 'utf-8' }).trim()
   } catch {
     s.stop('Could not check npm registry')
     p.log.warn('Unable to check for updates. Rebuilding current version.')
     latestVersion = metadata.version
   }
 
-  if (latestVersion === metadata.version) {
-    s.stop(`Already on latest version (${metadata.version})`)
+  if (latestVersion === metadata.version && channel === currentChannel) {
+    s.stop(`Already on ${latestVersion} (@${channel})`)
     p.outro('Nothing to update.')
     return
   }
 
-  s.stop(`Update available: ${metadata.version} → ${pc.green(latestVersion)}`)
+  s.stop(`Update available: ${metadata.version} → ${pc.green(latestVersion)} (@${channel})`)
 
   // Create backup before making any changes
   s.start('Creating backup')
@@ -159,7 +171,9 @@ export async function update() {
 
   // Update metadata and clean up backup on success
   if (!updateFailed) {
-    writeMetadata(installDir, metadata.vaultPath, latestVersion)
+    // Only persist non-default channel; omit field for 'latest' to keep metadata clean
+    const channelToStore = channel === 'latest' ? undefined : channel
+    writeMetadata(installDir, metadata.vaultPath, latestVersion, metadata.dbPassword, metadata.dbPort, channelToStore)
     cleanupBackup(backupDir)
   }
 
@@ -178,5 +192,5 @@ export async function update() {
   }
 
   p.log.info(`Run ${pc.cyan('cognova reset')} to regenerate CLAUDE.md or settings.json.`)
-  p.outro(`Updated to v${latestVersion}`)
+  p.outro(`Updated to v${latestVersion} (@${channel})`)
 }
