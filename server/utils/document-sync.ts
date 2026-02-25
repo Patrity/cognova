@@ -4,7 +4,7 @@ import { eq, isNull } from 'drizzle-orm'
 import { getDb } from '~~/server/db'
 import * as schema from '~~/server/db/schema'
 import { getVaultRoot, toRelativePath } from './path-validator'
-import { parseFrontmatter, stringifyFrontmatter, extractTitle, computeContentHash, isBinaryFile, getMimeType } from './frontmatter'
+import { parseFrontmatter, stringifyFrontmatter, extractTitle, computeContentHash, isBinaryFile, getFileType, getMimeType } from './frontmatter'
 import { isDbAvailable } from './db-state'
 
 // Default frontmatter values for new documents
@@ -62,27 +62,34 @@ export async function syncDocument(absolutePath: string): Promise<SyncResult> {
     return 'unchanged'
   }
 
-  const { metadata: initialMetadata, body: bodyContent } = parseFrontmatter(fileContent)
-  let metadata = initialMetadata
-  const title = extractTitle(metadata, bodyContent, filename)
+  const fileType = getFileType(filename)
+  const isMarkdown = fileType === 'markdown'
 
-  // For new documents without frontmatter, add defaults
-  const needsDefaults = !existing && Object.keys(metadata).length === 0
+  let metadata: Record<string, unknown> = {}
+  let bodyContent = fileContent
 
-  if (needsDefaults) {
-    // Merge defaults into metadata
-    metadata = { ...DEFAULT_FRONTMATTER }
+  if (isMarkdown) {
+    const parsed = parseFrontmatter(fileContent)
+    metadata = parsed.metadata
+    bodyContent = parsed.body
 
-    // Write frontmatter back to file
-    const newContent = stringifyFrontmatter(metadata, bodyContent)
-    try {
-      await writeFile(absolutePath, newContent, 'utf-8')
-      fileContent = newContent
-    } catch (err) {
-      console.error(`[sync] Failed to write frontmatter to ${relativePath}:`, err)
+    // For new markdown documents without frontmatter, add defaults
+    const needsDefaults = !existing && Object.keys(metadata).length === 0
+
+    if (needsDefaults) {
+      metadata = { ...DEFAULT_FRONTMATTER }
+
+      const newContent = stringifyFrontmatter(metadata, bodyContent)
+      try {
+        await writeFile(absolutePath, newContent, 'utf-8')
+        fileContent = newContent
+      } catch (err) {
+        console.error(`[sync] Failed to write frontmatter to ${relativePath}:`, err)
+      }
     }
   }
 
+  const title = extractTitle(metadata, bodyContent, filename)
   const contentHash = computeContentHash(fileContent)
 
   if (existing) {
@@ -95,7 +102,7 @@ export async function syncDocument(absolutePath: string): Promise<SyncResult> {
         title,
         content: bodyContent,
         contentHash,
-        tags: Array.isArray(metadata.tags) ? metadata.tags as string[] : existing.tags,
+        tags: isMarkdown && Array.isArray(metadata.tags) ? metadata.tags as string[] : existing.tags,
         deletedAt: null, // Clear deletion flag - file exists on disk
         syncedAt: new Date(),
         modifiedAt: new Date()
@@ -110,9 +117,9 @@ export async function syncDocument(absolutePath: string): Promise<SyncResult> {
     title,
     content: bodyContent,
     contentHash,
-    tags: Array.isArray(metadata.tags) ? metadata.tags as string[] : [],
-    shared: metadata.shared === true,
-    fileType: 'markdown',
+    tags: isMarkdown && Array.isArray(metadata.tags) ? metadata.tags as string[] : [],
+    shared: isMarkdown && metadata.shared === true,
+    fileType,
     syncedAt: new Date()
   })
   return 'added'

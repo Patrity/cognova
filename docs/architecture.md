@@ -47,7 +47,7 @@ shared: false
 ┌─────────────────────────────────────────────────────────────────┐
 │                    WebSocket Endpoints                           │
 ├─────────────────────────────────────────────────────────────────┤
-│  /terminal        │  PTY-based terminal (xterm.js ↔ node-pty)   │
+│  /_ws/terminal    │  PTY-based terminal (xterm.js ↔ node-pty)   │
 │  /notifications   │  Real-time event bus (agent status, toasts) │
 │  /_ws/chat        │  Interactive Claude chat (Agent SDK stream) │
 └─────────────────────────────────────────────────────────────────┘
@@ -226,7 +226,7 @@ Browser (xterm.js)  ←──WebSocket──►  Nitro Server  ←──PTY─�
 ## Vault Structure
 
 ```
-~/vault/                          # Bind-mounted in container
+~/vault/                          # User's vault directory
 ├── inbox/                        # Quick captures
 ├── areas/                        # Ongoing responsibilities
 │   ├── health/
@@ -245,22 +245,22 @@ Browser (xterm.js)  ←──WebSocket──►  Nitro Server  ←──PTY─�
 
 ## Deployment
 
-### Bare-Metal (CLI)
+### System Service (CLI)
 
-The `cognova` CLI handles installation, updates, and process management.
+The `cognova` CLI handles installation, updates, and process management via native system services (launchd on macOS, systemd on Linux). No Docker or PM2.
 
 ```bash
 # Install globally
 npm i -g cognova
 
-# Initialize (copies app to ~/cognova, sets up .env, builds)
+# Initialize (copies app to ~/cognova, sets up .env, builds, installs service)
 cognova init
 
 # Process management
-cognova start     # PM2 start
-cognova stop      # PM2 stop
+cognova start     # launchctl load / systemctl start
+cognova stop      # launchctl unload / systemctl stop
 cognova status    # Health check
-cognova logs      # PM2 logs
+cognova doctor    # Diagnose issues
 
 # Update to latest version
 cognova update    # Downloads, installs deps, migrates DB, rebuilds, restarts
@@ -268,35 +268,16 @@ cognova update    # Downloads, installs deps, migrates DB, rebuilds, restarts
 
 **Install directory**: `~/cognova/` (or custom via `init --dir`)
 
-**Process manager**: PM2 with `ecosystem.config.cjs` — loads `.env` via `env_file`.
+**Process manager**:
+- **macOS**: launchd plist at `~/Library/LaunchAgents/com.cognova.plist`
+- **Linux**: systemd user unit at `~/.config/systemd/user/cognova.service`
+
+**Logs**: `<installDir>/logs/stdout.log` and `stderr.log`
+
+**Environment**: `.env` is loaded via plist `EnvironmentVariables` (macOS) or systemd `EnvironmentFile` (Linux).
 
 **Database migrations**: Auto-run on production startup via `server/plugins/01.database.ts`.
 The CLI `update` command also runs `pnpm db:migrate` as a safety net.
-
-### Development Deployment (git-based)
-
-When the CLI isn't published to npm yet, deploy from the repo:
-
-```bash
-# On the VM, in the repo clone
-git pull
-pnpm install
-pnpm db:generate   # if schema changed
-pnpm build
-
-# Sync to install dir (exclude config/state files)
-rsync -av --delete \
-  --exclude='.env' --exclude='node_modules' --exclude='.output' \
-  --exclude='logs' --exclude='.api-token' --exclude='.cognova' \
-  --exclude='ecosystem.config.cjs' \
-  ./ ~/bridget/
-
-# Rebuild in install dir
-cd ~/bridget && pnpm install && pnpm build
-
-# Restart
-pm2 restart cognova
-```
 
 ## Security
 
@@ -304,7 +285,7 @@ pm2 restart cognova
 |-------|----------|
 | Authentication | BetterAuth (session-based) + reverse proxy recommended for production |
 | Database | Neon with SSL required |
-| Filesystem | Container bind-mount, isolated to vault |
+| Filesystem | Path-validated, isolated to vault directory |
 | API keys | Environment variables, not in repo |
 
 ## File Structure (Nuxt App)
@@ -381,10 +362,10 @@ cognova/
 │   │       ├── [id].get.ts        # Get conversation + messages
 │   │       └── [id].delete.ts     # Delete conversation
 │   ├── routes/
-│   │   ├── terminal.ts            # PTY WebSocket
 │   │   ├── notifications.ts       # Notification WebSocket
 │   │   └── _ws/
-│   │       └── chat.ts            # Chat WebSocket (Agent SDK bridge)
+│   │       ├── chat.ts            # Chat WebSocket (Agent SDK bridge)
+│   │       └── terminal.ts        # PTY WebSocket (xterm.js ↔ node-pty)
 │   ├── services/
 │   │   ├── agent-executor.ts      # Claude SDK execution (cron agents)
 │   │   └── cron-scheduler.ts      # Job management
@@ -410,10 +391,10 @@ cognova/
 │       └── commands/
 │           ├── init.ts            # Install + setup
 │           ├── update.ts          # Update + migrate + rebuild
-│           ├── start.ts           # PM2 start
-│           ├── stop.ts            # PM2 stop
+│           ├── start.ts           # launchd/systemd start
+│           ├── stop.ts            # launchd/systemd stop
 │           ├── status.ts          # Health check
-│           ├── logs.ts            # PM2 logs
+│           ├── doctor.ts          # Diagnostics
 │           └── reset.ts          # Sync Claude config
 ├── shared/
 │   └── types/
