@@ -1,13 +1,13 @@
 # Cognova — Progress Tracker
 
-> Current focus: Phase 1 — Foundation & Infrastructure
+> Current focus: Phase 3 — Agent Runtime & Chat
 
 ## Phases
 
 | Phase | Name | Status | Plan |
 |-------|------|--------|------|
-| 1 | Foundation & Infrastructure | **Not started** | [phase-1-foundation.md](todo/phase-1-foundation.md) |
-| 2 | Settings & Provider Management | Not started | [phase-2-providers.md](todo/phase-2-providers.md) |
+| 1 | Foundation & Infrastructure | **Complete** | [phase-1-foundation.md](todo/phase-1-foundation.md) |
+| 2 | Settings & Provider Management | **Complete** | [phase-2-providers.md](todo/phase-2-providers.md) |
 | 3 | Agent Runtime & Chat | Not started | [phase-3-chat.md](todo/phase-3-chat.md) |
 | 4 | Agent Management & Knowledge Editor | Not started | [phase-4-agent-management.md](todo/phase-4-agent-management.md) |
 | 5 | Tasks, Memory & Documents | Not started | [phase-5-tasks-memory-docs.md](todo/phase-5-tasks-memory-docs.md) |

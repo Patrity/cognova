@@ -4,7 +4,8 @@ export default defineNitroPlugin(() => {
   const checks: Record<string, unknown> = {
     databaseUrl: config.databaseUrl,
     betterAuthSecret: config.betterAuthSecret,
-    betterAuthUrl: config.betterAuthUrl
+    betterAuthUrl: config.betterAuthUrl,
+    encryptionKey: config.encryptionKey
   }
 
   const missing = Object.entries(checks)

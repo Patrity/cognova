@@ -95,6 +95,37 @@ export const TokenUsageSource = {
   CRON: 'cron'
 } as const
 
+// Provider with type (for client-side display)
+export interface ProviderWithType extends Provider {
+  type: ProviderType
+}
+
+// Model option (for selectors)
+export interface ModelOption {
+  id: string
+  modelId: string
+  displayName: string
+  tags: string[]
+  providerName: string
+}
+
+// Usage stats
+export interface UsageStats {
+  totalCost: number
+  totalInputTokens: number
+  totalOutputTokens: number
+  totalCalls: number
+  dailyBreakdown: DailyUsage[]
+}
+
+export interface DailyUsage {
+  date: string
+  cost: number
+  inputTokens: number
+  outputTokens: number
+  calls: number
+}
+
 // API response wrapper
 export interface ApiResponse<T> {
   data: T
