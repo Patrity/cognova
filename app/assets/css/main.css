@@ -1,2 +1,8 @@
 @import "tailwindcss" theme(static);
 @import "@nuxt/ui";
+
+/* Ensure root wrappers don't break flex height chain */
+html, body, #__nuxt {
+  height: 100dvh;
+  overflow: hidden;
+}

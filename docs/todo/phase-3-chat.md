@@ -2,129 +2,98 @@
 
 **Goal:** End-to-end streaming chat works. User sends a message, system routes to an agent, agent processes with AI SDK v6, response streams back.
 
-**Status:** Not started
+**Status:** Complete
 **Depends on:** Phase 1, Phase 2
 
 ---
 
-## Tasks
+## Completed Tasks
 
 ### 3.1 Agent Type System
-- [ ] Create `shared/types/agent.ts`:
-  - `AgentManifest` — parsed manifest.yaml structure
-  - `CognovaAgent` — returned by createAgent(): { systemPrompt, tools, onMessage?, onStart? }
-  - `AgentContext` — passed to createAgent(): { getConfig, knowledge, getModel, memory, userId }
-  - `AgentConfig` — typed config values from agent_configs
-- [ ] Install `js-yaml` + `@types/js-yaml`
+- [x] `shared/types/agent.ts` — `AgentManifest`, `CognovaAgent`, `AgentContext`, `CreateAgentFn`
+- [x] Exported from `shared/types/index.ts`
 
-### 3.2 Agent Loader
-- [ ] Create `server/agents/loader.ts`
-- [ ] `loadAgent(agentId)`:
-  - Read `installed_agents` record from DB
-  - Resolve local path (cloned repo dir or local directory)
-  - Dynamic import of agent's index.ts
-  - Assemble `AgentContext` (getConfig, knowledge, getModel wrappers)
-  - Call `createAgent(config, context)` and cache result
-- [ ] Cache with invalidation on config change or knowledge file change
-- [ ] Built-in agent special case (default agent loaded from local code)
+### 3.2 Knowledge Loader (minimal v1)
+- [x] `server/knowledge/types.ts` — `IKnowledgeLoader` interface
+- [x] `server/knowledge/fs-loader.ts` — Filesystem implementation with 5-min TTL cache
+- [x] `server/knowledge/index.ts` — `getKnowledgeLoader()` lazy singleton
+- [x] Supports `.md`, `.txt`, `.json` files
+- [x] Missing directory returns empty knowledge gracefully
+- Deferred: chokidar file watcher (Phase 5), YAML support (Phase 4)
 
-### 3.3 Knowledge Loader (IKnowledgeLoader)
-- [ ] Create `server/knowledge/types.ts` — IKnowledgeLoader interface:
-  - `load(agentId): Promise<AgentKnowledge>`
-  - `invalidate(agentId): void`
-  - `watch(): void` / `stop(): void`
-- [ ] Create `server/knowledge/fs-loader.ts` — filesystem implementation:
-  - `loadKnowledge(agentId)`: read ~/knowledge/[agentId]/ directory
-  - Parse .yaml → objects, .json → objects, .md → text
-  - Return structured `AgentKnowledge` object
-  - Handle missing directory gracefully (empty knowledge)
-  - chokidar watcher on ~/knowledge/
-  - On add/change/unlink: identify agent from path, invalidate cache
-  - Debounce events (100ms)
-- [ ] Create `server/plugins/03.knowledge-watcher.ts` — start watcher on boot
-- [ ] Install `chokidar`
-- [ ] Interface allows future swap to S3/DB-backed loader for cloud
+### 3.3 Default Agent + Seed
+- [x] `server/agents/built-in/default/index.ts` — general-purpose assistant with knowledge injection
+- [x] `server/plugins/04.default-agent-seed.ts` — seeds "Default Assistant" on boot
 
-### 3.4 Default Agent (built-in)
-- [ ] Create `server/agents/built-in/default/index.ts`
-- [ ] General-purpose system prompt (helpful assistant)
-- [ ] No specialized tools initially (tools added in Phase 5)
-- [ ] Registered in `installed_agents` as builtIn on first boot
-- [ ] Create `server/agents/built-in/default/manifest.yaml`
-- [ ] Serves as reference implementation for agent authors
-- [ ] No intent classifier — users select agents manually, default is pre-selected
+### 3.4 Agent Loader + Model Resolver
+- [x] `server/agents/loader.ts` — `loadAgent(agentId, userId)` assembles context, calls `createAgent()`
+- [x] `server/agents/resolve-model.ts` — resolves model with priority: explicit modelId > defaultModelId setting > agent tags > frontier fallback
 
-### 3.6 Chat API (SSE)
-- [ ] Create `server/api/chat.post.ts`
-  - Input: `{ conversationId?, agentId?, message: string, attachments?: [] }`
-  - Create conversation if new (auto-title from first message)
-  - Save user message to DB
-  - Resolve agent: use agentId if provided, otherwise default agent
-  - Attachments: base64 passthrough to model (no file storage)
-  - Load agent via loader
-  - Call `getModel()` for agent's model preference
-  - Load conversation history from DB
-  - Assemble messages array (system prompt + knowledge + history + new message)
-  - Call `streamText()` from AI SDK v6
-  - Return as SSE: set `Content-Type: text/event-stream`
-  - On completion: persist assistant message + tool calls, log token usage
-  - Handle tool loop (AI SDK v6 handles multi-step tool calls)
-- [ ] Install `ai` (AI SDK v6 core), `zod`
+### 3.5 Conversation Persistence APIs
+- [x] `server/api/conversations/index.get.ts` — list (ordered by updatedAt DESC)
+- [x] `server/api/conversations/index.post.ts` — create `{ agentId?, title? }`
+- [x] `server/api/conversations/[id].get.ts` — get conversation + messages
+- [x] `server/api/conversations/[id].put.ts` — update title
+- [x] `server/api/conversations/[id].delete.ts` — cascade delete
+- [x] `server/api/agents/index.get.ts` — list enabled installed agents
+- All routes enforce userId ownership
 
-### 3.7 WebSocket Endpoint
-- [ ] Create `server/routes/_ws/chat.ts`
-  - Auth via session cookie
-  - Message types: `chat:interrupt`, `chat:typing`
-  - `chat:interrupt`: abort controller on active stream
-  - Forward to SSE endpoint or handle directly
-- [ ] Keep optional — SSE is the primary transport
+### 3.6 Chat Streaming API
+- [x] `server/api/conversations/[id]/chat.post.ts` — core streaming endpoint
+- [x] Verify conversation ownership
+- [x] Load agent via `loadAgent()`, resolve model via `resolveModelForAgent()`
+- [x] Save user message to DB (parts in content jsonb)
+- [x] Auto-title from first ~80 chars of first message
+- [x] `streamText()` with `onFinish` for assistant message persistence
+- [x] Token usage logging via `logTokenUsage()`
+- [x] `toUIMessageStreamResponse()` with `messageMetadata` callback
+- [x] Message metadata: model, inputTokens, outputTokens, durationMs
 
-### 3.8 Chat Composable
-- [ ] Create `app/composables/useChat.ts`
-  - `sendMessage(message, conversationId?, agentId?)` — POST to /api/chat, read SSE stream
-  - `conversations` — reactive list from API
-  - `messages` — reactive list for current conversation
-  - `isStreaming` — reactive boolean
-  - `streamingContent` — reactive string (accumulates during stream)
-  - `loadConversation(id)` — fetch messages
-  - `createConversation()` — new conversation
-  - `deleteConversation(id)`
-  - `interrupt()` — abort current stream (via WS or AbortController)
+### 3.7 Chat UI
+- [x] `app/pages/chat.vue` — layout with sidebar panel + `<NuxtPage />`
+- [x] `app/pages/chat/index.vue` — new chat welcome page with agent selector
+- [x] `app/pages/chat/[id].vue` — active chat with `@ai-sdk/vue` `Chat` class + `DefaultChatTransport`
+- [x] `app/components/chat/MessageBubble.vue` — message display with MDC rendering, info popover (model, tokens, duration, tok/s), reactive relative time, copy button
+- [x] `app/components/chat/ChatInput.vue` — input with send/stop buttons
+- [x] `app/components/chat/ConversationList.vue` — sidebar conversation list with delete
+- [x] `app/components/chat/AgentSelect.vue` — agent selector dropdown
+- [x] `app/utils/message-converter.ts` — `dbMessageToUIMessage()` with metadata passthrough
+- [x] `app/utils/formatting.ts` — `formatRelativeTime()`, `formatCost()`
+- [x] Auto-scroll on new messages
+- [x] Thinking indicator (pulsing dot)
+- [x] Sidebar title refresh after stream completes
+- [x] First message from query param (new chat flow)
 
-### 3.9 Chat UI
-- [ ] Create `app/pages/chat.vue` — conversation list + main area
-- [ ] Create `app/pages/chat/[id].vue` — specific conversation
-- [ ] Components:
-  - `app/components/chat/ConversationList.vue` — sidebar list with search
-  - `app/components/chat/MessageList.vue` — scrolling message area
-  - `app/components/chat/MessageBubble.vue` — single message (user/assistant)
-  - `app/components/chat/ChatInput.vue` — text input with send button
-  - `app/components/chat/ToolCallBlock.vue` — collapsible tool call display
-  - `app/components/chat/AgentSelector.vue` — dropdown to select agent (default pre-selected)
-  - `app/components/chat/StreamingIndicator.vue` — typing/streaming dots
-- [ ] Markdown rendering for assistant messages (via Nuxt UI prose or MDC)
-- [ ] Auto-scroll on new content
-- [ ] Code block syntax highlighting
-- [ ] Image paste support in input
-
-### 3.10 Conversation Persistence
-- [ ] API: `server/api/conversations/index.get.ts` — list conversations
-- [ ] API: `server/api/conversations/[id].get.ts` — get conversation with messages
-- [ ] API: `server/api/conversations/[id].delete.ts` — delete conversation
-- [ ] API: `server/api/conversations/search.get.ts` — full-text search
-- [ ] Auto-title: use first ~50 chars of first message, or LLM-generated summary
+### 3.8 Infrastructure Fixes
+- [x] SSR disabled globally (`ssr: false` in nuxt.config.ts) — auth-gated SPA, no SEO benefit
+- [x] Provider PUT preserves masked API keys (detects `••••••••` mask, keeps existing decrypted value)
+- [x] `sanitizeForHeader()` for openai-compatible provider (non-ASCII in name/apiKey)
+- [x] Password manager ignore attributes on API key inputs
+- [x] `MessageMetadata` type + `metadata` jsonb column on messages table
 
 ---
 
-## Acceptance Criteria
+## Deferred Items
 
-1. User can start a new chat conversation
-2. Message is sent and response streams back in real-time
-3. Tool calls are displayed with expandable input/output
-4. Conversation persists — reload shows history
-5. Multiple conversations in sidebar
-6. Agent selector allows choosing an agent (default pre-selected)
-7. Knowledge files loaded and included in agent context
-8. Token usage logged per message
-9. Stream can be interrupted
-10. Errors display as UToast notifications with user-friendly messages
+| Item | Deferred To | Reason |
+|------|-------------|--------|
+| WebSocket endpoint | Later | SSE via AI SDK sufficient; `Chat.stop()` uses AbortController |
+| chokidar file watcher | Phase 5 | TTL cache sufficient for now |
+| YAML knowledge files | Phase 4 | Only .md/.txt/.json in v1 |
+| Conversation search | Later | Simple list for now |
+| Code syntax highlighting | Later | MDC handles basic rendering |
+| Image paste / attachments | Later | Base64 passthrough deferred |
+
+---
+
+## Decisions Made
+
+| Decision | Rationale |
+|----------|-----------|
+| `@ai-sdk/vue` `Chat` class instead of custom composable | Official pattern from Nuxt UI chat template, handles streaming state |
+| `DefaultChatTransport` over custom SSE | AI SDK provides transport layer, reduces boilerplate |
+| Custom MessageBubble over UChatMessages | More control over layout, info popover, metadata display |
+| `messageMetadata` callback on `toUIMessageStreamResponse` | Only way to send per-message stats (model, tokens, duration) through SSE stream |
+| Model resolution priority: explicit > defaultModelId > tags > frontier | User's default setting should override agent manifest tags |
+| Global `ssr: false` over route-level | Auth-gated app, no SEO benefit, avoids hydration mismatches |
+| `metadata` jsonb column on messages | Flexible storage for model, tokens, duration without schema changes |

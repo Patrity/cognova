@@ -95,8 +95,7 @@ async function handlePasswordSubmit() {
       variant="naked"
       orientation="horizontal"
       class="mb-4"
-    >
-    </UPageCard>
+    />
 
     <UPageCard variant="subtle">
       <div class="flex max-sm:flex-col justify-between items-start gap-4">

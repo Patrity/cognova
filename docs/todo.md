@@ -1,6 +1,6 @@
 # Cognova — Progress Tracker
 
-> Current focus: Phase 3 — Agent Runtime & Chat
+> Current focus: Phase 4 — Agent Management & Knowledge Editor
 
 ## Phases
 
@@ -8,7 +8,7 @@
 |-------|------|--------|------|
 | 1 | Foundation & Infrastructure | **Complete** | [phase-1-foundation.md](todo/phase-1-foundation.md) |
 | 2 | Settings & Provider Management | **Complete** | [phase-2-providers.md](todo/phase-2-providers.md) |
-| 3 | Agent Runtime & Chat | Not started | [phase-3-chat.md](todo/phase-3-chat.md) |
+| 3 | Agent Runtime & Chat | **Complete** | [phase-3-chat.md](todo/phase-3-chat.md) |
 | 4 | Agent Management & Knowledge Editor | Not started | [phase-4-agent-management.md](todo/phase-4-agent-management.md) |
 | 5 | Tasks, Memory & Documents | Not started | [phase-5-tasks-memory-docs.md](todo/phase-5-tasks-memory-docs.md) |
 | 6 | Cron Agents | Not started | [phase-6-cron-agents.md](todo/phase-6-cron-agents.md) |
@@ -17,7 +17,7 @@
 
 ## Active Tasks
 
-_None yet — Phase 1 has not started._
+_Phase 3 complete — awaiting Phase 4 kickoff._
 
 ## Decisions Log
 
@@ -41,3 +41,9 @@ _None yet — Phase 1 has not started._
 | 2026-03-04 | Encryption: AES-256-GCM for secrets + provider keys | Supports future cloud hosting |
 | 2026-03-04 | Provider types table: dynamic, not hardcoded | Supports BYOK multi-tenant, multiple instances per type |
 | 2026-03-04 | JSON Schema forms: flat schemas only | No nested allOf/oneOf/conditional support |
+| 2026-03-05 | Chat UI: @ai-sdk/vue Chat class + DefaultChatTransport | Official Nuxt UI chat template pattern |
+| 2026-03-05 | Custom MessageBubble over UChatMessages | More control for info popover, metadata, copy |
+| 2026-03-05 | Model resolution: explicit > defaultModelId > tags > frontier | User default setting overrides agent manifest |
+| 2026-03-05 | Global ssr: false | Auth-gated SPA, no SEO benefit, avoids hydration mismatches |
+| 2026-03-05 | Message metadata in jsonb column | Flexible per-message stats (model, tokens, duration) |
+| 2026-03-05 | Knowledge loader: TTL cache, no chokidar | File watcher deferred to Phase 5 |

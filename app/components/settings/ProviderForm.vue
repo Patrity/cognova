@@ -58,8 +58,10 @@ function updateField(key: string, value: unknown) {
         :type="field.type"
         :placeholder="editing && field.isPassword ? 'Leave blank to keep current' : (field.defaultValue as string) || ''"
         autocomplete="off"
-        @update:model-value="updateField(field.key, $event)"
+        data-lpignore="true"
+        data-1p-ignore
         class="w-full"
+        @update:model-value="updateField(field.key, $event)"
       />
     </div>
   </div>

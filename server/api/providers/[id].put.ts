@@ -1,6 +1,8 @@
 import { and, eq } from 'drizzle-orm'
 import { getDb, schema } from '~~/server/db'
-import { encryptProviderConfig } from '~~/server/utils/provider-config'
+import { encryptProviderConfig, decryptProviderConfig } from '~~/server/utils/provider-config'
+
+const MASK = '••••••••'
 
 export default defineEventHandler(async (event) => {
   const userId = event.context.user.id
@@ -24,8 +26,19 @@ export default defineEventHandler(async (event) => {
   if (body.name)
     updates.name = body.name
 
-  if (body.configJson && typeof body.configJson === 'object')
-    updates.configJson = encryptProviderConfig(body.configJson)
+  if (body.configJson && typeof body.configJson === 'object') {
+    // Merge with existing config to preserve masked password fields
+    const existingConfig = decryptProviderConfig(existing.configJson)
+    const newConfig = body.configJson as Record<string, unknown>
+
+    const merged = { ...newConfig }
+    for (const [key, value] of Object.entries(merged)) {
+      if (value === MASK)
+        merged[key] = existingConfig[key]
+    }
+
+    updates.configJson = encryptProviderConfig(merged)
+  }
 
   const [updated] = await db.update(schema.providers)
     .set(updates)

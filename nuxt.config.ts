@@ -1,8 +1,11 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/ui',
-    '@nuxt/eslint'
+    '@nuxt/eslint',
+    '@nuxtjs/mdc'
   ],
+
+  ssr: false,
 
   devtools: { enabled: true },
 

@@ -126,7 +126,19 @@ export interface DailyUsage {
   calls: number
 }
 
+// Message metadata stored per-message for stats display
+export interface MessageMetadata {
+  model?: string
+  inputTokens?: number
+  outputTokens?: number
+  durationMs?: number
+  createdAt?: string
+}
+
 // API response wrapper
 export interface ApiResponse<T> {
   data: T
 }
+
+// Agent types
+export * from './agent'

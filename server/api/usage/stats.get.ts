@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
   // Group by date
   const dailyMap = new Map<string, { cost: number, inputTokens: number, outputTokens: number, calls: number }>()
   for (const row of filtered) {
-    const date = new Date(row.createdAt).toISOString().split('T')[0]
+    const date = new Date(row.createdAt).toISOString().split('T')[0]!
     const existing = dailyMap.get(date) || { cost: 0, inputTokens: 0, outputTokens: 0, calls: 0 }
     existing.cost += row.cost || 0
     existing.inputTokens += row.inputTokens

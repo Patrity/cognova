@@ -53,7 +53,7 @@ function openEdit(provider: ProviderWithType) {
   editingProvider.value = provider
   form.name = provider.name
   form.typeId = provider.typeId
-  form.configJson = { ...provider.configJson }
+  form.configJson = { ...(provider.configJson as Record<string, unknown>) }
   showAddModal.value = true
 }
 

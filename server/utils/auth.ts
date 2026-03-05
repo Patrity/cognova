@@ -2,9 +2,10 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { getDb, schema } from '~~/server/db'
 
-let _auth: ReturnType<typeof betterAuth> | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _auth: any = null
 
-export function getAuth() {
+export function getAuth(): ReturnType<typeof betterAuth> {
   if (!_auth) {
     const config = useRuntimeConfig()
     const baseURL = config.betterAuthUrl || 'http://localhost:3000'

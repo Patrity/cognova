@@ -37,13 +37,13 @@ export default defineEventHandler(async (event) => {
       row.provider_types.id,
       row.provider_types.aiSdkPackage,
       config,
-      providerModels[0].modelId
+      providerModels[0]!.modelId
     )
 
     await generateText({
       model,
       prompt: 'Say "ok"',
-      maxTokens: 5
+      maxOutputTokens: 5
     })
 
     return { data: { success: true } }

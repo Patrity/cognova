@@ -17,5 +17,6 @@ export const messages = pgTable('messages', {
   role: text('role').notNull(),
   content: jsonb('content').notNull(),
   toolCallsJson: jsonb('tool_calls_json'),
+  metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').notNull().defaultNow()
 })
