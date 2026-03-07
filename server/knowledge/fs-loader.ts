@@ -1,6 +1,7 @@
 import { readdir, readFile } from 'fs/promises'
 import { join, extname, basename } from 'path'
 import { homedir } from 'os'
+import { load as loadYaml } from 'js-yaml'
 import type { AgentKnowledge, KnowledgeFile } from '~~/shared/types/agent'
 import type { IKnowledgeLoader } from './types'
 
@@ -26,6 +27,9 @@ function getFileType(ext: string): KnowledgeFile['type'] | null {
       return 'text'
     case '.json':
       return 'json'
+    case '.yaml':
+    case '.yml':
+      return 'yaml'
     default:
       return null
   }
@@ -72,6 +76,12 @@ export class FilesystemKnowledgeLoader implements IKnowledgeLoader {
         if (fileType === 'json') {
           try {
             content = JSON.parse(raw)
+          } catch {
+            content = raw
+          }
+        } else if (fileType === 'yaml') {
+          try {
+            content = loadYaml(raw)
           } catch {
             content = raw
           }

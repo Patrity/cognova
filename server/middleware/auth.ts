@@ -8,7 +8,8 @@ const publicPaths = [
   '/_nuxt',
   '/login',
   '/register',
-  '/view'
+  '/view',
+  '/api/view'
 ]
 
 export default defineEventHandler(async (event: H3Event) => {
