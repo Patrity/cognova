@@ -22,6 +22,10 @@ export default defineNuxtConfig({
     adminName: 'Admin'
   },
 
+  routeRules: {
+    '/view/**': { ssr: true }
+  },
+
   future: {
     compatibilityVersion: 4
   },
@@ -32,6 +36,18 @@ export default defineNuxtConfig({
     preset: 'node-server',
     experimental: {
       websocket: true
+    }
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@nuxt/ui > prosemirror-state',
+        '@nuxt/ui > prosemirror-transform',
+        '@nuxt/ui > prosemirror-model',
+        '@nuxt/ui > prosemirror-view',
+        '@nuxt/ui > prosemirror-gapcursor'
+      ]
     }
   },
 
