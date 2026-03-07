@@ -81,15 +81,49 @@ export default defineEventHandler(async (event) => {
         durationMs
       }
 
-      // Persist assistant messages (only last gets metadata)
-      const assistantMessages = response.messages.filter(msg => msg.role === 'assistant')
-      for (let i = 0; i < assistantMessages.length; i++) {
-        const msg = assistantMessages[i]!
+      // Merge all response messages into a single UIMessage-format parts array.
+      // ModelMessages have tool-call/tool-result types; we convert them to
+      // tool-{name} parts with state/output for proper UI rendering on reload.
+      const uiParts: Record<string, unknown>[] = []
+      const toolResults = new Map<string, unknown>()
+
+      // First pass: collect tool results by toolCallId
+      for (const msg of response.messages) {
+        if (msg.role === 'tool' && Array.isArray(msg.content)) {
+          for (const part of msg.content) {
+            if (part.type === 'tool-result')
+              toolResults.set(part.toolCallId, part.result)
+          }
+        }
+      }
+
+      // Second pass: build UI parts from assistant messages
+      for (const msg of response.messages) {
+        if (msg.role !== 'assistant' || !Array.isArray(msg.content)) continue
+        for (const part of msg.content) {
+          if (part.type === 'text' && part.text) {
+            uiParts.push({ type: 'text', text: part.text })
+          } else if (part.type === 'tool-call') {
+            const result = toolResults.get(part.toolCallId)
+            uiParts.push({
+              type: `tool-${part.toolName}`,
+              toolCallId: part.toolCallId,
+              toolName: part.toolName,
+              args: part.args,
+              state: result !== undefined ? 'output-available' : 'input-available',
+              output: result
+            })
+          }
+        }
+      }
+
+      // Save as a single assistant message with all parts
+      if (uiParts.length) {
         await db.insert(schema.messages).values({
           conversationId,
           role: 'assistant',
-          content: msg.content,
-          metadata: i === assistantMessages.length - 1 ? metadata : undefined
+          content: uiParts,
+          metadata
         })
       }
 

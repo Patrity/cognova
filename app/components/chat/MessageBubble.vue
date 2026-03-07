@@ -25,12 +25,6 @@ interface ToolPart {
   errorText?: string
 }
 
-function getToolParts(parts: PartType[]): ToolPart[] {
-  return parts
-    .filter((p): p is PartType & { type: 'dynamic-tool' } => p.type === 'dynamic-tool')
-    .map(p => p as unknown as ToolPart)
-}
-
 function getToolResult(tool: ToolPart): string | undefined {
   if (tool.state !== 'output-available' || tool.output === undefined) return undefined
   return typeof tool.output === 'string' ? tool.output : JSON.stringify(tool.output)
@@ -102,25 +96,29 @@ function relativeTime(meta: MessageMetadata | null): string {
         {{ getTextContent(message.parts) }}
       </div>
 
-      <!-- Assistant message -->
+      <!-- Assistant message: render parts in order so tool calls appear inline -->
       <template v-else>
-        <!-- Text content rendered as markdown -->
-        <div
-          v-if="getTextContent(message.parts)"
-          class="chat-prose prose prose-sm dark:prose-invert max-w-none"
+        <template
+          v-for="(part, idx) in message.parts"
+          :key="idx"
         >
-          <MDC :value="getTextContent(message.parts)" />
-        </div>
+          <!-- Text part -->
+          <div
+            v-if="part.type === 'text' && (part as any).text"
+            class="chat-prose prose prose-sm dark:prose-invert max-w-none"
+          >
+            <MDC :value="(part as any).text" />
+          </div>
 
-        <!-- Tool invocations -->
-        <ChatToolCallBlock
-          v-for="tool in getToolParts(message.parts)"
-          :key="tool.toolCallId"
-          :tool-name="tool.toolName"
-          :result="getToolResult(tool)"
-          :is-error="tool.state === 'output-error'"
-          :pending="tool.state === 'input-streaming' || tool.state === 'input-available'"
-        />
+          <!-- Tool call part (type is "tool-{name}", e.g. "tool-getWeather") -->
+          <ChatToolCallBlock
+            v-else-if="part.type.startsWith('tool-')"
+            :tool-name="(part as any).toolName || part.type.slice(5)"
+            :result="getToolResult(part as unknown as ToolPart)"
+            :is-error="(part as any).state === 'output-error'"
+            :pending="(part as any).state === 'input-streaming' || (part as any).state === 'input-available'"
+          />
+        </template>
 
         <!-- Streaming indicator -->
         <div
