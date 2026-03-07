@@ -140,5 +140,17 @@ export interface ApiResponse<T> {
   data: T
 }
 
+// Code editor
+export type CodeLanguage = 'markdown' | 'javascript' | 'typescript' | 'json' | 'html' | 'css' | 'vue' | 'python' | 'sql' | 'yaml' | 'bash' | 'go' | 'rust' | 'dockerfile' | 'java' | 'cpp' | 'xml' | 'plaintext'
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+
+export interface FileTreeEntry {
+  name: string
+  path: string
+  type: 'file' | 'directory'
+  children?: FileTreeEntry[]
+}
+
 // Agent types
 export * from './agent'

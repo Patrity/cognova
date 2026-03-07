@@ -1,4 +1,5 @@
-import type { LanguageModel, ToolSet } from 'ai'
+import type { LanguageModel, ToolSet, tool as toolFn } from 'ai'
+import type { z as zodInstance } from 'zod'
 
 // The manifest stored in installed_agents.manifestJson
 export interface AgentManifest {
@@ -23,9 +24,15 @@ export interface AgentKnowledge {
 export interface KnowledgeFile {
   path: string
   name: string
-  type: 'json' | 'markdown' | 'text'
+  type: 'json' | 'markdown' | 'text' | 'yaml'
   content: unknown
   raw: string
+}
+
+// Utilities passed to external agents to avoid dual-instance module issues
+export interface AgentUtils {
+  tool: typeof toolFn
+  z: typeof zodInstance
 }
 
 // Context passed to createAgent()
@@ -34,6 +41,7 @@ export interface AgentContext {
   knowledge: AgentKnowledge
   getModel: () => Promise<LanguageModel>
   userId: string
+  utils: AgentUtils
 }
 
 // The object returned by createAgent()
