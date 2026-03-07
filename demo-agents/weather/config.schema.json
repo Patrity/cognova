@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "defaultCity": {
+      "type": "string",
+      "title": "Default Location",
+      "description": "Default city or zip code to use when none is specified",
+      "x-cognova-group": "Defaults"
+    },
+    "temperatureUnit": {
+      "type": "string",
+      "title": "Temperature Unit",
+      "enum": ["celsius", "fahrenheit"],
+      "description": "Temperature unit for weather results",
+      "x-cognova-group": "Units"
+    },
+    "windSpeedUnit": {
+      "type": "string",
+      "title": "Wind Speed Unit",
+      "enum": ["kmh", "mph", "ms", "knots"],
+      "description": "Wind speed unit for weather results",
+      "x-cognova-group": "Units"
+    }
+  }
+}

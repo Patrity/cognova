@@ -1,0 +1,10 @@
+id: weather
+name: Weather Agent
+description: Fetches current weather for any city using the Open-Meteo API (no API key required)
+version: "1.0.0"
+capabilities:
+  - tools
+  - weather
+configSchema: config.schema.json
+knowledge:
+  - "*.md"
